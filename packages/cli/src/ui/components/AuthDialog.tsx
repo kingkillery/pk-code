@@ -15,8 +15,11 @@ import {
   setOpenAIApiKey,
   setOpenAIBaseUrl,
   setOpenAIModel,
+  setOpenRouterApiKey,
+  setOpenRouterModel,
 } from '../../config/auth.js';
 import { OpenAIKeyPrompt } from './OpenAIKeyPrompt.js';
+import { OpenRouterKeyPrompt } from './OpenRouterKeyPrompt.js';
 
 interface AuthDialogProps {
   onSelect: (authMethod: AuthType | undefined, scope: SettingScope) => void;
@@ -45,7 +48,11 @@ export function AuthDialog({
     initialErrorMessage || null,
   );
   const [showOpenAIKeyPrompt, setShowOpenAIKeyPrompt] = useState(false);
-  const items = [{ label: 'OpenAI', value: AuthType.USE_OPENAI }];
+  const [showOpenRouterKeyPrompt, setShowOpenRouterKeyPrompt] = useState(false);
+  const items = [
+    { label: 'OpenAI', value: AuthType.USE_OPENAI },
+    { label: 'OpenRouter', value: AuthType.USE_OPENROUTER },
+  ];
 
   const initialAuthIndex = items.findIndex((item) => {
     if (settings.merged.selectedAuthType) {
@@ -57,6 +64,10 @@ export function AuthDialog({
     );
     if (defaultAuthType) {
       return item.value === defaultAuthType;
+    }
+
+    if (process.env.OPENROUTER_API_KEY) {
+      return item.value === AuthType.USE_OPENROUTER;
     }
 
     if (process.env.GEMINI_API_KEY) {
@@ -71,6 +82,12 @@ export function AuthDialog({
     if (error) {
       if (authMethod === AuthType.USE_OPENAI && !process.env.OPENAI_API_KEY) {
         setShowOpenAIKeyPrompt(true);
+        setErrorMessage(null);
+      } else if (
+        authMethod === AuthType.USE_OPENROUTER &&
+        !process.env.OPENROUTER_API_KEY
+      ) {
+        setShowOpenRouterKeyPrompt(true);
         setErrorMessage(null);
       } else {
         setErrorMessage(error);
@@ -98,9 +115,23 @@ export function AuthDialog({
     setErrorMessage('OpenAI API key is required to use OpenAI authentication.');
   };
 
+  const handleOpenRouterKeySubmit = (apiKey: string, model: string) => {
+    setOpenRouterApiKey(apiKey);
+    setOpenRouterModel(model);
+    setShowOpenRouterKeyPrompt(false);
+    onSelect(AuthType.USE_OPENROUTER, SettingScope.User);
+  };
+
+  const handleOpenRouterKeyCancel = () => {
+    setShowOpenRouterKeyPrompt(false);
+    setErrorMessage(
+      'OpenRouter API key is required to use OpenRouter authentication.',
+    );
+  };
+
   useInput((_input, key) => {
-    // 当显示 OpenAIKeyPrompt 时，不处理输入事件
-    if (showOpenAIKeyPrompt) {
+    // 当显示 OpenAIKeyPrompt 或 OpenRouterKeyPrompt 时，不处理输入事件
+    if (showOpenAIKeyPrompt || showOpenRouterKeyPrompt) {
       return;
     }
 
@@ -126,6 +157,15 @@ export function AuthDialog({
       <OpenAIKeyPrompt
         onSubmit={handleOpenAIKeySubmit}
         onCancel={handleOpenAIKeyCancel}
+      />
+    );
+  }
+
+  if (showOpenRouterKeyPrompt) {
+    return (
+      <OpenRouterKeyPrompt
+        onSubmit={handleOpenRouterKeySubmit}
+        onCancel={handleOpenRouterKeyCancel}
       />
     );
   }

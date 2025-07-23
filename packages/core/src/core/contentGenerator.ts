@@ -44,6 +44,7 @@ export enum AuthType {
   USE_VERTEX_AI = 'vertex-ai',
   CLOUD_SHELL = 'cloud-shell',
   USE_OPENAI = 'openai',
+  USE_OPENROUTER = 'openrouter',
 }
 
 export type ContentGeneratorConfig = {
@@ -115,8 +116,31 @@ export async function createContentGeneratorConfig(
   }
 
   if (authType === AuthType.USE_OPENAI && openaiApiKey) {
+    const openaiModel = process.env.OPENAI_MODEL?.trim();
+    if (!openaiModel) {
+      throw new Error(
+        'OPENAI_MODEL environment variable is required when using OpenAI. ' +
+          'Please set OPENAI_MODEL to your desired model (e.g., "gpt-4", "gpt-3.5-turbo")',
+      );
+    }
+
     contentGeneratorConfig.apiKey = openaiApiKey;
-    contentGeneratorConfig.model = process.env.OPENAI_MODEL || '';
+    contentGeneratorConfig.model = openaiModel;
+
+    return contentGeneratorConfig;
+  }
+
+  if (authType === AuthType.USE_OPENROUTER && process.env.OPENROUTER_API_KEY) {
+    const openrouterModel = process.env.OPENROUTER_MODEL?.trim();
+    if (!openrouterModel) {
+      throw new Error(
+        'OPENROUTER_MODEL environment variable is required when using OpenRouter. ' +
+          'Please set OPENROUTER_MODEL to your desired model (e.g., "anthropic/claude-3-sonnet", "openai/gpt-4")',
+      );
+    }
+
+    contentGeneratorConfig.apiKey = process.env.OPENROUTER_API_KEY;
+    contentGeneratorConfig.model = openrouterModel;
 
     return contentGeneratorConfig;
   }
@@ -164,6 +188,9 @@ export async function createContentGenerator(
     if (!config.apiKey) {
       throw new Error('OpenAI API key is required');
     }
+    if (!config.model?.trim()) {
+      throw new Error('OpenAI model is required');
+    }
 
     // Import OpenAIContentGenerator dynamically to avoid circular dependencies
     const { OpenAIContentGenerator } = await import(
@@ -172,6 +199,26 @@ export async function createContentGenerator(
 
     // Always use OpenAIContentGenerator, logging is controlled by enableOpenAILogging flag
     return new OpenAIContentGenerator(config.apiKey, config.model, gcConfig);
+  }
+
+  if (config.authType === AuthType.USE_OPENROUTER) {
+    if (!config.apiKey) {
+      throw new Error('OpenRouter API key is required');
+    }
+    if (!config.model?.trim()) {
+      throw new Error('OpenRouter model is required');
+    }
+
+    // Import OpenRouterContentGenerator dynamically to avoid circular dependencies
+    const { OpenRouterContentGenerator } = await import(
+      './openrouterContentGenerator.js'
+    );
+
+    return new OpenRouterContentGenerator(
+      config.apiKey,
+      config.model,
+      gcConfig,
+    );
   }
 
   throw new Error(

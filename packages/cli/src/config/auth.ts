@@ -45,6 +45,13 @@ export const validateAuthMethod = (authMethod: string): string | null => {
     return null;
   }
 
+  if (authMethod === AuthType.USE_OPENROUTER) {
+    if (!process.env.OPENROUTER_API_KEY) {
+      return 'OPENROUTER_API_KEY environment variable not found. You can enter it interactively or add it to your .env file.';
+    }
+    return null;
+  }
+
   return 'Invalid auth method selected.';
 };
 
@@ -58,4 +65,12 @@ export const setOpenAIBaseUrl = (baseUrl: string): void => {
 
 export const setOpenAIModel = (model: string): void => {
   process.env.OPENAI_MODEL = model;
+};
+
+export const setOpenRouterApiKey = (apiKey: string): void => {
+  process.env.OPENROUTER_API_KEY = apiKey;
+};
+
+export const setOpenRouterModel = (model: string): void => {
+  process.env.OPENROUTER_MODEL = model;
 };
