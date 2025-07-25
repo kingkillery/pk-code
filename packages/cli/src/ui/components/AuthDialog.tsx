@@ -17,6 +17,7 @@ import {
   setOpenAIModel,
   setOpenRouterApiKey,
   setOpenRouterModel,
+  setOpenRouterProvider,
 } from '../../config/auth.js';
 import { OpenAIKeyPrompt } from './OpenAIKeyPrompt.js';
 import { OpenRouterKeyPrompt } from './OpenRouterKeyPrompt.js';
@@ -118,9 +119,12 @@ export function AuthDialog({
     setErrorMessage('OpenAI API key is required to use OpenAI authentication.');
   };
 
-  const handleOpenRouterKeySubmit = (apiKey: string, model: string) => {
+  const handleOpenRouterKeySubmit = (apiKey: string, model: string, provider?: string) => {
     setOpenRouterApiKey(apiKey);
     setOpenRouterModel(model);
+    if (provider) {
+      setOpenRouterProvider(provider);
+    }
     setShowOpenRouterKeyPrompt(false);
     onSelect(AuthType.USE_OPENROUTER, SettingScope.User);
   };

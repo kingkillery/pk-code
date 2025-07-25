@@ -9,7 +9,7 @@ import { Box, Text, useInput } from 'ink';
 import { Colors } from '../colors.js';
 
 interface OpenRouterKeyPromptProps {
-  onSubmit: (apiKey: string, model: string) => void;
+  onSubmit: (apiKey: string, model: string, provider?: string) => void;
   onCancel: () => void;
 }
 
@@ -19,7 +19,8 @@ export function OpenRouterKeyPrompt({
 }: OpenRouterKeyPromptProps): React.JSX.Element {
   const [apiKey, setApiKey] = useState('');
   const [model, setModel] = useState('qwen/qwen-2.5-coder-32b-instruct');
-  const [currentField, setCurrentField] = useState<'apiKey' | 'model'>(
+  const [provider, setProvider] = useState('');
+  const [currentField, setCurrentField] = useState<'apiKey' | 'model' | 'provider'>(
     'apiKey',
   );
 
@@ -42,6 +43,8 @@ export function OpenRouterKeyPrompt({
         setApiKey((prev) => prev + cleanInput);
       } else if (currentField === 'model') {
         setModel((prev) => prev + cleanInput);
+      } else if (currentField === 'provider') {
+        setProvider((prev) => prev + cleanInput);
       }
       return;
     }
@@ -52,8 +55,11 @@ export function OpenRouterKeyPrompt({
         setCurrentField('model');
         return;
       } else if (currentField === 'model') {
+        setCurrentField('provider');
+        return;
+      } else if (currentField === 'provider') {
         if (apiKey.trim()) {
-          onSubmit(apiKey.trim(), model.trim());
+          onSubmit(apiKey.trim(), model.trim(), provider.trim() || undefined);
         } else {
           setCurrentField('apiKey');
         }
@@ -71,19 +77,29 @@ export function OpenRouterKeyPrompt({
       if (currentField === 'apiKey') {
         setCurrentField('model');
       } else if (currentField === 'model') {
+        setCurrentField('provider');
+      } else if (currentField === 'provider') {
         setCurrentField('apiKey');
       }
       return;
     }
 
     // Handle arrow keys for field navigation
-    if (key.upArrow && currentField === 'model') {
-      setCurrentField('apiKey');
+    if (key.upArrow) {
+      if (currentField === 'model') {
+        setCurrentField('apiKey');
+      } else if (currentField === 'provider') {
+        setCurrentField('model');
+      }
       return;
     }
 
-    if (key.downArrow && currentField === 'apiKey') {
-      setCurrentField('model');
+    if (key.downArrow) {
+      if (currentField === 'apiKey') {
+        setCurrentField('model');
+      } else if (currentField === 'model') {
+        setCurrentField('provider');
+      }
       return;
     }
 
@@ -93,6 +109,8 @@ export function OpenRouterKeyPrompt({
         setApiKey((prev) => prev.slice(0, -1));
       } else if (currentField === 'model') {
         setModel((prev) => prev.slice(0, -1));
+      } else if (currentField === 'provider') {
+        setProvider((prev) => prev.slice(0, -1));
       }
       return;
     }
@@ -142,6 +160,21 @@ export function OpenRouterKeyPrompt({
           <Text>
             {currentField === 'model' ? '> ' : '  '}
             {model}
+          </Text>
+        </Box>
+      </Box>
+      <Box marginTop={1} flexDirection="row">
+        <Box width={12}>
+          <Text
+            color={currentField === 'provider' ? Colors.AccentBlue : Colors.Gray}
+          >
+            Provider:
+          </Text>
+        </Box>
+        <Box flexGrow={1}>
+          <Text>
+            {currentField === 'provider' ? '> ' : '  '}
+            {provider || '(optional - e.g., deepinfra, cerebras, chutes)'}
           </Text>
         </Box>
       </Box>

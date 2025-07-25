@@ -1,4 +1,5 @@
 #!/usr/bin/env node --no-deprecation
+
 /**
  * @license
  * Copyright 2025 Google LLC

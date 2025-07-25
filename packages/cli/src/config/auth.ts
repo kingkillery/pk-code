@@ -91,6 +91,14 @@ export const setOpenRouterModel = (model: string): void => {
   process.env.OPENROUTER_MODEL = model;
 };
 
+export const setOpenRouterProvider = (provider: string): void => {
+  process.env.OPENROUTER_PROVIDER = provider;
+};
+
+export const getOpenRouterProvider = (): string | undefined => {
+  return process.env.OPENROUTER_PROVIDER?.trim();
+};
+
 export const setGeminiModel = (model: string): void => {
   process.env.GEMINI_MODEL = model;
 };
@@ -134,6 +142,22 @@ export const getAvailableOpenRouterModels = async (): Promise<string[]> => {
     ];
   }
 };
+
+export const getAvailableOpenRouterProviders = (): string[] => [
+  'openai',
+  'anthropic', 
+  'google',
+  'meta-llama',
+  'mistralai',
+  'cohere',
+  'together',
+  'deepinfra',
+  'fireworks',
+  'lepton',
+  'novita',
+  'cerebras',
+  'chutes'
+];
 
 export const getAvailableGeminiModels = async (): Promise<string[]> => 
   // Common Gemini models - in production this could be fetched from API

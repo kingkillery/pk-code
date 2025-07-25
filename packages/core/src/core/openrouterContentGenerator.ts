@@ -9,8 +9,11 @@ import { Config } from '../config/config.js';
 import { OpenAIContentGenerator } from './openaiContentGenerator.js';
 
 export class OpenRouterContentGenerator extends OpenAIContentGenerator {
-  constructor(apiKey: string, model: string, config: Config) {
+  private preferredProvider?: string;
+
+  constructor(apiKey: string, model: string, config: Config, provider?: string) {
     super(apiKey, model, config);
+    this.preferredProvider = provider;
 
     // Override the OpenAI client with OpenRouter-specific configuration
     const timeoutConfig = {
@@ -34,6 +37,21 @@ export class OpenRouterContentGenerator extends OpenAIContentGenerator {
       baseURL: 'https://openrouter.ai/api/v1',
       timeout: timeoutConfig.timeout,
       maxRetries: timeoutConfig.maxRetries,
+      defaultHeaders: this.getOpenRouterHeaders(),
     });
+  }
+
+  private getOpenRouterHeaders(): Record<string, string> {
+    const headers: Record<string, string> = {
+      'HTTP-Referer': 'https://qwen-code.dev',
+      'X-Title': 'Qwen Code',
+    };
+
+    // Add preferred provider header if specified
+    if (this.preferredProvider) {
+      headers['X-OR-Provider'] = this.preferredProvider;
+    }
+
+    return headers;
   }
 }
