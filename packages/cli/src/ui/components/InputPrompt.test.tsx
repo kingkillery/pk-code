@@ -8,7 +8,7 @@ import { render } from 'ink-testing-library';
 import { InputPrompt, InputPromptProps } from './InputPrompt.js';
 import type { TextBuffer } from './shared/text-buffer.js';
 import { Config } from '@qwen-code/qwen-code-core';
-import { CommandContext, SlashCommand } from '../commands/types.js';
+import { CommandContext } from '../commands/types.js';
 import { vi } from 'vitest';
 import { useShellHistory } from '../hooks/useShellHistory.js';
 import { useCompletion } from '../hooks/useCompletion.js';
@@ -25,7 +25,7 @@ type MockedUseShellHistory = ReturnType<typeof useShellHistory>;
 type MockedUseCompletion = ReturnType<typeof useCompletion>;
 type MockedUseInputHistory = ReturnType<typeof useInputHistory>;
 
-const mockCommands: Command[] = [
+const _mockCommands: Command[] = [
   { name: 'clear', description: 'Clear screen', action: vi.fn() },
   {
     name: 'memory',
@@ -311,7 +311,7 @@ describe('InputPrompt', () => {
       expect(actualCall[0]).toBe(5); // start offset
       expect(actualCall[1]).toBe(5); // end offset
       expect(actualCall[2]).toMatch(
-        /@.*\.gemini-clipboard[\/]clipboard-456\.png/,
+        /@.*\.gemini-clipboard[/]clipboard-456\.png/,
       ); // flexible path match
       unmount();
     });

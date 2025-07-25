@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { OpenDialogActionReturn, Command, CommandContext } from './types.js';
+import { OpenDialogActionReturn, Command } from './types.js';
 
 export const privacyCommand: Command = {
   name: 'privacy',

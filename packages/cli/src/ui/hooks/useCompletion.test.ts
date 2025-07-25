@@ -10,7 +10,7 @@ import { renderHook, act } from '@testing-library/react';
 import { useCompletion } from './useCompletion.js';
 import * as fs from 'fs/promises';
 import { glob } from 'glob';
-import { CommandContext, SlashCommand } from '../commands/types.js';
+import { CommandContext } from '../commands/types.js';
 import { Config, FileDiscoveryService } from '@google/gemini-cli-core';
 
 // Mock dependencies
@@ -33,7 +33,7 @@ describe('useCompletion', () => {
   let mockFileDiscoveryService: Mocked<FileDiscoveryService>;
   let mockConfig: Mocked<Config>;
   let mockCommandContext: CommandContext;
-  let mockCommands: Command[];
+  let _mockCommands: Command[];
 
   const testCwd = '/test/project';
 

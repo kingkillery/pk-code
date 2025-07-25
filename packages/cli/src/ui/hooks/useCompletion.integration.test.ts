@@ -10,7 +10,7 @@ import { renderHook, act } from '@testing-library/react';
 import { useCompletion } from './useCompletion.js';
 import * as fs from 'fs/promises';
 import { glob } from 'glob';
-import { CommandContext, SlashCommand } from '../commands/types.js';
+import { CommandContext } from '../commands/types.js';
 import { Config, FileDiscoveryService } from '@qwen-code/qwen-code-core';
 
 interface MockConfig {
@@ -47,7 +47,7 @@ describe('useCompletion git-aware filtering integration', () => {
   // A minimal mock is sufficient for these tests.
   const mockCommandContext = {} as CommandContext;
 
-  const mockCommands: Command[] = [
+  const _mockCommands: Command[] = [
     {
       name: 'help',
       altName: '?',

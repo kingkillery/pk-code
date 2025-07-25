@@ -75,11 +75,11 @@ export const modelCommand: Command = {
           messageType: 'info',
           content: `The current model is: ${currentModel}\n\nAvailable ${providerName} models:\n${modelsList}${moreModelsNote}\n\nTo switch models, use: /model <model-name>`,
         };
-      } catch (error) {
+      } catch (_error) {
         return {
           type: 'message',
           messageType: 'info',
-          content: `The current model is: ${currentModel}\n\nTo switch models, use: /model <model-name>`,
+          content: `The current model is: ${currentModel}\n\nTo switch models, use: /model \u003cmodel-name\u003e`,
         };
       }
     }
@@ -89,13 +89,14 @@ export const modelCommand: Command = {
       let isValidModel = false;
 
       switch (authType) {
-        case 'openai':
+        case 'openai': {
           const openAIModels = await getAvailableOpenAIModels();
           isValidModel = openAIModels.includes(newModel);
           if (isValidModel) {
             setOpenAIModel(newModel);
           }
           break;
+        }
 
         case 'openrouter':
           isValidModel = await validateOpenRouterModel(newModel);
