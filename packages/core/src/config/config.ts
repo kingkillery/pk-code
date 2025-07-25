@@ -304,6 +304,27 @@ export class Config {
     this.modelSwitchedDuringSession = false;
   }
 
+  async refreshContentGenerator(): Promise<void> {
+    if (!this.contentGeneratorConfig?.authType) {
+      return;
+    }
+
+    // Recreate the content generator config with current environment variables
+    const newConfig = await createContentGeneratorConfig(
+      this.getModel(), // Use current model from config
+      this.contentGeneratorConfig.authType,
+    );
+    newConfig.enableOpenAILogging = this.enableOpenAILogging;
+
+    // Set sampling parameters from config if available
+    if (this.sampling_params) {
+      newConfig.samplingParams = this.sampling_params;
+    }
+
+    this.contentGeneratorConfig = newConfig;
+    await this.geminiClient.initialize(this.contentGeneratorConfig);
+  }
+
   getSessionId(): string {
     return this.sessionId;
   }

@@ -69,6 +69,15 @@ export const inferenceProviderCommand: Command = {
       newProvider === 'clear'
     ) {
       process.env.OPENROUTER_PROVIDER = '';
+      
+      // Refresh the content generator to pick up the cleared provider
+      try {
+        await config.refreshContentGenerator();
+      } catch (error) {
+        console.error('Failed to refresh content generator:', error);
+        // Don't fail the entire command if refresh fails
+      }
+      
       return {
         type: 'message',
         messageType: 'info',
@@ -89,6 +98,14 @@ export const inferenceProviderCommand: Command = {
 
     // Set the new provider
     setOpenRouterProvider(newProvider);
+
+    // Refresh the content generator to pick up the new provider
+    try {
+      await config.refreshContentGenerator();
+    } catch (error) {
+      console.error('Failed to refresh content generator:', error);
+      // Don't fail the entire command if refresh fails
+    }
 
     return {
       type: 'message',
