@@ -41,7 +41,7 @@ export const modelCommand: Command = {
       try {
         let availableModels: string[] = [];
         let providerName = '';
-        
+
         switch (authType) {
           case 'openai':
             availableModels = await getAvailableOpenAIModels();
@@ -57,13 +57,18 @@ export const modelCommand: Command = {
             break;
         }
 
-        const modelsList = availableModels.length > 0 
-          ? availableModels.slice(0, 10).map(model => `  • ${model}`).join('\n')
-          : '  No models available';
-        
-        const moreModelsNote = availableModels.length > 10 
-          ? `\n  ... and ${availableModels.length - 10} more models` 
-          : '';
+        const modelsList =
+          availableModels.length > 0
+            ? availableModels
+                .slice(0, 10)
+                .map((model) => `  • ${model}`)
+                .join('\n')
+            : '  No models available';
+
+        const moreModelsNote =
+          availableModels.length > 10
+            ? `\n  ... and ${availableModels.length - 10} more models`
+            : '';
 
         return {
           type: 'message',
@@ -82,7 +87,7 @@ export const modelCommand: Command = {
     // Validate and switch to new model
     try {
       let isValidModel = false;
-      
+
       switch (authType) {
         case 'openai':
           const openAIModels = await getAvailableOpenAIModels();
@@ -91,14 +96,14 @@ export const modelCommand: Command = {
             setOpenAIModel(newModel);
           }
           break;
-          
+
         case 'openrouter':
           isValidModel = await validateOpenRouterModel(newModel);
           if (isValidModel) {
             setOpenRouterModel(newModel);
           }
           break;
-          
+
         default: // gemini
           isValidModel = await validateGeminiModel(newModel);
           if (isValidModel) {

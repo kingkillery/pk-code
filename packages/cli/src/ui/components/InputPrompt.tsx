@@ -73,19 +73,22 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
   const handleSubmitAndClear = useCallback(
     (submittedValue: string) => {
       try {
-        console.debug('[InputPrompt] Handling submit:', submittedValue.substring(0, 50));
-        
+        console.debug(
+          '[InputPrompt] Handling submit:',
+          submittedValue.substring(0, 50),
+        );
+
         if (shellModeActive) {
           shellHistory.addCommandToHistory(submittedValue);
         }
-        
+
         // Clear the buffer *before* calling onSubmit to prevent potential re-submission
         // if onSubmit triggers a re-render while the buffer still holds the old value.
         buffer.setText('');
-        
+
         console.debug('[InputPrompt] Calling onSubmit');
         onSubmit(submittedValue);
-        
+
         resetCompletionState();
         console.debug('[InputPrompt] Submit completed successfully');
       } catch (error) {

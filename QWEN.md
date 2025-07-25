@@ -12,7 +12,7 @@ This single command ensures that your changes meet all the quality gates of the 
 
 ## Writing Tests
 
-This project uses **Vitest** as its primary testing framework. When writing tests, aim to follow existing patterns. Key conventions include:
+This project uses **Vitest** as its primary testing framework. Configuration files exist for Vitest (`vitest.config.ts`) in each package. When writing tests, aim to follow existing patterns. Key conventions include:
 
 ### Test Structure and Framework
 
@@ -56,7 +56,7 @@ This project uses **Vitest** as its primary testing framework. When writing test
 
 ## Git Repo
 
-The main branch for this project is called "main"
+The main branch for this project is called "master"
 
 ## JavaScript/TypeScript
 
@@ -330,12 +330,12 @@ Environment Loading → Auth Type Selection → Content Generator Creation → A
 **Auth Selection (Interactive):**
 
 - File: `packages/cli/src/ui/components/AuthDialog.tsx:57-78`
-- Priority: Settings → ENV vars → API key detection → Default
+- Priority: Settings → ENV vars → API key detection → Default (Google Login)
 
 **Auth Selection (Non-Interactive):**
 
-- File: `packages/cli/src/gemini.tsx:342-350`
-- Priority: `OPENROUTER_API_KEY` → `OPENAI_API_KEY` → `USE_GEMINI`
+- File: `packages/cli/src/nonInteractiveCli.ts`
+- Priority: `OPENROUTER_API_KEY` → `OPENAI_API_KEY` → `GEMINI_API_KEY`
 
 ### Global Installation Flow
 

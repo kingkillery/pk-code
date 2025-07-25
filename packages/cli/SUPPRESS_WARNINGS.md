@@ -10,7 +10,7 @@ The `package.json` includes scripts that automatically suppress warnings:
 # Start with deprecation warnings suppressed
 npm run start
 
-# Start with all warnings suppressed  
+# Start with all warnings suppressed
 npm run start:clean
 ```
 
@@ -50,12 +50,14 @@ $env:NODE_NO_WARNINGS=1; node dist/index.js
 We've provided wrapper scripts for convenience:
 
 ### Unix/Linux/macOS:
+
 ```bash
 chmod +x qwen-clean.sh
 ./qwen-clean.sh --help
 ```
 
 ### Windows:
+
 ```batch
 qwen-clean.bat --help
 ```
@@ -72,6 +74,7 @@ qwen --help  # Should run without deprecation warnings
 ## Common Deprecation Warnings
 
 The most common deprecation warnings you might see are:
+
 - Buffer constructor deprecation warnings
 - Deprecated crypto methods
 - Old module resolution patterns

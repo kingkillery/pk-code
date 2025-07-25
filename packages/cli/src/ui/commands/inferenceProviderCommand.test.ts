@@ -79,7 +79,8 @@ describe('inferenceProviderCommand', () => {
     expect(result).toEqual({
       type: 'message',
       messageType: 'error',
-      content: 'The /inference-p command only works with OpenRouter. Current auth method is: openai',
+      content:
+        'The /inference-p command only works with OpenRouter. Current auth method is: openai',
     });
   });
 
@@ -94,9 +95,11 @@ describe('inferenceProviderCommand', () => {
       messageType: 'info',
       content: expect.stringContaining('Current provider: cerebras'),
     });
-    expect((result as any).content).toContain('Available OpenRouter providers:');
-    expect((result as any).content).toContain('• deepinfra');
-    expect((result as any).content).toContain('• cerebras');
+    expect((result as { content: string }).content).toContain(
+      'Available OpenRouter providers:',
+    );
+    expect((result as { content: string }).content).toContain('• deepinfra');
+    expect((result as { content: string }).content).toContain('• cerebras');
   });
 
   it('should display auto when no provider is set', async () => {
@@ -108,7 +111,9 @@ describe('inferenceProviderCommand', () => {
     expect(result).toEqual({
       type: 'message',
       messageType: 'info',
-      content: expect.stringContaining('Current provider: auto (OpenRouter will choose automatically)'),
+      content: expect.stringContaining(
+        'Current provider: auto (OpenRouter will choose automatically)',
+      ),
     });
   });
 
@@ -121,10 +126,11 @@ describe('inferenceProviderCommand', () => {
     expect(result).toEqual({
       type: 'message',
       messageType: 'info',
-      content: 'OpenRouter provider cleared. OpenRouter will now choose automatically.',
+      content:
+        'OpenRouter provider cleared. OpenRouter will now choose automatically.',
     });
     expect(process.env.OPENROUTER_PROVIDER).toBe('');
-    
+
     // Restore original env
     process.env.OPENROUTER_PROVIDER = originalEnv;
   });
@@ -145,12 +151,16 @@ describe('inferenceProviderCommand', () => {
   it('should return error for invalid provider', async () => {
     (config.getAuthType as vi.Mock).mockReturnValue('openrouter');
 
-    const result = await inferenceProviderCommand.action!(context, 'invalid-provider');
+    const result = await inferenceProviderCommand.action!(
+      context,
+      'invalid-provider',
+    );
 
     expect(result).toEqual({
       type: 'message',
       messageType: 'error',
-      content: "Invalid provider: invalid-provider. Use '/inference-p' to see available providers.",
+      content:
+        "Invalid provider: invalid-provider. Use '/inference-p' to see available providers.",
     });
     expect(setOpenRouterProvider).not.toHaveBeenCalled();
   });

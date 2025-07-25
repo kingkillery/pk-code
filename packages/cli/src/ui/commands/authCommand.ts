@@ -9,7 +9,10 @@ import { OpenDialogActionReturn, Command, CommandContext } from './types.js';
 export const authCommand: Command = {
   name: 'auth',
   description: 'change the auth method',
-  action: (_context: CommandContext, _args: string): OpenDialogActionReturn => ({
+  action: (
+    _context: CommandContext,
+    _args: string,
+  ): OpenDialogActionReturn => ({
     type: 'dialog',
     dialog: 'auth',
   }),

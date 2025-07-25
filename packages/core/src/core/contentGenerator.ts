@@ -141,7 +141,9 @@ export async function createContentGeneratorConfig(
     contentGeneratorConfig.apiKey = process.env.OPENROUTER_API_KEY;
     contentGeneratorConfig.model = openrouterModel;
     // Add provider support for OpenRouter
-    (contentGeneratorConfig as any).provider = process.env.OPENROUTER_PROVIDER?.trim();
+    (
+      contentGeneratorConfig as ContentGeneratorConfig & { provider?: string }
+    ).provider = process.env.OPENROUTER_PROVIDER?.trim();
 
     return contentGeneratorConfig;
   }
@@ -219,7 +221,7 @@ export async function createContentGenerator(
       config.apiKey,
       config.model,
       gcConfig,
-      (config as any).provider,
+      (config as ContentGeneratorConfig & { provider?: string }).provider,
     );
   }
 

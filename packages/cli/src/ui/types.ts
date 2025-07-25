@@ -231,4 +231,8 @@ export type CommandProcessorResult =
     };
 
 // Re-export command types from commands/types.ts for convenience
-export type { Command, SlashCommand, CommandContext } from './commands/types.js';
+export type {
+  Command,
+  SlashCommand,
+  CommandContext,
+} from './commands/types.js';

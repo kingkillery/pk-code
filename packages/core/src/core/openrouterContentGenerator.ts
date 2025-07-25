@@ -11,7 +11,12 @@ import { OpenAIContentGenerator } from './openaiContentGenerator.js';
 export class OpenRouterContentGenerator extends OpenAIContentGenerator {
   private preferredProvider?: string;
 
-  constructor(apiKey: string, model: string, config: Config, provider?: string) {
+  constructor(
+    apiKey: string,
+    model: string,
+    config: Config,
+    provider?: string,
+  ) {
     super(apiKey, model, config);
     this.preferredProvider = provider;
 

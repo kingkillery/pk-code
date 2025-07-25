@@ -282,7 +282,7 @@ export async function loadCliConfig(
     !process.env.OPENROUTER_MODEL &&
     !argv.model
   ) {
-    process.env.OPENROUTER_MODEL = 'qwen/qwen3-coder';
+    process.env.OPENROUTER_MODEL = 'qwen/qwen3-32b';
   }
 
   // Set the context filename in the server's memoryTool module BEFORE loading memory

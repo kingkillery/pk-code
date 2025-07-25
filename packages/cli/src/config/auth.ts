@@ -95,26 +95,23 @@ export const setOpenRouterProvider = (provider: string): void => {
   process.env.OPENROUTER_PROVIDER = provider;
 };
 
-export const getOpenRouterProvider = (): string | undefined => {
-  return process.env.OPENROUTER_PROVIDER?.trim();
-};
+export const getOpenRouterProvider = (): string | undefined =>
+  process.env.OPENROUTER_PROVIDER?.trim();
 
 export const setGeminiModel = (model: string): void => {
   process.env.GEMINI_MODEL = model;
 };
 
-export const getAvailableOpenAIModels = async (): Promise<string[]> => 
+export const getAvailableOpenAIModels = async (): Promise<string[]> => [
   // Common OpenAI models - in production this could be fetched from API
-   [
-    'gpt-4',
-    'gpt-4-turbo',
-    'gpt-4o',
-    'gpt-4o-mini',
-    'gpt-3.5-turbo',
-    'o1-preview',
-    'o1-mini'
-  ]
-;
+  'gpt-4',
+  'gpt-4-turbo',
+  'gpt-4o',
+  'gpt-4o-mini',
+  'gpt-3.5-turbo',
+  'o1-preview',
+  'o1-mini',
+];
 
 export const getAvailableOpenRouterModels = async (): Promise<string[]> => {
   try {
@@ -124,10 +121,10 @@ export const getAvailableOpenRouterModels = async (): Promise<string[]> => {
     }
     const data = await response.json();
     interface OpenRouterModel {
-  id: string;
-}
+      id: string;
+    }
 
-// ...
+    // ...
 
     return data.data?.map((model: OpenRouterModel) => model.id) || [];
   } catch (_error) {
@@ -138,14 +135,14 @@ export const getAvailableOpenRouterModels = async (): Promise<string[]> => {
       'openai/gpt-4',
       'openai/gpt-3.5-turbo',
       'mistralai/devstral-small',
-      'mistralai/mistral-7b-instruct'
+      'mistralai/mistral-7b-instruct',
     ];
   }
 };
 
 export const getAvailableOpenRouterProviders = (): string[] => [
   'openai',
-  'anthropic', 
+  'anthropic',
   'google',
   'meta-llama',
   'mistralai',
@@ -156,19 +153,17 @@ export const getAvailableOpenRouterProviders = (): string[] => [
   'lepton',
   'novita',
   'cerebras',
-  'chutes'
+  'chutes',
 ];
 
-export const getAvailableGeminiModels = async (): Promise<string[]> => 
+export const getAvailableGeminiModels = async (): Promise<string[]> => [
   // Common Gemini models - in production this could be fetched from API
-   [
-    'qwen3-coder-max',
-    'gemini-2.5-flash',
-    'gemini-1.5-pro',
-    'gemini-1.5-flash',
-    'gemini-pro'
-  ]
-;
+  'qwen3-coder-max',
+  'gemini-2.5-flash',
+  'gemini-1.5-pro',
+  'gemini-1.5-flash',
+  'gemini-pro',
+];
 
 export const validateGeminiModel = async (model: string): Promise<boolean> => {
   const availableModels = await getAvailableGeminiModels();

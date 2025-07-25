@@ -531,7 +531,10 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
   const handleFinalSubmit = useCallback(
     (submittedValue: string) => {
       try {
-        console.debug('[App] Handling final submit:', submittedValue.substring(0, 50));
+        console.debug(
+          '[App] Handling final submit:',
+          submittedValue.substring(0, 50),
+        );
         const trimmedValue = submittedValue.trim();
         if (trimmedValue.length > 0) {
           console.debug('[App] Calling submitQuery');

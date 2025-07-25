@@ -38,20 +38,25 @@ The following inference providers are supported:
 ## Configuration Methods
 
 ### 1. Environment Variable
+
 ```bash
 export OPENROUTER_PROVIDER=cerebras
 ```
 
 ### 2. .env File
+
 Add to your `.env` file:
+
 ```
 OPENROUTER_PROVIDER=deepinfra
 ```
 
 ### 3. Interactive Setup
+
 When configuring OpenRouter for the first time, you'll be prompted to optionally specify a provider.
 
 ### 4. Slash Command (Runtime)
+
 Use the `/inference-p` command to change the provider during a chat session:
 
 ```
@@ -66,6 +71,7 @@ Use the `/inference-p` command to change the provider during a chat session:
 ```
 
 **Features:**
+
 - Tab completion for provider names
 - Alternative command: `/infp` (short form)
 - Only works when using OpenRouter authentication
@@ -74,6 +80,7 @@ Use the `/inference-p` command to change the provider during a chat session:
 ## Usage Examples
 
 ### Basic Setup
+
 ```bash
 # Set your OpenRouter API key
 export OPENROUTER_API_KEY=your_api_key_here
@@ -91,18 +98,21 @@ qwen
 ### Provider-Specific Use Cases
 
 **For fastest inference (Cerebras):**
+
 ```bash
 export OPENROUTER_PROVIDER=cerebras
 export OPENROUTER_MODEL=meta-llama/llama-3.1-8b-instruct
 ```
 
 **For cost-effective inference (DeepInfra):**
+
 ```bash
 export OPENROUTER_PROVIDER=deepinfra
 export OPENROUTER_MODEL=qwen/qwen-2.5-coder-32b-instruct
 ```
 
 **For high-throughput workloads (Chutes):**
+
 ```bash
 export OPENROUTER_PROVIDER=chutes
 export OPENROUTER_MODEL=anthropic/claude-3-sonnet
@@ -113,7 +123,7 @@ export OPENROUTER_MODEL=anthropic/claude-3-sonnet
 When you specify a provider, Qwen Code sends the `X-OR-Provider` header to OpenRouter's API, which routes your request to the specified inference provider. This allows you to:
 
 - **Optimize for speed** - Use Cerebras for ultra-fast inference
-- **Optimize for cost** - Use DeepInfra for budget-friendly inference  
+- **Optimize for cost** - Use DeepInfra for budget-friendly inference
 - **Optimize for throughput** - Use Chutes for high-volume workloads
 - **Use specific infrastructure** - Route to the provider that best suits your needs
 

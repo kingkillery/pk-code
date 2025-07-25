@@ -198,7 +198,10 @@ export function useCompletion(
           const argString = rawParts.slice(depth).join(' ');
           const results =
             (await leafCommand!.completion!(commandContext, argString)) || [];
-          const finalSuggestions = results.map((s: string) => ({ label: s, value: s }));
+          const finalSuggestions = results.map((s: string) => ({
+            label: s,
+            value: s,
+          }));
           setSuggestions(finalSuggestions);
           setShowSuggestions(finalSuggestions.length > 0);
           setActiveSuggestionIndex(finalSuggestions.length > 0 ? 0 : -1);

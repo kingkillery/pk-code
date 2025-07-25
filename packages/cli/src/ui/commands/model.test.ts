@@ -15,8 +15,6 @@ import {
   validateOpenRouterModel,
   validateGeminiModel,
   getAvailableOpenAIModels,
-  getAvailableOpenRouterModels,
-  getAvailableGeminiModels,
 } from '../../config/auth.js';
 
 // Mock dependencies
@@ -65,20 +63,27 @@ describe('modelCommand', () => {
   it('should display the current model and available models when no new model is provided', async () => {
     (config.getModel as vi.Mock).mockReturnValue('gpt-4');
     (config.getAuthType as vi.Mock).mockReturnValue(AuthType.USE_OPENAI);
-    (getAvailableOpenAIModels as vi.Mock).mockResolvedValue(['gpt-4', 'gpt-3.5-turbo']);
+    (getAvailableOpenAIModels as vi.Mock).mockResolvedValue([
+      'gpt-4',
+      'gpt-3.5-turbo',
+    ]);
 
     const result = await modelCommand.action(context, '');
 
     expect(result).toEqual({
       type: 'message',
       messageType: 'info',
-      content: 'The current model is: gpt-4\n\nAvailable OpenAI models:\n  • gpt-4\n  • gpt-3.5-turbo\n\nTo switch models, use: /model <model-name>',
+      content:
+        'The current model is: gpt-4\n\nAvailable OpenAI models:\n  • gpt-4\n  • gpt-3.5-turbo\n\nTo switch models, use: /model <model-name>',
     });
   });
 
   it('should switch the model for OpenAI', async () => {
     (config.getAuthType as vi.Mock).mockReturnValue(AuthType.USE_OPENAI);
-    (getAvailableOpenAIModels as vi.Mock).mockResolvedValue(['gpt-4', 'gpt-3.5-turbo']);
+    (getAvailableOpenAIModels as vi.Mock).mockResolvedValue([
+      'gpt-4',
+      'gpt-3.5-turbo',
+    ]);
 
     const result = await modelCommand.action(context, 'gpt-3.5-turbo');
 
@@ -119,7 +124,8 @@ describe('modelCommand', () => {
     expect(result).toEqual({
       type: 'message',
       messageType: 'error',
-      content: 'Invalid model: invalid-model. Use \'/model\' to see available models for your current provider (openrouter).',
+      content:
+        "Invalid model: invalid-model. Use '/model' to see available models for your current provider (openrouter).",
     });
   });
 
@@ -151,7 +157,8 @@ describe('modelCommand', () => {
     expect(result).toEqual({
       type: 'message',
       messageType: 'error',
-      content: 'Invalid model: invalid-gemini-model. Use \'/model\' to see available models for your current provider (gemini-api-key).',
+      content:
+        "Invalid model: invalid-gemini-model. Use '/model' to see available models for your current provider (gemini-api-key).",
     });
   });
 
@@ -159,9 +166,14 @@ describe('modelCommand', () => {
     (config.getAuthType as vi.Mock).mockReturnValue(AuthType.USE_OPENROUTER);
     (validateOpenRouterModel as vi.Mock).mockResolvedValue(true);
 
-    const result = await modelCommand.action(context, 'mistralai/devstral-small');
+    const result = await modelCommand.action(
+      context,
+      'mistralai/devstral-small',
+    );
 
-    expect(validateOpenRouterModel).toHaveBeenCalledWith('mistralai/devstral-small');
+    expect(validateOpenRouterModel).toHaveBeenCalledWith(
+      'mistralai/devstral-small',
+    );
     expect(setOpenRouterModel).toHaveBeenCalledWith('mistralai/devstral-small');
     expect(config.setModel).toHaveBeenCalledWith('mistralai/devstral-small');
     expect(result).toEqual({

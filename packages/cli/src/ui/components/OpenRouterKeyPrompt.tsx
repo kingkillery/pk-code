@@ -20,9 +20,9 @@ export function OpenRouterKeyPrompt({
   const [apiKey, setApiKey] = useState('');
   const [model, setModel] = useState('qwen/qwen-2.5-coder-32b-instruct');
   const [provider, setProvider] = useState('');
-  const [currentField, setCurrentField] = useState<'apiKey' | 'model' | 'provider'>(
-    'apiKey',
-  );
+  const [currentField, setCurrentField] = useState<
+    'apiKey' | 'model' | 'provider'
+  >('apiKey');
 
   useInput((input, key) => {
     // Filter paste-related control sequences
@@ -166,7 +166,9 @@ export function OpenRouterKeyPrompt({
       <Box marginTop={1} flexDirection="row">
         <Box width={12}>
           <Text
-            color={currentField === 'provider' ? Colors.AccentBlue : Colors.Gray}
+            color={
+              currentField === 'provider' ? Colors.AccentBlue : Colors.Gray
+            }
           >
             Provider:
           </Text>

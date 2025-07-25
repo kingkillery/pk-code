@@ -35,7 +35,9 @@ export const inferenceProviderCommand: Command = {
       return {
         type: 'message',
         messageType: 'error',
-        content: 'The /inference-p command only works with OpenRouter. Current auth method is: ' + authType,
+        content:
+          'The /inference-p command only works with OpenRouter. Current auth method is: ' +
+          authType,
       };
     }
 
@@ -45,12 +47,14 @@ export const inferenceProviderCommand: Command = {
     // If no provider specified, show current provider and available options
     if (!newProvider) {
       const availableProviders = getAvailableOpenRouterProviders();
-      const providersList = availableProviders.map(provider => `  • ${provider}`).join('\n');
-      
-      const currentProviderText = currentProvider 
+      const providersList = availableProviders
+        .map((provider) => `  • ${provider}`)
+        .join('\n');
+
+      const currentProviderText = currentProvider
         ? `Current provider: ${currentProvider}`
         : 'Current provider: auto (OpenRouter will choose automatically)';
-      
+
       return {
         type: 'message',
         messageType: 'info',
@@ -59,12 +63,17 @@ export const inferenceProviderCommand: Command = {
     }
 
     // Handle "auto" or "none" to clear the provider
-    if (newProvider === 'auto' || newProvider === 'none' || newProvider === 'clear') {
+    if (
+      newProvider === 'auto' ||
+      newProvider === 'none' ||
+      newProvider === 'clear'
+    ) {
       process.env.OPENROUTER_PROVIDER = '';
       return {
         type: 'message',
         messageType: 'info',
-        content: 'OpenRouter provider cleared. OpenRouter will now choose automatically.',
+        content:
+          'OpenRouter provider cleared. OpenRouter will now choose automatically.',
       };
     }
 
@@ -103,13 +112,13 @@ export const inferenceProviderCommand: Command = {
 
     const availableProviders = getAvailableOpenRouterProviders();
     const allOptions = ['auto', 'clear', ...availableProviders];
-    
+
     if (!partialArg) {
       return allOptions;
     }
 
-    return allOptions.filter(provider => 
-      provider.toLowerCase().startsWith(partialArg.toLowerCase())
+    return allOptions.filter((provider) =>
+      provider.toLowerCase().startsWith(partialArg.toLowerCase()),
     );
   },
 };

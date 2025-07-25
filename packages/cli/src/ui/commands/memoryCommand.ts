@@ -36,7 +36,10 @@ export const memoryCommand: Command = {
     {
       name: 'add',
       description: 'Add content to the memory.',
-      action: (context: CommandContext, args: string): SlashCommandActionReturn | void => {
+      action: (
+        context: CommandContext,
+        args: string,
+      ): SlashCommandActionReturn | void => {
         if (!args || args.trim() === '') {
           return {
             type: 'message',

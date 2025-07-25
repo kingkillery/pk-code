@@ -119,7 +119,11 @@ export function AuthDialog({
     setErrorMessage('OpenAI API key is required to use OpenAI authentication.');
   };
 
-  const handleOpenRouterKeySubmit = (apiKey: string, model: string, provider?: string) => {
+  const handleOpenRouterKeySubmit = (
+    apiKey: string,
+    model: string,
+    provider?: string,
+  ) => {
     setOpenRouterApiKey(apiKey);
     setOpenRouterModel(model);
     if (provider) {
