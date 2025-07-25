@@ -2,7 +2,10 @@
 
 ![Qwen Code Screenshot](./docs/assets/qwen-screenshot.png)
 
-Qwen Code is a command-line AI workflow tool adapted from [**Gemini CLI**](https://github.com/google-gemini/gemini-cli)(Please refer to [this document](./README.gemini.md) for more details), optimized for [Qwen3-Coder](https://github.com/QwenLM/Qwen3-Coder) models with enhanced parser support & tool support.
+Qwen Code is a command-line AI workflow tool adapted from [**Gemini CLI**](https://github.com/google-gemini/gemini-cli) (Please refer to [this document](./README.gemini.md) for more details), optimized for [Qwen3-Coder](https://github.com/QwenLM/Qwen3-Coder) models with enhanced parser support & tool support.
+
+> [!WARNING]
+> Qwen Code may issue multiple API calls per cycle, resulting in higher token usage, similar to Claude Code. We’re actively working to enhance API efficiency and improve the overall developer experience.
 
 ## Key Features
 
@@ -44,9 +47,17 @@ npm install -g .
 
 ### API Configuration
 
-Set your Qwen API key (In Qwen Code project, you can also set your API key in `.env` file):
+Set your Qwen API key (In Qwen Code project, you can also set your API key in `.env` file). the `.env` file should be placed in the root directory of your current project.
+
+> ⚠️ **Notice:** <br>
+> **If you are in mainland China, please go to https://bailian.console.aliyun.com/ to apply for your API key** <br>
+> **If you are not in mainland China, please go to https://modelstudio.console.alibabacloud.com/ to apply for your API key**
 
 ```bash
+# If you are in mainland China, use the following URL:
+# https://dashscope.aliyuncs.com/compatible-mode/v1
+# If you are not in mainland China, use the following URL:
+# https://dashscope-intl.aliyuncs.com/compatible-mode/v1
 export OPENAI_API_KEY="your_api_key_here"
 export OPENAI_BASE_URL="your_api_base_url_here"
 export OPENAI_MODEL="your_api_model_here"
@@ -137,3 +148,7 @@ This project is based on [Google Gemini CLI](https://github.com/google-gemini/ge
 ## License
 
 [LICENSE](./LICENSE)
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=QwenLM/qwen-code&type=Date)](https://www.star-history.com/#QwenLM/qwen-code&Date)
