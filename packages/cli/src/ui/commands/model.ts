@@ -123,6 +123,16 @@ export const modelCommand: Command = {
 
       config.setModel(newModel);
 
+      // For OpenRouter, refresh the content generator to pick up the new model
+      if (authType === 'openrouter') {
+        try {
+          await config.refreshContentGenerator();
+        } catch (error) {
+          console.error('Failed to refresh content generator:', error);
+          // Don't fail the entire command if refresh fails
+        }
+      }
+
       return {
         type: 'message',
         messageType: 'info',

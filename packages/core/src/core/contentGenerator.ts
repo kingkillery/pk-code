@@ -38,6 +38,33 @@ export interface ContentGenerator {
   getTier?(): Promise<UserTierId | undefined>;
 }
 
+/**
+ * Extended interface for multimodal content generation with vision capabilities
+ */
+export interface MultimodalContentGenerator extends ContentGenerator {
+  /**
+   * Generate content with explicit vision model routing
+   */
+  generateContentWithVision(
+    request: GenerateContentParameters,
+  ): Promise<GenerateContentResponse>;
+
+  /**
+   * Check if the content generator has vision capabilities
+   */
+  isVisionCapable(): boolean;
+
+  /**
+   * Get the vision model name being used
+   */
+  getVisionModel(): string | undefined;
+
+  /**
+   * Get the text model name being used
+   */
+  getTextModel(): string;
+}
+
 export enum AuthType {
   LOGIN_WITH_GOOGLE = 'oauth-personal',
   USE_GEMINI = 'gemini-api-key',
@@ -46,6 +73,14 @@ export enum AuthType {
   USE_OPENAI = 'openai',
   USE_OPENROUTER = 'openrouter',
 }
+
+export type VisionModelConfig = {
+  visionModel: string;
+  visionProvider?: string;
+  routingStrategy: 'auto' | 'explicit' | 'tool-based';
+  fallbackToText: boolean;
+  visionApiKey?: string;
+};
 
 export type ContentGeneratorConfig = {
   model: string;
@@ -66,6 +101,9 @@ export type ContentGeneratorConfig = {
     temperature?: number;
     max_tokens?: number;
   };
+  // Vision model configuration
+  visionConfig?: VisionModelConfig;
+  enableSmartRouting?: boolean;
 };
 
 export async function createContentGeneratorConfig(
@@ -145,6 +183,23 @@ export async function createContentGeneratorConfig(
       contentGeneratorConfig as ContentGeneratorConfig & { provider?: string }
     ).provider = process.env.OPENROUTER_PROVIDER?.trim();
 
+    // Add vision model configuration if enabled
+    if (process.env.ENABLE_VISION_ROUTING === 'true') {
+      const visionModel = process.env.VISION_MODEL_NAME?.trim() || 'bytedance/ui-tars-1.5-7b';
+      const visionProvider = process.env.VISION_MODEL_PROVIDER?.trim() || 'openrouter';
+      const routingStrategy = (process.env.VISION_ROUTING_STRATEGY as 'auto' | 'explicit' | 'tool-based') || 'auto';
+      const fallbackToText = process.env.VISION_FALLBACK_TO_TEXT !== 'false';
+
+      contentGeneratorConfig.visionConfig = {
+        visionModel,
+        visionProvider,
+        routingStrategy,
+        fallbackToText,
+        visionApiKey: process.env.VISION_MODEL_API_KEY?.trim() || process.env.OPENROUTER_API_KEY,
+      };
+      contentGeneratorConfig.enableSmartRouting = true;
+    }
+
     return contentGeneratorConfig;
   }
 
@@ -162,19 +217,21 @@ export async function createContentGenerator(
       'User-Agent': `GeminiCLI/${version} (${process.platform}; ${process.arch})`,
     },
   };
+  
+  // Create the base content generator first
+  let baseGenerator: ContentGenerator;
+  
   if (
     config.authType === AuthType.LOGIN_WITH_GOOGLE ||
     config.authType === AuthType.CLOUD_SHELL
   ) {
-    return createCodeAssistContentGenerator(
+    baseGenerator = createCodeAssistContentGenerator(
       httpOptions,
       config.authType,
       gcConfig,
       sessionId,
     );
-  }
-
-  if (
+  } else if (
     config.authType === AuthType.USE_GEMINI ||
     config.authType === AuthType.USE_VERTEX_AI
   ) {
@@ -184,10 +241,17 @@ export async function createContentGenerator(
       httpOptions,
     });
 
-    return googleGenAI.models;
-  }
-
-  if (config.authType === AuthType.USE_OPENAI) {
+    const model = googleGenAI.getGenerativeModel({ model: config.model });
+    baseGenerator = {
+      generateContent: model.generateContent.bind(model),
+      generateContentStream: model.generateContentStream.bind(model),
+      countTokens: model.countTokens.bind(model),
+      embedContent: async (request) => {
+        const embeddingModel = googleGenAI.getGenerativeModel({ model: 'text-embedding-004' });
+        return embeddingModel.embedContent(request);
+      },
+    } as ContentGenerator;
+  } else if (config.authType === AuthType.USE_OPENAI) {
     if (!config.apiKey) {
       throw new Error('OpenAI API key is required');
     }
@@ -201,10 +265,8 @@ export async function createContentGenerator(
     );
 
     // Always use OpenAIContentGenerator, logging is controlled by enableOpenAILogging flag
-    return new OpenAIContentGenerator(config.apiKey, config.model, gcConfig);
-  }
-
-  if (config.authType === AuthType.USE_OPENROUTER) {
+    baseGenerator = new OpenAIContentGenerator(config.apiKey, config.model, gcConfig);
+  } else if (config.authType === AuthType.USE_OPENROUTER) {
     if (!config.apiKey) {
       throw new Error('OpenRouter API key is required');
     }
@@ -217,15 +279,59 @@ export async function createContentGenerator(
       './openrouterContentGenerator.js'
     );
 
-    return new OpenRouterContentGenerator(
+    baseGenerator = new OpenRouterContentGenerator(
       config.apiKey,
       config.model,
       gcConfig,
       (config as ContentGeneratorConfig & { provider?: string }).provider,
     );
+  } else {
+    throw new Error(
+      `Error creating contentGenerator: Unsupported authType: ${config.authType}`,
+    );
   }
 
-  throw new Error(
-    `Error creating contentGenerator: Unsupported authType: ${config.authType}`,
-  );
+  // If vision routing is enabled and we have vision config, create a routing generator
+  if (config.enableSmartRouting && config.visionConfig) {
+    try {
+      // Import RoutingContentGenerator dynamically
+      const { RoutingContentGenerator } = await import(
+        './routingContentGenerator.js'
+      );
+      
+      // Create vision model content generator
+      const visionConfig: ContentGeneratorConfig = {
+        ...config,
+        model: config.visionConfig.visionModel,
+        apiKey: config.visionConfig.visionApiKey || config.apiKey,
+      };
+      
+      // For now, vision models are primarily on OpenRouter
+      if (config.visionConfig.visionProvider === 'openrouter' || !config.visionConfig.visionProvider) {
+        const { OpenRouterContentGenerator } = await import(
+          './openrouterContentGenerator.js'
+        );
+        
+        const visionGenerator = new OpenRouterContentGenerator(
+          visionConfig.apiKey!,
+          visionConfig.model,
+          gcConfig,
+          config.visionConfig.visionProvider
+        );
+        
+        console.debug(`[ContentGenerator] Created routing generator with text model: ${config.model}, vision model: ${config.visionConfig.visionModel}`);
+        
+        return new RoutingContentGenerator(
+          baseGenerator,
+          visionGenerator,
+          config.visionConfig,
+          config.model
+        );
+      }
+    } catch (error) {
+      console.warn('[ContentGenerator] Failed to create routing content generator, falling back to base generator:', error);
+    }
+  }
+
+  return baseGenerator;
 }

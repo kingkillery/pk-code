@@ -18,8 +18,10 @@ import {
 import { parse } from 'shell-quote';
 import { MCPServerConfig } from '../config/config.js';
 import { DiscoveredMCPTool } from './mcp-tool.js';
+import { VisionMCPTool } from './visionMcpTool.js';
 import { FunctionDeclaration, Type, mcpToTool } from '@google/genai';
 import { sanitizeParameters, ToolRegistry } from './tool-registry.js';
+import { MultimodalContentGenerator } from '../core/contentGenerator.js';
 
 export const MCP_DEFAULT_TIMEOUT_MSEC = 10 * 60 * 1000; // default to 10 minutes
 
@@ -429,6 +431,69 @@ export function generateValidName(
       validToolname.slice(0, 28) + '___' + validToolname.slice(-32);
   }
   return validToolname;
+}
+
+/**
+ * Enhance discovered MCP tools with vision capabilities if available
+ * 
+ * @param tools Array of discovered MCP tools to enhance
+ * @param visionContentGenerator Optional vision content generator for enhancement
+ * @returns Array of potentially enhanced tools
+ */
+export function enhanceToolsWithVision(
+  tools: DiscoveredMCPTool[],
+  visionContentGenerator?: MultimodalContentGenerator
+): DiscoveredMCPTool[] {
+  if (!visionContentGenerator || !visionContentGenerator.isVisionCapable()) {
+    return tools;
+  }
+
+  return tools.map(tool => {
+    // Check if this tool would benefit from vision enhancement
+    const shouldEnhance = isVisionEnhanceableToolName(tool.name) || 
+                          isVisionEnhanceableToolName(tool.serverToolName);
+    
+    if (shouldEnhance) {
+      console.debug(`[MCP] Enhancing tool '${tool.name}' with vision capabilities`);
+      
+      // Create a new VisionMCPTool with the same parameters
+      const visionTool = new VisionMCPTool(
+        (tool as any).mcpTool, // Access private property
+        tool.serverName,
+        tool.name,
+        tool.description,
+        tool.parameterSchema,
+        tool.serverToolName,
+        tool.timeout,
+        tool.trust,
+        visionContentGenerator
+      );
+      
+      return visionTool;
+    }
+    
+    return tool;
+  });
+}
+
+/**
+ * Check if a tool name suggests it would benefit from vision enhancement
+ */
+function isVisionEnhanceableToolName(toolName: string): boolean {
+  const visionToolNames = [
+    'screenshot',
+    'snapshot', 
+    'browser_screenshot',
+    'browser_snapshot',
+    'capture',
+    'image',
+    'visual'
+  ];
+  
+  const lowerToolName = toolName.toLowerCase();
+  return visionToolNames.some(visionName => 
+    lowerToolName.includes(visionName)
+  );
 }
 
 /** Visible for testing */
