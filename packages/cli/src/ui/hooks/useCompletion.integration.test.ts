@@ -47,7 +47,7 @@ describe('useCompletion git-aware filtering integration', () => {
   // A minimal mock is sufficient for these tests.
   const mockCommandContext = {} as CommandContext;
 
-  const mockSlashCommands: SlashCommand[] = [
+  const mockCommands: Command[] = [
     {
       name: 'help',
       altName: '?',

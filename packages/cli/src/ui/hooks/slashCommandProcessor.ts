@@ -25,7 +25,8 @@ import {
   MessageType,
   HistoryItemWithoutId,
   HistoryItem,
-  SlashCommandProcessorResult,
+  CommandProcessorResult,
+  Command,
 } from '../types.js';
 import { promises as fs } from 'fs';
 import path from 'path';
@@ -36,7 +37,6 @@ import { LoadedSettings } from '../../config/settings.js';
 import {
   type CommandContext,
   type SlashCommandActionReturn,
-  type SlashCommand,
 } from '../commands/types.js';
 import { CommandService } from '../../services/CommandService.js';
 
@@ -79,7 +79,7 @@ export const useSlashCommandProcessor = (
   openPrivacyNotice: () => void,
 ) => {
   const session = useSessionStats();
-  const [commands, setCommands] = useState<SlashCommand[]>([]);
+  const [commands, setCommands] = useState<Command[]>([]);
   const gitService = useMemo(() => {
     if (!config?.getProjectRoot()) {
       return;
@@ -1008,7 +1008,7 @@ export const useSlashCommandProcessor = (
   const handleSlashCommand = useCallback(
     async (
       rawQuery: PartListUnion,
-    ): Promise<SlashCommandProcessorResult | false> => {
+    ): Promise<CommandProcessorResult | false> => {
       if (typeof rawQuery !== 'string') {
         return false;
       }
@@ -1032,7 +1032,7 @@ export const useSlashCommandProcessor = (
       // --- Start of New Tree Traversal Logic ---
 
       let currentCommands = commands;
-      let commandToExecute: SlashCommand | undefined;
+      let commandToExecute: Command | undefined;
       let pathIndex = 0;
 
       for (const part of commandPath) {
@@ -1110,7 +1110,7 @@ export const useSlashCommandProcessor = (
           return { type: 'handled' };
         } else if (commandToExecute.subCommands) {
           const helpText = `Command '/${commandToExecute.name}' requires a subcommand. Available:\n${commandToExecute.subCommands
-            .map((sc) => `  - ${sc.name}: ${sc.description || ''}`)
+            .map((sc: Command) => `  - ${sc.name}: ${sc.description || ''}`)
             .join('\n')}`;
           addMessage({
             type: MessageType.INFO,
@@ -1182,7 +1182,7 @@ export const useSlashCommandProcessor = (
 
   const allCommands = useMemo(() => {
     // Adapt legacy commands to the new SlashCommand interface
-    const adaptedLegacyCommands: SlashCommand[] = legacyCommands.map(
+    const adaptedLegacyCommands: Command[] = legacyCommands.map(
       (legacyCmd) => ({
         name: legacyCmd.name,
         altName: legacyCmd.altName,

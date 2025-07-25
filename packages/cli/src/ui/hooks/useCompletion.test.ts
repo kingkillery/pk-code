@@ -33,7 +33,7 @@ describe('useCompletion', () => {
   let mockFileDiscoveryService: Mocked<FileDiscoveryService>;
   let mockConfig: Mocked<Config>;
   let mockCommandContext: CommandContext;
-  let mockSlashCommands: SlashCommand[];
+  let mockCommands: Command[];
 
   const testCwd = '/test/project';
 

@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { SlashCommand } from '../ui/commands/types.js';
+import { Command } from '../ui/commands/types.js';
 import { memoryCommand } from '../ui/commands/memoryCommand.js';
 import { helpCommand } from '../ui/commands/helpCommand.js';
 import { clearCommand } from '../ui/commands/clearCommand.js';
@@ -13,7 +13,7 @@ import { themeCommand } from '../ui/commands/themeCommand.js';
 import { privacyCommand } from '../ui/commands/privacyCommand.js';
 import { aboutCommand } from '../ui/commands/aboutCommand.js';
 
-const loadBuiltInCommands = async (): Promise<SlashCommand[]> => [
+const loadBuiltInCommands = async (): Promise<Command[]> => [
   aboutCommand,
   authCommand,
   clearCommand,
@@ -24,10 +24,10 @@ const loadBuiltInCommands = async (): Promise<SlashCommand[]> => [
 ];
 
 export class CommandService {
-  private commands: SlashCommand[] = [];
+  private commands: Command[] = [];
 
   constructor(
-    private commandLoader: () => Promise<SlashCommand[]> = loadBuiltInCommands,
+    private commandLoader: () => Promise<Command[]> = loadBuiltInCommands,
   ) {
     // The constructor can be used for dependency injection in the future.
   }
@@ -38,7 +38,7 @@ export class CommandService {
     this.commands = await this.commandLoader();
   }
 
-  getCommands(): SlashCommand[] {
+  getCommands(): Command[] {
     return this.commands;
   }
 }

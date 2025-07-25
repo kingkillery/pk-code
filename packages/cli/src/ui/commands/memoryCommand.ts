@@ -6,16 +6,16 @@
 
 import { getErrorMessage } from '@qwen-code/qwen-code-core';
 import { MessageType } from '../types.js';
-import { SlashCommand, SlashCommandActionReturn } from './types.js';
+import { Command, SlashCommandActionReturn, CommandContext } from './types.js';
 
-export const memoryCommand: SlashCommand = {
+export const memoryCommand: Command = {
   name: 'memory',
   description: 'Commands for interacting with memory.',
   subCommands: [
     {
       name: 'show',
       description: 'Show the current memory contents.',
-      action: async (context) => {
+      action: async (context: CommandContext) => {
         const memoryContent = context.services.config?.getUserMemory() || '';
         const fileCount = context.services.config?.getGeminiMdFileCount() || 0;
 
@@ -36,7 +36,7 @@ export const memoryCommand: SlashCommand = {
     {
       name: 'add',
       description: 'Add content to the memory.',
-      action: (context, args): SlashCommandActionReturn | void => {
+      action: (context: CommandContext, args: string): SlashCommandActionReturn | void => {
         if (!args || args.trim() === '') {
           return {
             type: 'message',
@@ -63,7 +63,7 @@ export const memoryCommand: SlashCommand = {
     {
       name: 'refresh',
       description: 'Refresh the memory from the source.',
-      action: async (context) => {
+      action: async (context: CommandContext) => {
         context.ui.addItem(
           {
             type: MessageType.INFO,

@@ -530,12 +530,27 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
 
   const handleFinalSubmit = useCallback(
     (submittedValue: string) => {
-      const trimmedValue = submittedValue.trim();
-      if (trimmedValue.length > 0) {
-        submitQuery(trimmedValue);
+      try {
+        console.debug('[App] Handling final submit:', submittedValue.substring(0, 50));
+        const trimmedValue = submittedValue.trim();
+        if (trimmedValue.length > 0) {
+          console.debug('[App] Calling submitQuery');
+          submitQuery(trimmedValue);
+        } else {
+          console.debug('[App] Empty input, not submitting');
+        }
+      } catch (error) {
+        console.error('[App] Error in handleFinalSubmit:', error);
+        addItem(
+          {
+            type: MessageType.ERROR,
+            text: `Failed to submit query: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          },
+          Date.now(),
+        );
       }
     },
-    [submitQuery],
+    [submitQuery, addItem],
   );
 
   const logger = useLogger();
@@ -760,7 +775,7 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
           </Box>
         </OverflowProvider>
 
-        {showHelp && <Help commands={slashCommands} />}
+        {showHelp && <Help slashCommands={slashCommands} />}
 
         <Box flexDirection="column" ref={mainControlsRef}>
           {startupWarnings.length > 0 && (

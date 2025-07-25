@@ -27,15 +27,7 @@ import {
   DEFAULT_GEMINI_FLASH_MODEL,
 } from '@qwen-code/qwen-code-core';
 import { type Part, type PartListUnion } from '@google/genai';
-import {
-  StreamingState,
-  HistoryItem,
-  HistoryItemWithoutId,
-  HistoryItemToolGroup,
-  MessageType,
-  SlashCommandProcessorResult,
-  ToolCallStatus,
-} from '../types.js';
+import { StreamingState, type HistoryItem, type HistoryItemWithoutId, type HistoryItemToolGroup, MessageType, type CommandProcessorResult, ToolCallStatus } from '../types.js';
 import { isAtCommand } from '../utils/commandUtils.js';
 import { parseAndFormatApiError } from '../utils/errorParsing.js';
 import { useShellCommandProcessor } from './shellCommandProcessor.js';
@@ -86,7 +78,7 @@ export const useGeminiStream = (
   onDebugMessage: (message: string) => void,
   handleSlashCommand: (
     cmd: PartListUnion,
-  ) => Promise<SlashCommandProcessorResult | false>,
+  ) => Promise<CommandProcessorResult | false>,
   shellModeActive: boolean,
   getPreferredEditor: () => EditorType | undefined,
   onAuthError: () => void,
@@ -534,6 +526,20 @@ export const useGeminiStream = (
       options?: { isContinuation: boolean },
       prompt_id?: string,
     ) => {
+      // Early validation to prevent crashes
+      if (!geminiClient) {
+        const errorMsg = 'AI client is not initialized. Please check your configuration and try again.';
+        addItem(
+          {
+            type: MessageType.ERROR,
+            text: errorMsg,
+          },
+          Date.now(),
+        );
+        console.error('[submitQuery] Gemini client not initialized');
+        return;
+      }
+
       if (
         (streamingState === StreamingState.Responding ||
           streamingState === StreamingState.WaitingForConfirmation) &&
@@ -558,30 +564,36 @@ export const useGeminiStream = (
         prompt_id = config.getSessionId() + '########' + getPromptCount();
       }
 
-      const { queryToSend, shouldProceed } = await prepareQueryForGemini(
-        query,
-        userMessageTimestamp,
-        abortSignal,
-        prompt_id!,
-      );
-
-      if (!shouldProceed || queryToSend === null) {
-        return;
-      }
-
-      if (!options?.isContinuation) {
-        startNewPrompt();
-      }
-
-      setIsResponding(true);
-      setInitError(null);
+      console.debug('[submitQuery] Processing query:', typeof query === 'string' ? query.substring(0, 100) : 'non-string query');
 
       try {
+        const { queryToSend, shouldProceed } = await prepareQueryForGemini(
+          query,
+          userMessageTimestamp,
+          abortSignal,
+          prompt_id!,
+        );
+
+        if (!shouldProceed || queryToSend === null) {
+          console.debug('[submitQuery] Query preparation indicated should not proceed');
+          return;
+        }
+
+        if (!options?.isContinuation) {
+          startNewPrompt();
+        }
+
+        setIsResponding(true);
+        setInitError(null);
+
+        console.debug('[submitQuery] Creating stream with client');
         const stream = geminiClient.sendMessageStream(
           queryToSend,
           abortSignal,
           prompt_id!,
         );
+        
+        console.debug('[submitQuery] Processing stream events');
         const processingStatus = await processGeminiStreamEvents(
           stream,
           userMessageTimestamp,
@@ -589,6 +601,7 @@ export const useGeminiStream = (
         );
 
         if (processingStatus === StreamProcessingStatus.UserCancelled) {
+          console.debug('[submitQuery] Processing was cancelled by user');
           return;
         }
 
@@ -600,15 +613,23 @@ export const useGeminiStream = (
           loopDetectedRef.current = false;
           handleLoopDetectedEvent();
         }
+        
+        console.debug('[submitQuery] Successfully completed query processing');
       } catch (error: unknown) {
+        console.error('[submitQuery] Error during query processing:', error);
+        
         if (error instanceof UnauthorizedError) {
+          console.debug('[submitQuery] Handling unauthorized error');
           onAuthError();
         } else if (!isNodeError(error) || error.name !== 'AbortError') {
+          const errorMessage = getErrorMessage(error) || 'Unknown error occurred while processing your request';
+          console.error('[submitQuery] Adding error to history:', errorMessage);
+          
           addItem(
             {
               type: MessageType.ERROR,
               text: parseAndFormatApiError(
-                getErrorMessage(error) || 'Unknown error',
+                errorMessage,
                 config.getContentGeneratorConfig()?.authType,
                 undefined,
                 config.getModel(),
@@ -619,6 +640,7 @@ export const useGeminiStream = (
           );
         }
       } finally {
+        console.debug('[submitQuery] Cleaning up - setting isResponding to false');
         setIsResponding(false);
       }
     },

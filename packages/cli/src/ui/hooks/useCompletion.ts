@@ -20,7 +20,7 @@ import {
   MAX_SUGGESTIONS_TO_SHOW,
   Suggestion,
 } from '../components/SuggestionsDisplay.js';
-import { CommandContext, SlashCommand } from '../commands/types.js';
+import { CommandContext, SlashCommand, Command } from '../commands/types.js';
 
 export interface UseCompletionReturn {
   suggestions: Suggestion[];
@@ -153,7 +153,7 @@ export function useCompletion(
           currentLevel = [];
           break;
         }
-        const found: SlashCommand | undefined = currentLevel.find(
+        const found: Command | undefined = currentLevel.find(
           (cmd) => cmd.name === part || cmd.altName === part,
         );
         if (found) {
@@ -198,7 +198,7 @@ export function useCompletion(
           const argString = rawParts.slice(depth).join(' ');
           const results =
             (await leafCommand!.completion!(commandContext, argString)) || [];
-          const finalSuggestions = results.map((s) => ({ label: s, value: s }));
+          const finalSuggestions = results.map((s: string) => ({ label: s, value: s }));
           setSuggestions(finalSuggestions);
           setShowSuggestions(finalSuggestions.length > 0);
           setActiveSuggestionIndex(finalSuggestions.length > 0 ? 0 : -1);

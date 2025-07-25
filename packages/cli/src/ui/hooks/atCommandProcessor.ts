@@ -226,10 +226,9 @@ export async function handleAtCommand({
               const lines = globResult.llmContent.split('\n');
               if (lines.length > 1 && lines[1]) {
                 const firstMatchAbsolute = lines[1].trim();
-                currentPathSpec = path.relative(
-                  config.getTargetDir(),
-                  firstMatchAbsolute,
-                );
+                currentPathSpec = path
+                  .relative(config.getTargetDir(), firstMatchAbsolute)
+                  .replace(/\\/g, '/');
                 onDebugMessage(
                   `Glob search for ${pathName} found ${firstMatchAbsolute}, using relative path: ${currentPathSpec}`,
                 );

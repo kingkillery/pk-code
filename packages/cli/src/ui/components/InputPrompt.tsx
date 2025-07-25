@@ -16,8 +16,8 @@ import stringWidth from 'string-width';
 import { useShellHistory } from '../hooks/useShellHistory.js';
 import { useCompletion } from '../hooks/useCompletion.js';
 import { useKeypress, Key } from '../hooks/useKeypress.js';
-import { isAtCommand, isSlashCommand } from '../utils/commandUtils.js';
-import { CommandContext, SlashCommand } from '../commands/types.js';
+import { isAtCommand, isCommand } from '../utils/commandUtils.js';
+import { CommandContext, SlashCommand, Command } from '../commands/types.js';
 import { Config } from '@qwen-code/qwen-code-core';
 import {
   clipboardHasImage,
@@ -61,7 +61,7 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
   const completion = useCompletion(
     buffer.text,
     config.getTargetDir(),
-    isAtCommand(buffer.text) || isSlashCommand(buffer.text),
+    isAtCommand(buffer.text) || isCommand(buffer.text),
     slashCommands,
     commandContext,
     config,
@@ -72,14 +72,28 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
 
   const handleSubmitAndClear = useCallback(
     (submittedValue: string) => {
-      if (shellModeActive) {
-        shellHistory.addCommandToHistory(submittedValue);
+      try {
+        console.debug('[InputPrompt] Handling submit:', submittedValue.substring(0, 50));
+        
+        if (shellModeActive) {
+          shellHistory.addCommandToHistory(submittedValue);
+        }
+        
+        // Clear the buffer *before* calling onSubmit to prevent potential re-submission
+        // if onSubmit triggers a re-render while the buffer still holds the old value.
+        buffer.setText('');
+        
+        console.debug('[InputPrompt] Calling onSubmit');
+        onSubmit(submittedValue);
+        
+        resetCompletionState();
+        console.debug('[InputPrompt] Submit completed successfully');
+      } catch (error) {
+        console.error('[InputPrompt] Error during submit:', error);
+        // Re-populate the buffer if there was an error
+        buffer.setText(submittedValue);
+        throw error; // Re-throw to let parent components handle
       }
-      // Clear the buffer *before* calling onSubmit to prevent potential re-submission
-      // if onSubmit triggers a re-render while the buffer still holds the old value.
-      buffer.setText('');
-      onSubmit(submittedValue);
-      resetCompletionState();
     },
     [onSubmit, buffer, resetCompletionState, shellModeActive, shellHistory],
   );
@@ -134,10 +148,10 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
         // If there's no trailing space, we need to check if the current query
         // is already a complete path to a parent command.
         if (!hasTrailingSpace) {
-          let currentLevel: SlashCommand[] | undefined = slashCommands;
+          let currentLevel: Command[] | undefined = slashCommands;
           for (let i = 0; i < parts.length; i++) {
             const part = parts[i];
-            const found: SlashCommand | undefined = currentLevel?.find(
+            const found: Command | undefined = currentLevel?.find(
               (cmd) => cmd.name === part || cmd.altName === part,
             );
 

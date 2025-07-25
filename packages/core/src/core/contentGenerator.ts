@@ -131,12 +131,11 @@ export async function createContentGeneratorConfig(
   }
 
   if (authType === AuthType.USE_OPENROUTER && process.env.OPENROUTER_API_KEY) {
-    const openrouterModel = process.env.OPENROUTER_MODEL?.trim();
+    let openrouterModel = process.env.OPENROUTER_MODEL?.trim();
+    // Set default model for OpenRouter if none is specified
     if (!openrouterModel) {
-      throw new Error(
-        'OPENROUTER_MODEL environment variable is required when using OpenRouter. ' +
-          'Please set OPENROUTER_MODEL to your desired model (e.g., "anthropic/claude-3-sonnet", "openai/gpt-4")',
-      );
+      openrouterModel = 'qwen/qwen3-coder';
+      process.env.OPENROUTER_MODEL = openrouterModel;
     }
 
     contentGeneratorConfig.apiKey = process.env.OPENROUTER_API_KEY;

@@ -18,6 +18,7 @@ import {
   FileDiscoveryService,
   TelemetryTarget,
   MCPServerConfig,
+  AuthType,
 } from '@qwen-code/qwen-code-core';
 import { Settings } from './settings.js';
 
@@ -273,6 +274,15 @@ export async function loadCliConfig(
   // Handle OpenAI base URL from command line
   if (argv.openaiBaseUrl) {
     process.env.OPENAI_BASE_URL = argv.openaiBaseUrl;
+  }
+
+  // Set default OpenRouter model if using OpenRouter auth and no model is specified
+  if (
+    settings.selectedAuthType === AuthType.USE_OPENROUTER &&
+    !process.env.OPENROUTER_MODEL &&
+    !argv.model
+  ) {
+    process.env.OPENROUTER_MODEL = 'qwen/qwen3-coder';
   }
 
   // Set the context filename in the server's memoryTool module BEFORE loading memory

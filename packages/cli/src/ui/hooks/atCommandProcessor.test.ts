@@ -454,18 +454,21 @@ describe('handleAtCommand', () => {
     });
 
     expect(mockReadManyFilesExecute).toHaveBeenCalledWith(
-      { paths: [file1, resolvedFile2], respect_git_ignore: true },
+      {
+        paths: [file1, resolvedFile2].map((p) => p.replace(/\\/g, '/')),
+        respect_git_ignore: true,
+      },
       abortController.signal,
     );
     expect(result.processedQuery).toEqual([
       // Original query has @nonexistent.txt and @, but resolved has @resolved/valid2.actual
       {
-        text: `Look at @${file1} then @${invalidFile} and also just @ symbol, then @${resolvedFile2}`,
+        text: `Look at @${file1} then @${invalidFile} and also just @ symbol, then @${resolvedFile2.replace(/\\/g, '/')}`,
       },
       { text: '\n--- Content from referenced files ---' },
       { text: `\nContent from @${file1}:\n` },
       { text: content1 },
-      { text: `\nContent from @${resolvedFile2}:\n` },
+      { text: `\nContent from @${resolvedFile2.replace(/\\/g, '/')}:\n` },
       { text: content2 },
       { text: '\n--- End of content ---' },
     ]);

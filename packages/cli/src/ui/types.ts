@@ -220,7 +220,7 @@ export interface ConsoleMessageItem {
 /**
  * Defines the result of the slash command processor for its consumer (useGeminiStream).
  */
-export type SlashCommandProcessorResult =
+export type CommandProcessorResult =
   | {
       type: 'schedule_tool';
       toolName: string;
@@ -229,3 +229,6 @@ export type SlashCommandProcessorResult =
   | {
       type: 'handled'; // Indicates the command was processed and no further action is needed.
     };
+
+// Re-export command types from commands/types.ts for convenience
+export type { Command, SlashCommand, CommandContext } from './commands/types.js';

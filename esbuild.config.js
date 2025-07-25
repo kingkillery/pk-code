@@ -27,5 +27,6 @@ esbuild
     banner: {
       js: `import { createRequire as _gcliCreateRequire } from 'module'; const require = _gcliCreateRequire(import.meta.url); globalThis.__filename = require('url').fileURLToPath(import.meta.url); globalThis.__dirname = require('path').dirname(globalThis.__filename);`,
     },
+    external: ['fast-uri'],
   })
   .catch(() => process.exit(1));

@@ -71,6 +71,82 @@ export const setOpenRouterApiKey = (apiKey: string): void => {
   process.env.OPENROUTER_API_KEY = apiKey;
 };
 
+export const validateOpenRouterModel = async (
+  model: string,
+): Promise<boolean> => {
+  try {
+    const response = await fetch('https://openrouter.ai/api/v1/models');
+    if (!response.ok) {
+      return false;
+    }
+    const data = await response.json();
+    const models = data.data || [];
+    return models.some((m: { id: string }) => m.id === model);
+  } catch (_error) {
+    return false;
+  }
+};
+
 export const setOpenRouterModel = (model: string): void => {
   process.env.OPENROUTER_MODEL = model;
+};
+
+export const setGeminiModel = (model: string): void => {
+  process.env.GEMINI_MODEL = model;
+};
+
+export const getAvailableOpenAIModels = async (): Promise<string[]> => 
+  // Common OpenAI models - in production this could be fetched from API
+   [
+    'gpt-4',
+    'gpt-4-turbo',
+    'gpt-4o',
+    'gpt-4o-mini',
+    'gpt-3.5-turbo',
+    'o1-preview',
+    'o1-mini'
+  ]
+;
+
+export const getAvailableOpenRouterModels = async (): Promise<string[]> => {
+  try {
+    const response = await fetch('https://openrouter.ai/api/v1/models');
+    if (!response.ok) {
+      return [];
+    }
+    const data = await response.json();
+    interface OpenRouterModel {
+  id: string;
+}
+
+// ...
+
+    return data.data?.map((model: OpenRouterModel) => model.id) || [];
+  } catch (_error) {
+    // Fallback to common models if API fails
+    return [
+      'anthropic/claude-3-sonnet',
+      'anthropic/claude-3-haiku',
+      'openai/gpt-4',
+      'openai/gpt-3.5-turbo',
+      'mistralai/devstral-small',
+      'mistralai/mistral-7b-instruct'
+    ];
+  }
+};
+
+export const getAvailableGeminiModels = async (): Promise<string[]> => 
+  // Common Gemini models - in production this could be fetched from API
+   [
+    'qwen3-coder-max',
+    'gemini-2.5-flash',
+    'gemini-1.5-pro',
+    'gemini-1.5-flash',
+    'gemini-pro'
+  ]
+;
+
+export const validateGeminiModel = async (model: string): Promise<boolean> => {
+  const availableModels = await getAvailableGeminiModels();
+  return availableModels.includes(model);
 };

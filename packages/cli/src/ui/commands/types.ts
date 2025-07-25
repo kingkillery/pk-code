@@ -74,7 +74,7 @@ export type SlashCommandActionReturn =
   | MessageActionReturn
   | OpenDialogActionReturn;
 // The standardized contract for any command in the system.
-export interface SlashCommand {
+export interface Command {
   name: string;
   altName?: string;
   description?: string;
@@ -94,5 +94,8 @@ export interface SlashCommand {
     partialArg: string,
   ) => Promise<string[]>;
 
-  subCommands?: SlashCommand[];
+  subCommands?: Command[];
 }
+
+// Alias for backward compatibility
+export type SlashCommand = Command;

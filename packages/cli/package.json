@@ -13,8 +13,9 @@
   },
   "scripts": {
     "build": "node ../../scripts/build_package.js",
-    "start": "node dist/index.js",
+    "start": "node --no-deprecation dist/index.js",
     "debug": "node --inspect-brk dist/index.js",
+    "start:clean": "node --no-deprecation --no-warnings dist/index.js",
     "lint": "eslint . --ext .ts,.tsx",
     "format": "prettier --write .",
     "test": "vitest run",

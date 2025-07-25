@@ -7,13 +7,13 @@
 import React from 'react';
 import { Box, Text } from 'ink';
 import { Colors } from '../colors.js';
-import { SlashCommand } from '../commands/types.js';
+import { SlashCommand, Command } from '../commands/types.js';
 
-interface Help {
-  commands: SlashCommand[];
+interface HelpProps {
+  slashCommands: SlashCommand[];
 }
 
-export const Help: React.FC<Help> = ({ commands }) => (
+export const Help: React.FC<HelpProps> = ({ slashCommands }) => (
   <Box
     flexDirection="column"
     marginBottom={1}
@@ -64,9 +64,9 @@ export const Help: React.FC<Help> = ({ commands }) => (
     <Text bold color={Colors.Foreground}>
       Commands:
     </Text>
-    {commands
+    {slashCommands
       .filter((command) => command.description)
-      .map((command: SlashCommand) => (
+      .map((command: Command) => (
         <Box key={command.name} flexDirection="column">
           <Text color={Colors.Foreground}>
             <Text bold color={Colors.AccentPurple}>

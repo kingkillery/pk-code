@@ -138,7 +138,7 @@ describe('memoryCommand', () => {
   });
 
   describe('/memory refresh', () => {
-    let refreshCommand: SlashCommand;
+    let refreshCommand: Command;
     let mockRefreshMemory: Mock;
 
     beforeEach(() => {

@@ -25,7 +25,7 @@ type MockedUseShellHistory = ReturnType<typeof useShellHistory>;
 type MockedUseCompletion = ReturnType<typeof useCompletion>;
 type MockedUseInputHistory = ReturnType<typeof useInputHistory>;
 
-const mockSlashCommands: SlashCommand[] = [
+const mockCommands: Command[] = [
   { name: 'clear', description: 'Clear screen', action: vi.fn() },
   {
     name: 'memory',
@@ -311,7 +311,7 @@ describe('InputPrompt', () => {
       expect(actualCall[0]).toBe(5); // start offset
       expect(actualCall[1]).toBe(5); // end offset
       expect(actualCall[2]).toMatch(
-        /@.*\.gemini-clipboard\/clipboard-456\.png/,
+        /@.*\.gemini-clipboard[\/]clipboard-456\.png/,
       ); // flexible path match
       unmount();
     });

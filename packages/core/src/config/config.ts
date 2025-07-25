@@ -541,6 +541,10 @@ export class Config {
     return this.enableOpenAILogging;
   }
 
+  getAuthType(): AuthType | undefined {
+    return this.contentGeneratorConfig?.authType;
+  }
+
   async refreshMemory(): Promise<{ memoryContent: string; fileCount: number }> {
     const { memoryContent, fileCount } = await loadServerHierarchicalMemory(
       this.getWorkingDir(),

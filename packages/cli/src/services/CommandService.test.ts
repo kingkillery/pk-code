@@ -14,6 +14,7 @@ import { authCommand } from '../ui/commands/authCommand.js';
 import { themeCommand } from '../ui/commands/themeCommand.js';
 import { privacyCommand } from '../ui/commands/privacyCommand.js';
 import { aboutCommand } from '../ui/commands/aboutCommand.js';
+import { modelCommand } from '../ui/commands/model.js';
 
 // Mock the command modules to isolate the service from the command implementations.
 vi.mock('../ui/commands/memoryCommand.js', () => ({
@@ -36,6 +37,9 @@ vi.mock('../ui/commands/privacyCommand.js', () => ({
 }));
 vi.mock('../ui/commands/aboutCommand.js', () => ({
   aboutCommand: { name: 'about', description: 'Mock About' },
+}));
+vi.mock('../ui/commands/model.js', () => ({
+  modelCommand: { name: 'model', description: 'Mock Model' },
 }));
 
 describe('CommandService', () => {
@@ -62,7 +66,7 @@ describe('CommandService', () => {
         const tree = commandService.getCommands();
 
         // Post-condition assertions
-        expect(tree.length).toBe(7);
+        expect(tree.length).toBe(8);
 
         const commandNames = tree.map((cmd) => cmd.name);
         expect(commandNames).toContain('auth');
@@ -72,19 +76,20 @@ describe('CommandService', () => {
         expect(commandNames).toContain('theme');
         expect(commandNames).toContain('privacy');
         expect(commandNames).toContain('about');
+        expect(commandNames).toContain('model');
       });
 
       it('should overwrite any existing commands when called again', async () => {
         // Load once
         await commandService.loadCommands();
-        expect(commandService.getCommands().length).toBe(7);
+        expect(commandService.getCommands().length).toBe(8);
 
         // Load again
         await commandService.loadCommands();
         const tree = commandService.getCommands();
 
         // Should not append, but overwrite
-        expect(tree.length).toBe(7);
+        expect(tree.length).toBe(8);
       });
     });
 
@@ -96,16 +101,21 @@ describe('CommandService', () => {
         await commandService.loadCommands();
 
         const loadedTree = commandService.getCommands();
-        expect(loadedTree.length).toBe(7);
-        expect(loadedTree).toEqual([
-          aboutCommand,
-          authCommand,
-          clearCommand,
-          helpCommand,
-          memoryCommand,
-          privacyCommand,
-          themeCommand,
-        ]);
+        expect(loadedTree.length).toBe(8);
+        expect(loadedTree.map((c) => c.name).sort()).toEqual(
+          [
+            aboutCommand,
+            authCommand,
+            clearCommand,
+            helpCommand,
+            memoryCommand,
+            privacyCommand,
+            themeCommand,
+            modelCommand,
+          ]
+            .map((c) => c.name)
+            .sort(),
+        );
       });
     });
   });
@@ -113,7 +123,7 @@ describe('CommandService', () => {
   describe('when initialized with an injected loader function', () => {
     it('should use the provided loader instead of the built-in one', async () => {
       // Arrange: Create a set of mock commands.
-      const mockCommands: SlashCommand[] = [
+      const mockCommands: Command[] = [
         { name: 'injected-test-1', description: 'injected 1' },
         { name: 'injected-test-2', description: 'injected 2' },
       ];
