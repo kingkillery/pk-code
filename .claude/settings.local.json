@@ -3,8 +3,14 @@
     "allow": [
       "WebFetch(domain:openrouter.ai)",
       "Bash(npm run lint:*)",
-      "Bash(npm test:*)"
+      "Bash(npm test:*)",
+      "Bash(grep:*)",
+      "Bash(sed:*)"
     ],
     "deny": []
-  }
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "task-master-ai"
+  ]
 }

@@ -426,7 +426,7 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
         if (timerRef.current) {
           clearTimeout(timerRef.current);
         }
-        const quitCommand = slashCommands.find(
+        const quitCommand = slashCommands?.find(
           (cmd) => cmd.name === 'quit' || cmd.altName === 'exit',
         );
         if (quitCommand && quitCommand.action) {

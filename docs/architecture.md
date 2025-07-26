@@ -1,54 +1,56 @@
-# Gemini CLI Architecture Overview
+# Architecture Overview
 
-This document provides a high-level overview of the Gemini CLI's architecture.
+This document provides a high-level overview of the Qwen Code CLI's architecture.
 
-## Core components
+## Core Components
 
-The Gemini CLI is primarily composed of two main packages, along with a suite of tools that can be used by the system in the course of handling command-line input:
+The Qwen Code CLI is composed of several key packages that work together to provide a flexible and extensible AI coding assistant.
 
-1.  **CLI package (`packages/cli`):**
-    - **Purpose:** This contains the user-facing portion of the Gemini CLI, such as handling the initial user input, presenting the final output, and managing the overall user experience.
-    - **Key functions contained in the package:**
-      - [Input processing](./cli/commands.md)
-      - History management
-      - Display rendering
-      - [Theme and UI customization](./cli/themes.md)
-      - [CLI configuration settings](./cli/configuration.md)
+1.  **CLI Package (`packages/cli`):**
+    - **Purpose:** This is the main user-facing component of the Qwen Code CLI. It handles user input, renders the UI, and manages the overall interactive experience.
+    - **Key Functions:**
+        - Command-line argument parsing
+        - Interactive UI rendering (using Ink)
+        - Command handling (e.g., `config`, `generate`, `init`)
 
-2.  **Core package (`packages/core`):**
-    - **Purpose:** This acts as the backend for the Gemini CLI. It receives requests sent from `packages/cli`, orchestrates interactions with the Gemini API, and manages the execution of available tools.
-    - **Key functions contained in the package:**
-      - API client for communicating with the Google Gemini API
-      - Prompt construction and management
-      - Tool registration and execution logic
-      - State management for conversations or sessions
-      - Server-side configuration
+2.  **Core Package (`packages/core`):**
+    - **Purpose:** This package provides the core, shared functionality used by all other parts of the application. It defines the standardized interfaces and provides essential services.
+    - **Key Functions:**
+        - `AIProvider` interface: A standardized interface that all AI provider packages must implement.
+        - Secure credential management (using `keytar`)
 
-3.  **Tools (`packages/core/src/tools/`):**
-    - **Purpose:** These are individual modules that extend the capabilities of the Gemini model, allowing it to interact with the local environment (e.g., file system, shell commands, web fetching).
-    - **Interaction:** `packages/core` invokes these tools based on requests from the Gemini model.
+3.  **Provider Packages (`packages/openai`, `packages/gemini`, etc.):**
+    - **Purpose:** Each provider package is a self-contained module that implements the `AIProvider` interface for a specific AI service (e.g., OpenAI, Google Gemini, OpenRouter).
+    - **Key Functions:**
+        - API client for the specific AI service
+        - Implementation of the `initialize` and `generateCode` methods from the `AIProvider` interface
+
+4.  **VS Code Extension (`packages/vscode-ide-companion`):**
+    - **Purpose:** This package provides an integration with Visual Studio Code, allowing users to interact with Qwen Code directly from their editor.
+    - **Key Functions:**
+        - An MCP (Model Context Protocol) server that exposes Qwen Code's functionality to the editor.
+        - Tools for interacting with the editor, such as getting the active file or inserting generated code.
+
+## Provider-Based Architecture
+
+The Qwen Code CLI is built on a provider-based architecture. This means that the core application is not tied to any specific AI provider. Instead, it interacts with providers through a standardized `AIProvider` interface.
+
+This architecture provides several key benefits:
+
+- **Flexibility:** Users can choose from a variety of supported AI providers.
+- **Extensibility:** It is easy to add support for new AI providers by simply creating a new package that implements the `AIProvider` interface.
+- **Maintainability:** The code for each provider is isolated in its own package, making it easier to maintain and update.
 
 ## Interaction Flow
 
-A typical interaction with the Gemini CLI follows this flow:
+A typical interaction with the Qwen Code CLI follows this flow:
 
-1.  **User input:** The user types a prompt or command into the terminal, which is managed by `packages/cli`.
-2.  **Request to core:** `packages/cli` sends the user's input to `packages/core`.
-3.  **Request processed:** The core package:
-    - Constructs an appropriate prompt for the Gemini API, possibly including conversation history and available tool definitions.
-    - Sends the prompt to the Gemini API.
-4.  **Gemini API response:** The Gemini API processes the prompt and returns a response. This response might be a direct answer or a request to use one of the available tools.
-5.  **Tool execution (if applicable):**
-    - When the Gemini API requests a tool, the core package prepares to execute it.
-    - If the requested tool can modify the file system or execute shell commands, the user is first given details of the tool and its arguments, and the user must approve the execution.
-    - Read-only operations, such as reading files, might not require explicit user confirmation to proceed.
-    - Once confirmed, or if confirmation is not required, the core package executes the relevant action within the relevant tool, and the result is sent back to the Gemini API by the core package.
-    - The Gemini API processes the tool result and generates a final response.
-6.  **Response to CLI:** The core package sends the final response back to the CLI package.
-7.  **Display to user:** The CLI package formats and displays the response to the user in the terminal.
-
-## Key Design Principles
-
-- **Modularity:** Separating the CLI (frontend) from the Core (backend) allows for independent development and potential future extensions (e.g., different frontends for the same backend).
-- **Extensibility:** The tool system is designed to be extensible, allowing new capabilities to be added.
-- **User experience:** The CLI focuses on providing a rich and interactive terminal experience.
+1.  **User Input:** The user runs a command in their terminal (e.g., `qwen-code generate "..."`).
+2.  **Command Handling:** The `packages/cli` package parses the command and its arguments.
+3.  **Provider Selection:** The appropriate provider package is selected based on the user's configuration.
+4.  **Credential Retrieval:** The `packages/core` package securely retrieves the user's API key for the selected provider.
+5.  **Provider Initialization:** The selected provider is initialized with the user's API key.
+6.  **Code Generation:** The provider's `generateCode` method is called with the user's prompt.
+7.  **API Request:** The provider sends a request to the AI service's API.
+8.  **API Response:** The AI service returns the generated code.
+9.  **Display to User:** The `packages/cli` package displays the generated code to the user in the terminal.

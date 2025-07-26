@@ -85,7 +85,28 @@ async function relaunchWithAdditionalArgs(additionalArgs: string[]) {
   process.exit(0);
 }
 
+import { handleConfigCommand } from './commands/config.js';
+
+import { handleGenerateCommand } from './commands/generate.js';
+
+import { handleInitCommand } from './commands/init.js';
+
 export async function main() {
+  const argv = await parseArguments();
+  if (argv._[0] === 'init') {
+    handleInitCommand();
+    return;
+  }
+  const argv = await parseArguments();
+  if (argv._[0] === 'generate') {
+    await handleGenerateCommand(argv.prompt, argv.provider);
+    process.exit(0);
+  }
+  const argv = await parseArguments();
+  if (argv._[0] === 'config') {
+    await handleConfigCommand(argv.action, argv.provider, argv.apiKey);
+    process.exit(0);
+  }
   const workspaceRoot = process.cwd();
   const settings = loadSettings(workspaceRoot);
 

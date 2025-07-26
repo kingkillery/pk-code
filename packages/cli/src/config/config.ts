@@ -23,7 +23,6 @@ import {
 import { Settings } from './settings.js';
 
 import { Extension, filterActiveExtensions } from './extension.js';
-import { getCliVersion } from '../utils/version.js';
 import { loadSandboxConfig } from './sandboxConfig.js';
 
 // Simple console logger for now - replace with actual logger if available
@@ -197,12 +196,26 @@ export async function parseArguments(): Promise<CliArgs> {
       type: 'string',
       description: 'OpenAI API key to use for authentication',
     })
-    .option('openai-base-url', {
-      type: 'string',
-      description: 'OpenAI base URL (for custom endpoints)',
-    })
+    .command('init', 'Initialize the CLI', () => {})
+    .command('generate <prompt>', 'Generate code from a prompt', (yargs) => yargs.positional('prompt', {
+        describe: 'The prompt to generate code from',
+        type: 'string',
+      }))
+    .command('config <action> [provider] [apiKey]', 'Manage API credentials', (yargs) => yargs
+        .positional('action', {
+          describe: 'The action to perform',
+          choices: ['add', 'remove', 'list'],
+        })
+        .positional('provider', {
+          describe: 'The provider to configure',
+          type: 'string',
+        })
+        .positional('apiKey', {
+          describe: 'The API key to use',
+          type: 'string',
+        }))
 
-    .version(await getCliVersion()) // This will enable the --version flag based on package.json
+    .version(false) // Disable default version, we'll handle it manually
     .alias('v', 'version')
     .help()
     .alias('h', 'help')

@@ -19,6 +19,9 @@ import {
   ModelMetrics,
 } from '@qwen-code/qwen-code-core';
 
+// TTY detection helper
+const isTTY = (): boolean => process.stdout.isTTY === true;
+
 // --- Interface Definitions ---
 
 export type { SessionMetrics, ModelMetrics };
@@ -71,6 +74,11 @@ export const SessionStatsProvider: React.FC<{ children: React.ReactNode }> = ({
   });
 
   useEffect(() => {
+    // Skip telemetry setup in non-TTY environments
+    if (!isTTY()) {
+      return;
+    }
+
     const handleUpdate = ({
       metrics,
       lastPromptTokenCount,

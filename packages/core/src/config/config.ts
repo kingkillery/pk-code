@@ -154,6 +154,9 @@ export interface ConfigParameters {
     temperature?: number;
     max_tokens?: number;
   };
+  compressionTokenThreshold?: number;
+  compressionPreserveThreshold?: number;
+  maxTurns?: number;
 }
 
 export class Config {
@@ -204,6 +207,9 @@ export class Config {
     temperature?: number;
     max_tokens?: number;
   };
+  private readonly compressionTokenThreshold: number;
+  private readonly compressionPreserveThreshold: number;
+  private readonly maxTurns: number;
   private modelSwitchedDuringSession: boolean = false;
   private readonly maxSessionTurns: number;
   private readonly listExtensions: boolean;
@@ -258,6 +264,10 @@ export class Config {
     this.ideMode = params.ideMode ?? false;
     this.enableOpenAILogging = params.enableOpenAILogging ?? false;
     this.sampling_params = params.sampling_params;
+    this.compressionTokenThreshold = params.compressionTokenThreshold ?? 0.7;
+    this.compressionPreserveThreshold =
+      params.compressionPreserveThreshold ?? 0.3;
+    this.maxTurns = params.maxTurns ?? 100;
 
     if (params.contextFileName) {
       setGeminiMdFilename(params.contextFileName);
@@ -559,6 +569,18 @@ export class Config {
 
   getEnableOpenAILogging(): boolean {
     return this.enableOpenAILogging;
+  }
+
+  getCompressionTokenThreshold(): number {
+    return this.compressionTokenThreshold;
+  }
+
+  getCompressionPreserveThreshold(): number {
+    return this.compressionPreserveThreshold;
+  }
+
+  getMaxTurns(): number {
+    return this.maxTurns;
   }
 
   getAuthType(): AuthType | undefined {

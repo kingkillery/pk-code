@@ -194,6 +194,11 @@ qwen-code/
 ├── packages/
 │   ├── core/           # Core business logic and AI integrations
 │   ├── cli/            # Terminal UI and command processing
+│   ├── openai/         # OpenAI provider implementation
+│   ├── gemini/         # Gemini provider implementation
+│   ├── openrouter/     # OpenRouter provider implementation
+│   ├── anthropic/      # Anthropic provider implementation
+│   ├── cohere/         # Cohere provider implementation
 │   └── vscode-ide-companion/  # VSCode extension
 ├── scripts/            # Build and development automation
 ├── bundle/             # Distribution artifacts
@@ -208,34 +213,8 @@ qwen-code/
 
 **Authentication & Configuration:**
 
-- `src/core/contentGenerator.ts` - Content generator factory and `AuthType` enum
-- `src/config/config.ts` - Central `Config` class for system configuration
-- `src/config/models.ts` - Default model constants (`DEFAULT_GEMINI_MODEL`)
-- `src/code_assist/oauth2.ts` - Google OAuth2 implementation
-
-**AI Provider Integrations:**
-
-- `src/core/openaiContentGenerator.ts` - OpenAI API integration
-- `src/core/openrouterContentGenerator.ts` - OpenRouter API integration
-- `src/core/geminiChat.ts` - Gemini API integration
-- `src/core/client.ts` - Main client orchestration
-
-**Tool System:**
-
-- `src/tools/tool-registry.ts` - Tool discovery and registration
-- `src/tools/` - File operations, shell commands, web tools, memory tools
-
-**Services:**
-
-- `src/services/fileDiscoveryService.ts` - File discovery with gitignore support
-- `src/services/gitService.ts` - Git operations
-- `src/services/loopDetectionService.ts` - Infinite loop prevention
-
-**Utilities:**
-
-- `src/utils/paths.ts` - Path manipulation (`GEMINI_DIR = '.qwen'`)
-- `src/utils/memoryDiscovery.ts` - Memory management
-- `src/telemetry/` - OpenTelemetry integration
+- `src/provider.ts` - `AIProvider` interface
+- `src/credentials.ts` - Secure credential management
 
 ### CLI Package (`packages/cli/`)
 
@@ -247,101 +226,22 @@ qwen-code/
 
 - `index.ts` - Global CLI entry point
 - `src/gemini.tsx` - Main React application bootstrap
-- `src/nonInteractiveCli.ts` - Headless mode handler
 
 **Configuration Management:**
 
 - `src/config/config.ts` - CLI argument parsing with yargs
-- `src/config/settings.ts` - Hierarchical settings loading (system/user/workspace)
-- `src/config/auth.ts` - Authentication method validation
-- `src/config/extension.ts` - Extension system
-- `src/config/sandboxConfig.ts` - Sandbox configuration
-
-**User Interface (React + Ink):**
-
-- `src/ui/App.tsx` - Main UI orchestrator
-- `src/ui/components/AuthDialog.tsx` - Multi-provider authentication selection
-- `src/ui/components/OpenAIKeyPrompt.tsx` - OpenAI configuration
-- `src/ui/components/OpenRouterKeyPrompt.tsx` - OpenRouter configuration
-- `src/ui/hooks/useGeminiStream.ts` - Core AI response streaming
 
 **Command System:**
 
-- `src/services/CommandService.ts` - Command management
-- `src/ui/commands/` - Slash command implementations
-- `src/ui/hooks/slashCommandProcessor.ts` - Command parsing
-
-**Theme System:**
-
-- `src/ui/themes/` - Color schemes and theming
-
-### Root Level Structure
-
-**Build System:**
-
-- `esbuild.config.js` - Single-file bundling to `bundle/gemini.js`
-- `scripts/build.js` - Workspace build orchestration
-- `scripts/bundle.js` - Asset copying and bundling
-- `package.json` - Workspace management and CLI distribution via `"bin": {"qwen": "bundle/gemini.js"}`
-
-**Distribution:**
-
-- `bundle/gemini.js` - Standalone executable
-- `bundle/*.sb` - macOS sandbox configuration files
+- `src/commands/` - Command implementations (`config`, `generate`, `init`)
 
 ### Authentication Flow Architecture
 
-**Environment Loading Priority:**
+**Credential Management:**
 
-1. Current directory `.qwen/.env`
-2. Current directory `.env`
-3. Parent directories (recursive)
-4. Home directory `.qwen/.env`
-5. Home directory `.env`
+- Credentials are managed via the `qwen-code config` command.
+- Secure storage is handled by the `@qwen-code/core` package using `keytar`.
 
-**Auth Type Selection Priority:**
+**Interactive Onboarding:**
 
-1. Saved user preference (`settings.selectedAuthType`)
-2. `GEMINI_DEFAULT_AUTH_TYPE` environment variable
-3. Auto-detection based on available credentials:
-   - `OPENROUTER_API_KEY` → `AuthType.USE_OPENROUTER`
-   - `OPENAI_API_KEY` → `AuthType.USE_OPENAI`
-   - `GEMINI_API_KEY` → `AuthType.USE_GEMINI`
-4. Fallback: Interactive auth dialog
-
-**Configuration Flow:**
-
-```
-Environment Loading → Auth Type Selection → Content Generator Creation → API Calls
-```
-
-### Key Configuration Points
-
-**Default Model Selection:**
-
-- File: `packages/core/src/config/models.ts:7`
-- Current: `DEFAULT_GEMINI_MODEL = 'qwen3-coder-max'`
-
-**CLI Model Priority:**
-
-- File: `packages/cli/src/config/config.ts:75`
-- Order: `OPENROUTER_MODEL || GEMINI_MODEL || DEFAULT_GEMINI_MODEL`
-
-**Auth Selection (Interactive):**
-
-- File: `packages/cli/src/ui/components/AuthDialog.tsx:57-78`
-- Priority: Settings → ENV vars → API key detection → Default
-
-**Auth Selection (Non-Interactive):**
-
-- File: `packages/cli/src/gemini.tsx:342-350`
-- Priority: `OPENROUTER_API_KEY` → `OPENAI_API_KEY` → `USE_GEMINI`
-
-### Global Installation Flow
-
-1. `npm run build` - TypeScript compilation
-2. `npm run bundle` - esbuild creates `bundle/gemini.js`
-3. `npm install -g` - Installs `qwen` command globally
-4. `qwen` command executes `bundle/gemini.js`
-
-This architecture supports both development (monorepo with hot reloading) and distribution (single executable) workflows.
+- The `qwen-code init` command provides an interactive setup process for new users.

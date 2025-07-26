@@ -8,6 +8,7 @@ import { CallableTool, Schema } from '@google/genai';
 import { DiscoveredMCPTool } from './mcp-tool.js';
 import { MultimodalContentGenerator } from '../core/contentGenerator.js';
 import { getResponseText } from '../utils/generateContentResponseUtilities.js';
+import { ToolResult } from './tools.js';
 
 /**
  * Enhanced MCP tool that can leverage vision capabilities for browser automation
@@ -39,12 +40,12 @@ export class VisionMCPTool extends DiscoveredMCPTool {
   /**
    * Execute the MCP tool with optional vision enhancement
    */
-  async execute(params: Record<string, unknown>, _signal?: AbortSignal) {
+  async execute(params: Record<string, unknown>, _signal?: AbortSignal): Promise<ToolResult> {
     const result = await super.execute(params);
 
     // If this is a vision-capable browser tool and we have vision support, enhance the result
     if (this.shouldEnhanceWithVision() && this.visionContentGenerator) {
-      return this.enhanceWithVisionAnalysis(result, params, _signal);
+      return this.enhanceWithVisionAnalysis(result as unknown as Record<string, unknown>, params, _signal);
     }
 
     return result;
@@ -80,14 +81,14 @@ export class VisionMCPTool extends DiscoveredMCPTool {
     browserResult: Record<string, unknown>,
     originalParams: Record<string, unknown>,
     _signal?: AbortSignal
-  ) {
+  ): Promise<ToolResult> {
     try {
       // Extract image data from the browser result
       const imageData = this.extractImageDataFromResult(browserResult);
       
       if (!imageData) {
         console.debug('[VisionMCPTool] No image data found in browser result, skipping vision enhancement');
-        return browserResult;
+        return browserResult as unknown as ToolResult;
       }
 
       console.debug(`[VisionMCPTool] Enhancing ${this.name} result with vision analysis using ${this.visionContentGenerator!.getVisionModel()}`);
@@ -122,11 +123,11 @@ export class VisionMCPTool extends DiscoveredMCPTool {
         visionAnalysis: analysisText,
         llmContent: this.combineResultsForLLM(browserResult, analysisText),
         returnDisplay: this.combineResultsForDisplay(browserResult, analysisText)
-      };
+      } as ToolResult;
 
     } catch (error) {
       console.warn('[VisionMCPTool] Vision analysis failed, returning original result:', error);
-      return browserResult;
+      return browserResult as unknown as ToolResult;
     }
   }
 
@@ -145,11 +146,14 @@ export class VisionMCPTool extends DiscoveredMCPTool {
           data: imageData
         };
       }
-      if (imageData.data && imageData.mimeType) {
-        return {
-          mimeType: imageData.mimeType,
-          data: imageData.data
-        };
+      if (typeof imageData === 'object' && imageData !== null) {
+        const imgObj = imageData as Record<string, unknown>;
+        if (imgObj.data && imgObj.mimeType) {
+          return {
+            mimeType: String(imgObj.mimeType),
+            data: String(imgObj.data)
+          };
+        }
       }
     }
 
@@ -165,7 +169,7 @@ export class VisionMCPTool extends DiscoveredMCPTool {
     }
 
     // Check for browser-specific result structures
-    if (result.llmContent) {
+    if (result.llmContent && typeof result.llmContent === 'string') {
       const base64ImageMatch = result.llmContent.match(/data:image\/(png|jpeg|jpg|gif);base64,([^"]+)/);
       if (base64ImageMatch) {
         return {

@@ -19,7 +19,7 @@ import { parse } from 'shell-quote';
 import { MCPServerConfig } from '../config/config.js';
 import { DiscoveredMCPTool } from './mcp-tool.js';
 import { VisionMCPTool } from './visionMcpTool.js';
-import { FunctionDeclaration, Type, mcpToTool } from '@google/genai';
+import { FunctionDeclaration, Type, mcpToTool, CallableTool } from '@google/genai';
 import { sanitizeParameters, ToolRegistry } from './tool-registry.js';
 import { MultimodalContentGenerator } from '../core/contentGenerator.js';
 
@@ -443,7 +443,7 @@ export function generateValidName(
 export function enhanceToolsWithVision(
   tools: DiscoveredMCPTool[],
   visionContentGenerator?: MultimodalContentGenerator
-): DiscoveredMCPTool[] {
+): Array<DiscoveredMCPTool | VisionMCPTool> {
   if (!visionContentGenerator || !visionContentGenerator.isVisionCapable()) {
     return tools;
   }
@@ -458,7 +458,7 @@ export function enhanceToolsWithVision(
       
       // Create a new VisionMCPTool with the same parameters
       const visionTool = new VisionMCPTool(
-        (tool as unknown as { mcpTool: unknown }).mcpTool, // Access private property
+        (tool as unknown as { mcpTool: CallableTool }).mcpTool, // Access private property
         tool.serverName,
         tool.name,
         tool.description,

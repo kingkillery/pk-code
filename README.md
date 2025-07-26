@@ -77,9 +77,19 @@ export OPENAI_BASE_URL="https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
 export OPENAI_MODEL="qwen3-coder-plus"
 ```
 
+## Supported Providers
+
+Qwen Code supports a variety of AI providers, allowing you to choose the one that best suits your needs. The following providers are currently supported:
+
+- OpenAI
+- Google Gemini
+- OpenRouter
+- Anthropic
+- Cohere
+
 ## Usage Examples
 
-### Explore Codebases
+### Interactive Mode
 
 ```sh
 cd your-project/
@@ -87,21 +97,61 @@ qwen
 > Describe the main pieces of this system's architecture
 ```
 
-### Code Development
+### Non-Interactive Mode
 
 ```sh
-> Refactor this function to improve readability and performance
+# Generate code from a prompt
+qwen-code generate "create a react component that displays a button"
+
+# Configure a new provider
+qwen-code config add openai YOUR_API_KEY
+
+# List configured providers
+qwen-code config list
 ```
 
-### Automate Workflows
+## GitHub Action
 
-```sh
-> Analyze git commits from the last 7 days, grouped by feature and team member
+You can use Qwen Code as a GitHub Action in your CI/CD workflows to automate tasks like code generation, review, or analysis.
+
+### Example Workflow
+
+Create a file named `.github/workflows/qwen-code.yml` in your repository with the following content:
+
+```yaml
+name: Qwen Code CI
+
+on: [push]
+
+jobs:
+  qwen_code_job:
+    runs-on: ubuntu-latest
+    name: Run Qwen Code
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Qwen Code Action
+        id: qwen_code
+        uses: ./ .github/actions/qwen-code
+        with:
+          prompt: 'Explain the purpose of the main function in this project.'
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+
+      - name: Echo the response
+        run: echo "${{ steps.qwen_code.outputs.response }}"
 ```
 
-```sh
-> Convert all images in this directory to PNG format
-```
+### Inputs
+
+-   `prompt` (required): The prompt to send to Qwen Code.
+-   `model` (optional): The model to use. Defaults to the Qwen Code default.
+-   `openai-api-key` (optional): Your OpenAI API key. It's recommended to store this as a secret in your repository settings.
+-   `working-directory` (optional): The directory to run the command in. Defaults to the repository root.
+
+### Outputs
+
+-   `response`: The response text from the Qwen Code AI.
 
 ## Popular Tasks
 

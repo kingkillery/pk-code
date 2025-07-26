@@ -56,6 +56,15 @@ task-master generate                                         # Update task markd
 
 ```
 project/
+├── packages/
+│   ├── core/           # Core business logic and AI integrations
+│   ├── cli/            # Terminal UI and command processing
+│   ├── openai/         # OpenAI provider implementation
+│   ├── gemini/         # Gemini provider implementation
+│   ├── openrouter/     # OpenRouter provider implementation
+│   ├── anthropic/      # Anthropic provider implementation
+│   ├── cohere/         # Cohere provider implementation
+│   └── vscode-ide-companion/  # VSCode extension
 ├── .taskmaster/
 │   ├── tasks/              # Task files directory
 │   │   ├── tasks.json      # Main task database

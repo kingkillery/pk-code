@@ -97,8 +97,8 @@ export class ModelRoutingStrategy {
    */
   private isImagePart(part: unknown): boolean {
     const p = part as Record<string, unknown>;
-    return (p.inlineData && (p.inlineData as Record<string, unknown>).mimeType?.toString().startsWith('image/')) ||
-           (p.fileData && (p.fileData as Record<string, unknown>).mimeType?.toString().startsWith('image/'));
+    return Boolean((p.inlineData && (p.inlineData as Record<string, unknown>).mimeType?.toString().startsWith('image/')) ||
+           (p.fileData && (p.fileData as Record<string, unknown>).mimeType?.toString().startsWith('image/')));
   }
 
   /**

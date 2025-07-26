@@ -59,6 +59,8 @@ export async function startIDEServer(_context: vscode.ExtensionContext) {
   });
 }
 
+import { handleGenerateCommand } from '@qwen-code/qwen-code';
+
 const createMcpServer = () => {
   const server = new McpServer({
     name: 'vscode-ide-server',
@@ -105,5 +107,61 @@ const createMcpServer = () => {
       }
     },
   );
+
+  server.registerTool(
+    'generateCode',
+    {
+      description: '(IDE Tool) Generate code and insert it into the active editor.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          prompt: { type: 'string' },
+          provider: { type: 'string' },
+        },
+        required: ['prompt', 'provider'],
+      },
+    },
+    async (params: { prompt: string; provider: string }) => {
+      try {
+        const activeEditor = vscode.window.activeTextEditor;
+        if (!activeEditor) {
+          return {
+            content: [
+              {
+                type: 'text',
+                text: 'No active editor to insert code into.',
+              },
+            ],
+          };
+        }
+
+        const generatedCode = await handleGenerateCommand(params.prompt, params.provider);
+        if (generatedCode) {
+          activeEditor.edit((editBuilder) => {
+            editBuilder.insert(activeEditor.selection.active, generatedCode);
+          });
+          return {
+            content: [{ type: 'text', text: 'Code generated and inserted.' }],
+          };
+        } else {
+          return {
+            content: [{ type: 'text', text: 'Failed to generate code.' }],
+          };
+        }
+      } catch (error) {
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `Failed to generate code: ${
+                (error as Error).message || 'Unknown error'
+              }`,
+            },
+          ],
+        };
+      }
+    },
+  );
+
   return server;
 };

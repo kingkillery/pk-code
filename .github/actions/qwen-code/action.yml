@@ -1,0 +1,44 @@
+name: 'Qwen Code'
+description: 'Run Qwen Code AI Assistant'
+author: 'Qwen Code Team'
+
+inputs:
+  prompt:
+    description: 'The prompt to send to Qwen Code'
+    required: true
+  model:
+    description: 'The model to use for the prompt'
+    required: false
+  openai-api-key:
+    description: 'OpenAI API key'
+    required: false
+  working-directory:
+    description: 'The working directory to run the command in'
+    required: false
+    default: '.'
+
+outputs:
+  response:
+    description: 'The response from Qwen Code'
+    value: ${{ steps.qwen-code.outputs.response }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: 'Install Qwen Code'
+      shell: bash
+      run: npm install -g @qwen-code/qwen-code@latest
+
+    - name: 'Run Qwen Code'
+      id: qwen-code
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        set +e
+        RESPONSE_FILE=$(mktemp)
+        qwen --prompt "${{ inputs.prompt }}" --model "${{ inputs.model }}" --openai-api-key "${{ inputs.openai-api-key }}" > $RESPONSE_FILE
+        RESPONSE=$(cat $RESPONSE_FILE)
+        echo "response<<EOF" >> $GITHUB_OUTPUT
+        echo "$RESPONSE" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+        rm $RESPONSE_FILE
