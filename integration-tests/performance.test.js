@@ -4,8 +4,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-const { execSync } = require('child_process');
-const { performance } = require('perf_hooks');
+import { execSync } from 'child_process';
+import { performance } from 'perf_hooks';
+import { describe, test, expect } from 'vitest';
 
 describe('Performance Tests', () => {
   // Test for CLI command latency
