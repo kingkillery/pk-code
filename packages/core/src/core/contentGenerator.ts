@@ -225,7 +225,7 @@ export async function createContentGenerator(
     config.authType === AuthType.LOGIN_WITH_GOOGLE ||
     config.authType === AuthType.CLOUD_SHELL
   ) {
-    baseGenerator = createCodeAssistContentGenerator(
+    baseGenerator = await createCodeAssistContentGenerator(
       httpOptions,
       config.authType,
       gcConfig,
@@ -241,16 +241,7 @@ export async function createContentGenerator(
       httpOptions,
     });
 
-    const model = googleGenAI.getGenerativeModel({ model: config.model });
-    baseGenerator = {
-      generateContent: model.generateContent.bind(model),
-      generateContentStream: model.generateContentStream.bind(model),
-      countTokens: model.countTokens.bind(model),
-      embedContent: async (request) => {
-        const embeddingModel = googleGenAI.getGenerativeModel({ model: 'text-embedding-004' });
-        return embeddingModel.embedContent(request);
-      },
-    } as ContentGenerator;
+    baseGenerator = googleGenAI.models;
   } else if (config.authType === AuthType.USE_OPENAI) {
     if (!config.apiKey) {
       throw new Error('OpenAI API key is required');

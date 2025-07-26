@@ -18,7 +18,7 @@ esbuild
   .build({
     entryPoints: ['packages/cli/index.ts'],
     bundle: true,
-    outfile: 'bundle/gemini.js',
+    outfile: 'bundle/qwen.js',
     platform: 'node',
     format: 'esm',
     define: {
@@ -27,6 +27,27 @@ esbuild
     banner: {
       js: `import { createRequire as _gcliCreateRequire } from 'module'; const require = _gcliCreateRequire(import.meta.url); globalThis.__filename = require('url').fileURLToPath(import.meta.url); globalThis.__dirname = require('path').dirname(globalThis.__filename);`,
     },
-    external: ['fast-uri'],
+    external: [
+      'fast-uri',
+      'highlight.js',
+      'lowlight',
+      'hast',
+      '@types/hast'
+    ],
+    plugins: [
+      {
+        name: 'exclude-highlight-languages',
+        setup(build) {
+          // Exclude all highlight.js language files
+          build.onResolve({ filter: /^highlight\.js\/lib\/languages\// }, args => {
+            return { path: args.path, external: true };
+          });
+          // Exclude highlight.js core
+          build.onResolve({ filter: /^highlight\.js\/lib\/core$/ }, args => {
+            return { path: args.path, external: true };
+          });
+        }
+      }
+    ],
   })
   .catch(() => process.exit(1));

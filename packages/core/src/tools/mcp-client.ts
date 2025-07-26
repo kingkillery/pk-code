@@ -458,7 +458,7 @@ export function enhanceToolsWithVision(
       
       // Create a new VisionMCPTool with the same parameters
       const visionTool = new VisionMCPTool(
-        (tool as any).mcpTool, // Access private property
+        (tool as unknown as { mcpTool: unknown }).mcpTool, // Access private property
         tool.serverName,
         tool.name,
         tool.description,

@@ -7,11 +7,11 @@
 import { Box, Newline, Text, useInput } from 'ink';
 import { Colors } from '../colors.js';
 
-interface GeminiPrivacyNoticeProps {
+interface QwenPrivacyNoticeProps {
   onExit: () => void;
 }
 
-export const GeminiPrivacyNotice = ({ onExit }: GeminiPrivacyNoticeProps) => {
+export const QwenPrivacyNotice = ({ onExit }: QwenPrivacyNoticeProps) => {
   useInput((input, key) => {
     if (key.escape) {
       onExit();
@@ -21,11 +21,11 @@ export const GeminiPrivacyNotice = ({ onExit }: GeminiPrivacyNoticeProps) => {
   return (
     <Box flexDirection="column" marginBottom={1}>
       <Text bold color={Colors.AccentPurple}>
-        Gemini API Key Notice
+        Qwen API Key Notice
       </Text>
       <Newline />
       <Text>
-        By using the Gemini API<Text color={Colors.AccentBlue}>[1]</Text>,
+        By using the Qwen API<Text color={Colors.AccentBlue}>[1]</Text>,
         Google AI Studio
         <Text color={Colors.AccentRed}>[2]</Text>, and the other Google
         developer services that reference these terms (collectively, the

@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Tool, CallableTool, Schema } from '@google/genai';
+import { CallableTool, Schema } from '@google/genai';
 import { DiscoveredMCPTool } from './mcp-tool.js';
 import { MultimodalContentGenerator } from '../core/contentGenerator.js';
 import { getResponseText } from '../utils/generateContentResponseUtilities.js';
@@ -39,12 +39,12 @@ export class VisionMCPTool extends DiscoveredMCPTool {
   /**
    * Execute the MCP tool with optional vision enhancement
    */
-  async execute(params: any, signal?: AbortSignal) {
-    const result = await super.execute(params, signal);
+  async execute(params: Record<string, unknown>, _signal?: AbortSignal) {
+    const result = await super.execute(params);
 
     // If this is a vision-capable browser tool and we have vision support, enhance the result
     if (this.shouldEnhanceWithVision() && this.visionContentGenerator) {
-      return this.enhanceWithVisionAnalysis(result, params, signal);
+      return this.enhanceWithVisionAnalysis(result, params, _signal);
     }
 
     return result;
@@ -77,9 +77,9 @@ export class VisionMCPTool extends DiscoveredMCPTool {
    * Enhance the browser tool result with vision analysis
    */
   private async enhanceWithVisionAnalysis(
-    browserResult: any,
-    originalParams: any,
-    signal?: AbortSignal
+    browserResult: Record<string, unknown>,
+    originalParams: Record<string, unknown>,
+    _signal?: AbortSignal
   ) {
     try {
       // Extract image data from the browser result
@@ -112,7 +112,7 @@ export class VisionMCPTool extends DiscoveredMCPTool {
 
       // Get vision analysis
       const visionAnalysis = await this.visionContentGenerator!.generateContentWithVision(visionRequest);
-      const analysisText = getResponseText(visionAnalysis);
+      const analysisText = getResponseText(visionAnalysis) || 'Vision analysis completed but no text response available.';
 
       console.debug('[VisionMCPTool] Vision analysis completed successfully');
 
@@ -133,7 +133,7 @@ export class VisionMCPTool extends DiscoveredMCPTool {
   /**
    * Extract image data from browser MCP result
    */
-  private extractImageDataFromResult(result: any): { mimeType: string; data: string } | null {
+  private extractImageDataFromResult(result: Record<string, unknown>): { mimeType: string; data: string } | null {
     // Try different possible locations for image data in the result
     
     // Check for direct image data
@@ -181,7 +181,7 @@ export class VisionMCPTool extends DiscoveredMCPTool {
   /**
    * Create a contextual prompt for vision analysis based on the tool and parameters
    */
-  private createVisionAnalysisPrompt(originalParams: any): string {
+  private createVisionAnalysisPrompt(originalParams: Record<string, unknown>): string {
     const toolName = this.name.toLowerCase();
     
     if (toolName.includes('screenshot') || toolName.includes('snapshot')) {
@@ -205,7 +205,7 @@ Additional context from the tool call: ${JSON.stringify(originalParams, null, 2)
   /**
    * Combine browser result and vision analysis for LLM context
    */
-  private combineResultsForLLM(browserResult: any, visionAnalysis: string): string {
+  private combineResultsForLLM(browserResult: Record<string, unknown>, visionAnalysis: string): string {
     const originalContent = browserResult.llmContent || browserResult.content || 'Browser tool executed successfully.';
     
     return `${originalContent}
@@ -217,7 +217,7 @@ ${visionAnalysis}`;
   /**
    * Combine browser result and vision analysis for user display
    */
-  private combineResultsForDisplay(browserResult: any, visionAnalysis: string): string {
+  private combineResultsForDisplay(browserResult: Record<string, unknown>, visionAnalysis: string): string {
     const originalDisplay = browserResult.returnDisplay || browserResult.content || 'Browser tool executed successfully.';
     
     return `${originalDisplay}
