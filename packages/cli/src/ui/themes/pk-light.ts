@@ -19,7 +19,7 @@ const pkLightColors: ColorsTheme = {
   AccentRed: '#f07171',
   Comment: '#ABADB1',
   Gray: '#CCCFD3',
-  GradientColors: ['#399ee6', '#86b300'],
+  GradientColors: ['#21859e', '#399ee6'],
 };
 
 export const QwenLight: Theme = new Theme(
