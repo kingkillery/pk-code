@@ -9,27 +9,27 @@ The Qwen Code CLI is composed of several key packages that work together to prov
 1.  **CLI Package (`packages/cli`):**
     - **Purpose:** This is the main user-facing component of the Qwen Code CLI. It handles user input, renders the UI, and manages the overall interactive experience.
     - **Key Functions:**
-        - Command-line argument parsing
-        - Interactive UI rendering (using Ink)
-        - Command handling (e.g., `config`, `generate`, `init`)
+      - Command-line argument parsing
+      - Interactive UI rendering (using Ink)
+      - Command handling (e.g., `config`, `generate`, `init`)
 
 2.  **Core Package (`packages/core`):**
     - **Purpose:** This package provides the core, shared functionality used by all other parts of the application. It defines the standardized interfaces and provides essential services.
     - **Key Functions:**
-        - `AIProvider` interface: A standardized interface that all AI provider packages must implement.
-        - Secure credential management (using `keytar`)
+      - `AIProvider` interface: A standardized interface that all AI provider packages must implement.
+      - Secure credential management (using `keytar`)
 
 3.  **Provider Packages (`packages/openai`, `packages/gemini`, etc.):**
     - **Purpose:** Each provider package is a self-contained module that implements the `AIProvider` interface for a specific AI service (e.g., OpenAI, Google Gemini, OpenRouter).
     - **Key Functions:**
-        - API client for the specific AI service
-        - Implementation of the `initialize` and `generateCode` methods from the `AIProvider` interface
+      - API client for the specific AI service
+      - Implementation of the `initialize` and `generateCode` methods from the `AIProvider` interface
 
 4.  **VS Code Extension (`packages/vscode-ide-companion`):**
     - **Purpose:** This package provides an integration with Visual Studio Code, allowing users to interact with Qwen Code directly from their editor.
     - **Key Functions:**
-        - An MCP (Model Context Protocol) server that exposes Qwen Code's functionality to the editor.
-        - Tools for interacting with the editor, such as getting the active file or inserting generated code.
+      - An MCP (Model Context Protocol) server that exposes Qwen Code's functionality to the editor.
+      - Tools for interacting with the editor, such as getting the active file or inserting generated code.
 
 ## Provider-Based Architecture
 

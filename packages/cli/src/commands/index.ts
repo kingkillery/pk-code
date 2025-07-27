@@ -7,3 +7,4 @@
 export { handleGenerateCommand } from './generate.js';
 export { handleConfigCommand } from './config.js';
 export { handleInitCommand } from './init.jsx';
+export { handleUseCommand, parseUseCommandSyntax } from './use.js';

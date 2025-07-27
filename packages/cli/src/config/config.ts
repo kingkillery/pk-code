@@ -64,6 +64,9 @@ export interface CliArgs {
   provider?: string;
   action?: string;
   apiKey?: string;
+  // Use command properties
+  agent?: string;
+  query?: string;
 }
 
 export async function parseArguments(): Promise<CliArgs> {
@@ -206,23 +209,46 @@ export async function parseArguments(): Promise<CliArgs> {
       description: 'OpenAI API base URL',
     })
     .command('init', 'Initialize the CLI', () => {})
-    .command('generate <prompt>', 'Generate code from a prompt', (yargs) => yargs.positional('prompt', {
+    .command('generate <prompt>', 'Generate code from a prompt', (yargs) =>
+      yargs.positional('prompt', {
         describe: 'The prompt to generate code from',
         type: 'string',
-      }))
-    .command('config <action> [provider] [apiKey]', 'Manage API credentials', (yargs) => yargs
-        .positional('action', {
-          describe: 'The action to perform',
-          choices: ['add', 'remove', 'list'],
-        })
-        .positional('provider', {
-          describe: 'The provider to configure',
-          type: 'string',
-        })
-        .positional('apiKey', {
-          describe: 'The API key to use',
-          type: 'string',
-        }))
+      }),
+    )
+    .command(
+      'config <action> [provider] [apiKey]',
+      'Manage API credentials',
+      (yargs) =>
+        yargs
+          .positional('action', {
+            describe: 'The action to perform',
+            choices: ['add', 'remove', 'list'],
+          })
+          .positional('provider', {
+            describe: 'The provider to configure',
+            type: 'string',
+          })
+          .positional('apiKey', {
+            describe: 'The API key to use',
+            type: 'string',
+          }),
+    )
+    .command(
+      'use <agent> <query>',
+      'Execute a specific agent with a query',
+      (yargs) =>
+        yargs
+          .positional('agent', {
+            describe: 'The name of the agent to execute',
+            type: 'string',
+            demandOption: true,
+          })
+          .positional('query', {
+            describe: 'The query to send to the agent',
+            type: 'string',
+            demandOption: true,
+          }),
+    )
 
     .version(false) // Disable default version, we'll handle it manually
     .alias('v', 'version')

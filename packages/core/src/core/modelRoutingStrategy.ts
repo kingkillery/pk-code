@@ -21,11 +21,11 @@ export class ModelRoutingStrategy {
       case 'explicit':
         // Only use vision when explicitly requested
         return this.hasExplicitVisionRequest(request);
-      
+
       case 'tool-based':
         // Use vision when vision-related tools are present
         return this.hasVisionTools(request);
-      
+
       case 'auto':
       default:
         // Automatically detect based on content, tools, and context
@@ -36,7 +36,9 @@ export class ModelRoutingStrategy {
   /**
    * Check if the request explicitly asks for vision capabilities
    */
-  private hasExplicitVisionRequest(request: GenerateContentParameters): boolean {
+  private hasExplicitVisionRequest(
+    request: GenerateContentParameters,
+  ): boolean {
     const textContent = this.extractTextContent(request);
     const visionKeywords = [
       'analyze this image',
@@ -45,11 +47,11 @@ export class ModelRoutingStrategy {
       'analyze the ui',
       'describe the interface',
       'vision model',
-      'use vision'
+      'use vision',
     ];
-    
-    return visionKeywords.some(keyword => 
-      textContent.toLowerCase().includes(keyword.toLowerCase())
+
+    return visionKeywords.some((keyword) =>
+      textContent.toLowerCase().includes(keyword.toLowerCase()),
     );
   }
 
@@ -68,17 +70,19 @@ export class ModelRoutingStrategy {
   private shouldAutoRouteToVision(request: GenerateContentParameters): boolean {
     // Check for image content in request
     const hasImages = this.hasImageContent(request);
-    
+
     // Check for vision-related tools
     const hasVisionTools = this.hasVisionTools(request);
-    
+
     // Check for browser/UI related requests
     const isBrowserContext = this.isBrowserRelatedRequest(request);
-    
+
     // Check for screenshot/snapshot related requests
     const isScreenshotContext = this.isScreenshotRelatedRequest(request);
-    
-    return hasImages || hasVisionTools || isBrowserContext || isScreenshotContext;
+
+    return (
+      hasImages || hasVisionTools || isBrowserContext || isScreenshotContext
+    );
   }
 
   /**
@@ -86,9 +90,9 @@ export class ModelRoutingStrategy {
    */
   private hasImageContent(request: GenerateContentParameters): boolean {
     if (!(request as unknown as { parts?: unknown[] }).parts) return false;
-    
-    return (request as unknown as { parts: unknown[] }).parts.some((part: unknown) => 
-      this.isImagePart(part)
+
+    return (request as unknown as { parts: unknown[] }).parts.some(
+      (part: unknown) => this.isImagePart(part),
     );
   }
 
@@ -97,8 +101,16 @@ export class ModelRoutingStrategy {
    */
   private isImagePart(part: unknown): boolean {
     const p = part as Record<string, unknown>;
-    return Boolean((p.inlineData && (p.inlineData as Record<string, unknown>).mimeType?.toString().startsWith('image/')) ||
-           (p.fileData && (p.fileData as Record<string, unknown>).mimeType?.toString().startsWith('image/')));
+    return Boolean(
+      (p.inlineData &&
+        (p.inlineData as Record<string, unknown>).mimeType
+          ?.toString()
+          .startsWith('image/')) ||
+        (p.fileData &&
+          (p.fileData as Record<string, unknown>).mimeType
+            ?.toString()
+            .startsWith('image/')),
+    );
   }
 
   /**
@@ -106,20 +118,22 @@ export class ModelRoutingStrategy {
    */
   private isVisionTool(tool: Tool): boolean {
     if (!tool.functionDeclarations) return false;
-    
+
     const visionToolNames = [
       'screenshot',
       'snapshot',
       'browser_screenshot',
       'browser_snapshot',
       'capture',
-      'image_analysis'
+      'image_analysis',
     ];
-    
-    return tool.functionDeclarations.some(func => 
-      func.name && visionToolNames.some(visionName => 
-        func.name!.toLowerCase().includes(visionName.toLowerCase())
-      )
+
+    return tool.functionDeclarations.some(
+      (func) =>
+        func.name &&
+        visionToolNames.some((visionName) =>
+          func.name!.toLowerCase().includes(visionName.toLowerCase()),
+        ),
     );
   }
 
@@ -128,31 +142,57 @@ export class ModelRoutingStrategy {
    */
   private isBrowserRelatedRequest(request: GenerateContentParameters): boolean {
     const textContent = this.extractTextContent(request);
-    
+
     const browserKeywords = [
-      'webpage', 'website', 'browser', 'ui', 'interface', 'dom',
-      'element', 'button', 'click', 'form', 'input', 'navigation',
-      'menu', 'modal', 'dialog', 'layout', 'design', 'visual'
+      'webpage',
+      'website',
+      'browser',
+      'ui',
+      'interface',
+      'dom',
+      'element',
+      'button',
+      'click',
+      'form',
+      'input',
+      'navigation',
+      'menu',
+      'modal',
+      'dialog',
+      'layout',
+      'design',
+      'visual',
     ];
-    
-    return browserKeywords.some(keyword => 
-      new RegExp(`\\b${keyword}\\b`, 'i').test(textContent)
+
+    return browserKeywords.some((keyword) =>
+      new RegExp(`\\b${keyword}\\b`, 'i').test(textContent),
     );
   }
 
   /**
    * Check if the request is screenshot/snapshot related
    */
-  private isScreenshotRelatedRequest(request: GenerateContentParameters): boolean {
+  private isScreenshotRelatedRequest(
+    request: GenerateContentParameters,
+  ): boolean {
     const textContent = this.extractTextContent(request);
-    
+
     const screenshotKeywords = [
-      'screenshot', 'snapshot', 'capture', 'screen', 'image',
-      'picture', 'visual', 'see', 'look', 'observe', 'analyze'
+      'screenshot',
+      'snapshot',
+      'capture',
+      'screen',
+      'image',
+      'picture',
+      'visual',
+      'see',
+      'look',
+      'observe',
+      'analyze',
     ];
-    
-    return screenshotKeywords.some(keyword => 
-      new RegExp(`\\b${keyword}\\b`, 'i').test(textContent)
+
+    return screenshotKeywords.some((keyword) =>
+      new RegExp(`\\b${keyword}\\b`, 'i').test(textContent),
     );
   }
 
@@ -161,9 +201,12 @@ export class ModelRoutingStrategy {
    */
   private extractTextContent(request: GenerateContentParameters): string {
     if (!(request as unknown as { parts?: unknown[] }).parts) return '';
-    
+
     return (request as unknown as { parts: unknown[] }).parts
-      .filter((part: unknown) => typeof part === 'object' && part !== null && 'text' in part)
+      .filter(
+        (part: unknown) =>
+          typeof part === 'object' && part !== null && 'text' in part,
+      )
       .map((part: unknown) => (part as { text: string }).text)
       .join(' ');
   }

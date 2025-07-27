@@ -25,8 +25,8 @@ export const QwenPrivacyNotice = ({ onExit }: QwenPrivacyNoticeProps) => {
       </Text>
       <Newline />
       <Text>
-        By using the Qwen API<Text color={Colors.AccentBlue}>[1]</Text>,
-        Google AI Studio
+        By using the Qwen API<Text color={Colors.AccentBlue}>[1]</Text>, Google
+        AI Studio
         <Text color={Colors.AccentRed}>[2]</Text>, and the other Google
         developer services that reference these terms (collectively, the
         &quot;APIs&quot; or &quot;Services&quot;), you are agreeing to Google

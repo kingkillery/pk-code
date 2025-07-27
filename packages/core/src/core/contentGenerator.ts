@@ -185,9 +185,15 @@ export async function createContentGeneratorConfig(
 
     // Add vision model configuration if enabled
     if (process.env.ENABLE_VISION_ROUTING === 'true') {
-      const visionModel = process.env.VISION_MODEL_NAME?.trim() || 'bytedance/ui-tars-1.5-7b';
-      const visionProvider = process.env.VISION_MODEL_PROVIDER?.trim() || 'openrouter';
-      const routingStrategy = (process.env.VISION_ROUTING_STRATEGY as 'auto' | 'explicit' | 'tool-based') || 'auto';
+      const visionModel =
+        process.env.VISION_MODEL_NAME?.trim() || 'bytedance/ui-tars-1.5-7b';
+      const visionProvider =
+        process.env.VISION_MODEL_PROVIDER?.trim() || 'openrouter';
+      const routingStrategy =
+        (process.env.VISION_ROUTING_STRATEGY as
+          | 'auto'
+          | 'explicit'
+          | 'tool-based') || 'auto';
       const fallbackToText = process.env.VISION_FALLBACK_TO_TEXT !== 'false';
 
       contentGeneratorConfig.visionConfig = {
@@ -195,7 +201,9 @@ export async function createContentGeneratorConfig(
         visionProvider,
         routingStrategy,
         fallbackToText,
-        visionApiKey: process.env.VISION_MODEL_API_KEY?.trim() || process.env.OPENROUTER_API_KEY,
+        visionApiKey:
+          process.env.VISION_MODEL_API_KEY?.trim() ||
+          process.env.OPENROUTER_API_KEY,
       };
       contentGeneratorConfig.enableSmartRouting = true;
     }
@@ -217,10 +225,10 @@ export async function createContentGenerator(
       'User-Agent': `GeminiCLI/${version} (${process.platform}; ${process.arch})`,
     },
   };
-  
+
   // Create the base content generator first
   let baseGenerator: ContentGenerator;
-  
+
   if (
     config.authType === AuthType.LOGIN_WITH_GOOGLE ||
     config.authType === AuthType.CLOUD_SHELL
@@ -256,7 +264,11 @@ export async function createContentGenerator(
     );
 
     // Always use OpenAIContentGenerator, logging is controlled by enableOpenAILogging flag
-    baseGenerator = new OpenAIContentGenerator(config.apiKey, config.model, gcConfig);
+    baseGenerator = new OpenAIContentGenerator(
+      config.apiKey,
+      config.model,
+      gcConfig,
+    );
   } else if (config.authType === AuthType.USE_OPENROUTER) {
     if (!config.apiKey) {
       throw new Error('OpenRouter API key is required');
@@ -289,38 +301,46 @@ export async function createContentGenerator(
       const { RoutingContentGenerator } = await import(
         './routingContentGenerator.js'
       );
-      
+
       // Create vision model content generator
       const visionConfig: ContentGeneratorConfig = {
         ...config,
         model: config.visionConfig.visionModel,
         apiKey: config.visionConfig.visionApiKey || config.apiKey,
       };
-      
+
       // For now, vision models are primarily on OpenRouter
-      if (config.visionConfig.visionProvider === 'openrouter' || !config.visionConfig.visionProvider) {
+      if (
+        config.visionConfig.visionProvider === 'openrouter' ||
+        !config.visionConfig.visionProvider
+      ) {
         const { OpenRouterContentGenerator } = await import(
           './openrouterContentGenerator.js'
         );
-        
+
         const visionGenerator = new OpenRouterContentGenerator(
           visionConfig.apiKey!,
           visionConfig.model,
           gcConfig,
-          config.visionConfig.visionProvider
+          config.visionConfig.visionProvider,
         );
-        
-        console.debug(`[ContentGenerator] Created routing generator with text model: ${config.model}, vision model: ${config.visionConfig.visionModel}`);
-        
+
+        console.debug(
+          `[ContentGenerator] Created routing generator with text model: ${config.model}, vision model: ${config.visionConfig.visionModel}`,
+        );
+
         return new RoutingContentGenerator(
           baseGenerator,
           visionGenerator,
           config.visionConfig,
-          config.model
+          config.model,
         );
       }
     } catch (error) {
-      console.warn('[ContentGenerator] Failed to create routing content generator, falling back to base generator:', error);
+      console.warn(
+        '[ContentGenerator] Failed to create routing content generator, falling back to base generator:',
+        error,
+      );
     }
   }
 

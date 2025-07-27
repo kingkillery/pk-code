@@ -134,7 +134,7 @@ export default tseslint.config(
       'default-case': 'error',
     },
   },
-  
+
   // extra settings for scripts that we run directly with node
   {
     files: ['./scripts/**/*.js', 'esbuild.config.js'],

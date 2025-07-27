@@ -89,8 +89,7 @@ vi.mock('open', () => ({
 }));
 
 vi.mock('@pk-code/core', async (importOriginal) => {
-  const actual =
-    await importOriginal<typeof import('@pk-code/core')>();
+  const actual = await importOriginal<typeof import('@pk-code/core')>();
   return {
     ...actual,
     getMCPServerStatus: vi.fn(),

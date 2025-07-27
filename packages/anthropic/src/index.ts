@@ -16,7 +16,9 @@ export class AnthropicProvider implements AIProvider {
 
   async generateCode(prompt: string): Promise<string> {
     if (!this.client) {
-      throw new Error('Provider not initialized. Please call initialize first.');
+      throw new Error(
+        'Provider not initialized. Please call initialize first.',
+      );
     }
 
     const response = await this.client.messages.create({

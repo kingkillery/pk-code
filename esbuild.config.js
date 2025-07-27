@@ -33,22 +33,25 @@ esbuild
       'lowlight',
       'hast',
       '@types/hast',
-      'keytar'
+      'keytar',
     ],
     plugins: [
       {
         name: 'exclude-highlight-languages',
         setup(build) {
           // Exclude all highlight.js language files
-          build.onResolve({ filter: /^highlight\.js\/lib\/languages\// }, args => {
-            return { path: args.path, external: true };
-          });
+          build.onResolve(
+            { filter: /^highlight\.js\/lib\/languages\// },
+            (args) => {
+              return { path: args.path, external: true };
+            },
+          );
           // Exclude highlight.js core
-          build.onResolve({ filter: /^highlight\.js\/lib\/core$/ }, args => {
+          build.onResolve({ filter: /^highlight\.js\/lib\/core$/ }, (args) => {
             return { path: args.path, external: true };
           });
-        }
-      }
+        },
+      },
     ],
   })
   .catch(() => process.exit(1));

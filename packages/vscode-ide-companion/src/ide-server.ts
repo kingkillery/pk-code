@@ -110,7 +110,8 @@ const createMcpServer = () => {
   server.registerTool(
     'generateCode',
     {
-      description: '(IDE Tool) Generate code and insert it into the active editor.',
+      description:
+        '(IDE Tool) Generate code and insert it into the active editor.',
       inputSchema: {
         prompt: z.string(),
         provider: z.string(),
@@ -131,7 +132,10 @@ const createMcpServer = () => {
         }
 
         const { handleGenerateCommand } = await import('@pk-code/core');
-        const generatedCode = await handleGenerateCommand(params.prompt, params.provider);
+        const generatedCode = await handleGenerateCommand(
+          params.prompt,
+          params.provider,
+        );
         if (generatedCode) {
           activeEditor.edit((editBuilder) => {
             editBuilder.insert(activeEditor.selection.active, generatedCode);

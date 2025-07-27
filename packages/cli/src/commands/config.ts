@@ -6,11 +6,17 @@
 
 import { setCredential, getCredential, deleteCredential } from '@pk-code/core';
 
-export async function handleConfigCommand(action: string, provider?: string, apiKey?: string) {
+export async function handleConfigCommand(
+  action: string,
+  provider?: string,
+  apiKey?: string,
+) {
   switch (action) {
     case 'add':
       if (!provider || !apiKey) {
-        console.error('Provider and API key are required for the "add" action.');
+        console.error(
+          'Provider and API key are required for the "add" action.',
+        );
         return;
       }
       await setCredential(provider, apiKey);

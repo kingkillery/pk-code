@@ -1,10 +1,13 @@
 # Quick Prompt: Generate Code Agent Best Practices JSON
 
 ## Task
+
 Analyze https://github.com/promptslab/Awesome-Prompt-Engineering and create a JSON guide of best practices specifically for prompting code generation agents.
 
 ## Focus
+
 Extract ONLY techniques that improve AI code generation for:
+
 - Writing functions/classes
 - Debugging code
 - Code reviews
@@ -13,6 +16,7 @@ Extract ONLY techniques that improve AI code generation for:
 - Architecture
 
 ## Required JSON Structure
+
 ```json
 {
   "best_practices": {
@@ -39,4 +43,5 @@ Extract ONLY techniques that improve AI code generation for:
 ```
 
 ## Output
+
 Return ONLY valid JSON. No explanations outside the JSON structure.

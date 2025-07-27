@@ -1,0 +1,173 @@
+/**
+ * @license
+ * Copyright 2025 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+import {
+  getGlobalAgentRegistry,
+  initializeGlobalAgentRegistry,
+  type ParsedAgent,
+  Config,
+  createCodeAssistContentGenerator,
+} from '@pk-code/core';
+
+/**
+ * Handle the 'use' command to execute a specific agent with a query
+ */
+export async function handleUseCommand(
+  agentName: string,
+  query: string,
+  config?: Config,
+): Promise<string | null> {
+  try {
+    // Initialize the global agent registry if not already done
+    const projectRoot = process.cwd();
+    let registry;
+
+    try {
+      registry = getGlobalAgentRegistry();
+    } catch {
+      // Registry not initialized, initialize it
+      await initializeGlobalAgentRegistry(projectRoot, {
+        includeGlobal: true,
+        validateSchema: true,
+      });
+      registry = getGlobalAgentRegistry();
+    }
+
+    // Find the agent by name
+    const agent = registry.getAgent(agentName);
+    if (!agent) {
+      // Try searching for agents with similar names
+      const searchResults = registry.searchAgents(agentName);
+
+      if (searchResults.length === 0) {
+        console.error(`Agent "${agentName}" not found.`);
+        console.error('Available agents:');
+        const allAgents = registry.getAgents();
+        if (allAgents.length === 0) {
+          console.error(
+            '  No agents available. Check your .pk/agents directory.',
+          );
+        } else {
+          allAgents.forEach((a) => {
+            console.error(`  - ${a.config.name}: ${a.config.description}`);
+          });
+        }
+        return null;
+      }
+
+      if (searchResults.length === 1) {
+        console.log(
+          `Using similar agent "${searchResults[0].config.name}" instead of "${agentName}"`,
+        );
+        return await executeAgent(searchResults[0], query, config);
+      }
+
+      console.error(
+        `Agent "${agentName}" not found. Did you mean one of these?`,
+      );
+      searchResults.slice(0, 3).forEach((a) => {
+        console.error(`  - ${a.config.name}: ${a.config.description}`);
+      });
+      return null;
+    }
+
+    return await executeAgent(agent, query, config);
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error(`Error executing agent "${agentName}":`, errorMessage);
+    return null;
+  }
+}
+
+/**
+ * Execute a specific agent with the given query
+ */
+async function executeAgent(
+  agent: ParsedAgent,
+  query: string,
+  config?: Config,
+): Promise<string | null> {
+  try {
+    console.log(
+      `Executing agent "${agent.config.name}": ${agent.config.description}`,
+    );
+
+    if (!config) {
+      throw new Error('Config required for content generation');
+    }
+
+    // Create content generator using the existing system
+    const contentGenerator = await createCodeAssistContentGenerator(
+      config.getContentGeneratorConfig(),
+    );
+
+    // Build the system prompt with agent context
+    const systemPrompt =
+      agent.config.systemPrompt ||
+      `You are ${agent.config.name}: ${agent.config.description}`;
+
+    // Prepare the request with agent-specific parameters
+    const request = {
+      contents: [
+        {
+          role: 'user' as const,
+          parts: [{ text: `${systemPrompt}\n\nUser Query: ${query}` }],
+        },
+      ],
+      generationConfig: {
+        temperature: agent.config.temperature || 0.7,
+        maxOutputTokens: agent.config.maxTokens || 2048,
+      },
+    };
+
+    // Execute the content generation
+    const response = await contentGenerator.generateContent(request);
+
+    // Extract and display the response
+    const responseText =
+      response.candidates?.[0]?.content?.parts?.[0]?.text || '';
+
+    if (responseText) {
+      console.log('\n' + responseText);
+      return responseText;
+    } else {
+      console.error('No response content received from agent');
+      return null;
+    }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error(`Error during agent execution:`, errorMessage);
+    return null;
+  }
+}
+
+/**
+ * Parse the special syntax "pk use <agent>: 'query'"
+ * This function handles the case where the user provides the colon syntax
+ */
+export function parseUseCommandSyntax(
+  input: string,
+): { agent: string; query: string } | null {
+  // Look for pattern: <agent>: "query" or <agent>: 'query' (allow trailing whitespace)
+  const colonMatch = input.match(/^([^:]+):\s*["']([^"']+)["']\s*$/);
+  if (colonMatch) {
+    return {
+      agent: colonMatch[1].trim(),
+      query: colonMatch[2], // Content inside quotes, preserve as-is
+    };
+  }
+
+  // Look for pattern: <agent>: query (without quotes)
+  const colonMatchNoQuotes = input.match(/^([^:]+):\s*(.+)$/);
+  if (colonMatchNoQuotes) {
+    return {
+      agent: colonMatchNoQuotes[1].trim(),
+      query: colonMatchNoQuotes[2].trim(),
+    };
+  }
+
+  return null;
+}

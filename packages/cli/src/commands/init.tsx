@@ -44,7 +44,11 @@ const Init = () => {
       ) : (
         <>
           <Text>Enter API key for {selectedProvider}:</Text>
-          <TextInput value={apiKey} onChange={setApiKey} onSubmit={handleSubmit} />
+          <TextInput
+            value={apiKey}
+            onChange={setApiKey}
+            onSubmit={handleSubmit}
+          />
         </>
       )}
     </Box>

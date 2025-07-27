@@ -3,7 +3,7 @@ https://ambia.lightning.force.com/lightning/r/Report/00OUS000005ZOpN2AW/view
 
 ---
 
-Pull the top 20 oldest 'Project Name' and list them at the bottom of the email. 
+Pull the top 20 oldest 'Project Name' and list them at the bottom of the email.
 
 ---
 
@@ -47,7 +47,7 @@ Pull the top 20 oldest 'Project Name' and list them at the bottom of the email.
     and style. The system supports both interactive mode (for manual
     input/verification) and autonomous mode (for scheduled execution), with
     fallback mechanisms that gracefully handle missing data through file
-    parsing or user prompts. 
+    parsing or user prompts.
 
 ------
 
@@ -58,4 +58,3 @@ We want to now tie our email agent to some of the functionality of AmbiaSolarAge
 Note, AmbiaSolarAgent as a whole has /api directory which houses the api set up. Our Email Create Agent should be able to interface with it in order to retrieve current status, summaries, and next steps from our 'AGING ACCOUNTS'
 
 ```
-

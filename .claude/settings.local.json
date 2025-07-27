@@ -6,7 +6,16 @@
       "Bash(npm test:*)",
       "Bash(grep:*)",
       "Bash(sed:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "mcp__task-master-ai__get_tasks",
+      "mcp__task-master-ai__set_task_status",
+      "Bash(npm run:*)",
+      "Bash(npm install:*)",
+      "Bash(node test-agents.js)",
+      "mcp__task-master-ai__next_task",
+      "mcp__task-master-ai__get_task",
+      "Bash(npx vitest run:*)",
+      "Bash(git add:*)"
     ],
     "deny": []
   },

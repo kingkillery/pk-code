@@ -6,11 +6,7 @@
 
 import { GaxiosError } from 'gaxios';
 import { useState, useEffect, useCallback } from 'react';
-import {
-  Config,
-  CodeAssistServer,
-  UserTierId,
-} from '@pk-code/core';
+import { Config, CodeAssistServer, UserTierId } from '@pk-code/core';
 
 export interface PrivacyState {
   isLoading: boolean;

@@ -26,9 +26,10 @@ import { useInput, type Key as InkKey } from 'ink';
 vi.mock('ink');
 
 vi.mock('@pk-code/core', async () => {
-  const actualServerModule = (await vi.importActual(
-    '@pk-code/core',
-  )) as Record<string, unknown>;
+  const actualServerModule = (await vi.importActual('@pk-code/core')) as Record<
+    string,
+    unknown
+  >;
   return {
     ...actualServerModule,
     Config: vi.fn(),

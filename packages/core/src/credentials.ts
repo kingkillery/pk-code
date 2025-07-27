@@ -8,7 +8,10 @@ import * as keytar from 'keytar';
 
 const SERVICE_NAME = 'qwen-code';
 
-export async function setCredential(provider: string, apiKey: string): Promise<void> {
+export async function setCredential(
+  provider: string,
+  apiKey: string,
+): Promise<void> {
   await keytar.setPassword(SERVICE_NAME, provider, apiKey);
 }
 

@@ -91,6 +91,8 @@ import { handleGenerateCommand } from './commands/generate.js';
 
 import { handleInitCommand } from './commands/init.js';
 
+import { handleUseCommand, parseUseCommandSyntax } from './commands/use.js';
+
 export async function main() {
   const argv = await parseArguments();
   if (argv._[0] === 'init') {
@@ -102,7 +104,67 @@ export async function main() {
     process.exit(0);
   }
   if (argv._[0] === 'config') {
-    await handleConfigCommand(argv.action || '', argv.provider || '', argv.apiKey || '');
+    await handleConfigCommand(
+      argv.action || '',
+      argv.provider || '',
+      argv.apiKey || '',
+    );
+    process.exit(0);
+  }
+  if (argv._[0] === 'use') {
+    // Handle both "pk use agent query" and "pk use agent: query" syntaxes
+    let agentName = argv.agent || (argv._[1] as string) || '';
+    let query = argv.query || (argv._[2] as string) || '';
+
+    // Check if we have the colon syntax in a single argument
+    if (!query && agentName.includes(':')) {
+      const parsed = parseUseCommandSyntax(agentName);
+      if (parsed) {
+        agentName = parsed.agent;
+        query = parsed.query;
+      }
+    }
+
+    if (!agentName || !query) {
+      console.error(
+        'Usage: pk use <agent> <query> or pk use "<agent>: <query>"',
+      );
+      console.error(
+        'Example: pk use qwen-code-engineer "Fix the authentication bug"',
+      );
+      console.error(
+        'Example: pk use "debug-detective: Investigate performance issue"',
+      );
+      process.exit(1);
+    }
+
+    // Load necessary configuration for the use command
+    const workspaceRoot = process.cwd();
+    const settings = loadSettings(workspaceRoot);
+
+    if (settings.errors.length > 0) {
+      for (const error of settings.errors) {
+        let errorMessage = `Error in ${error.path}: ${error.message}`;
+        if (!process.env.NO_COLOR) {
+          errorMessage = `\x1b[31m${errorMessage}\x1b[0m`;
+        }
+        console.error(errorMessage);
+        console.error(`Please fix ${error.path} and try again.`);
+      }
+      process.exit(1);
+    }
+
+    const extensions = loadExtensions(workspaceRoot);
+    const config = await loadCliConfig(
+      settings.merged,
+      extensions,
+      sessionId,
+      argv,
+    );
+
+    await config.initialize();
+
+    await handleUseCommand(agentName, query, config);
     process.exit(0);
   }
   const workspaceRoot = process.cwd();

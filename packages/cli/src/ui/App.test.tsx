@@ -76,8 +76,7 @@ interface MockServerConfig {
 
 // Mock @pk-code/core and its Config class
 vi.mock('@pk-code/core', async (importOriginal) => {
-  const actualCore =
-    await importOriginal<typeof import('@pk-code/core')>();
+  const actualCore = await importOriginal<typeof import('@pk-code/core')>();
   const ConfigClassMock = vi
     .fn()
     .mockImplementation((optionsPassedToConstructor) => {

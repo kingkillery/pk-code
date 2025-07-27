@@ -12,7 +12,10 @@
 import { main } from './gemini.js';
 
 // Export command functions for use by other packages
-export { handleGenerateCommand, handleConfigCommand } from './commands/index.js';
+export {
+  handleGenerateCommand,
+  handleConfigCommand,
+} from './commands/index.js';
 
 // --- Global Entry Point ---
 main().catch((error) => {

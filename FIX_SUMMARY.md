@@ -24,13 +24,16 @@ Added a new method `refreshContentGenerator()` to the `Config` class that:
 ### Files Modified
 
 #### `packages/core/src/config/config.ts`
+
 - Added `refreshContentGenerator()` method to recreate the content generator with current environment variables
 
 #### `packages/cli/src/ui/commands/model.ts`
+
 - Added call to `config.refreshContentGenerator()` after setting OpenRouter model
 - Only refreshes for OpenRouter auth type to avoid unnecessary work
 
 #### `packages/cli/src/ui/commands/inferenceProviderCommand.ts`
+
 - Added call to `config.refreshContentGenerator()` after setting OpenRouter provider
 - Added refresh call when clearing provider (setting to "auto")
 - Only refreshes for OpenRouter auth type
@@ -38,6 +41,7 @@ Added a new method `refreshContentGenerator()` to the `Config` class that:
 ## How It Works
 
 ### Before Fix
+
 ```
 User runs /model new-model
 ↓
@@ -49,6 +53,7 @@ API requests go to old model ❌
 ```
 
 ### After Fix
+
 ```
 User runs /model new-model
 ↓
@@ -84,7 +89,7 @@ After this fix, users can now:
 # Switch models and see immediate effect
 /model anthropic/claude-3-sonnet
 
-# Switch inference providers and see immediate effect  
+# Switch inference providers and see immediate effect
 /inference-p cerebras
 
 # Clear provider to use OpenRouter's automatic selection

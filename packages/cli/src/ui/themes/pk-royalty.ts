@@ -8,17 +8,17 @@ import { type ColorsTheme, Theme } from './theme.js';
 
 const pkRoyaltyColors: ColorsTheme = {
   type: 'dark',
-  Background: '#1a0d26',        // Deep royal purple background
-  Foreground: '#f4f1e8',        // Cream/parchment text
-  LightBlue: '#8A7EC8',         // Lavender blue
-  AccentBlue: '#6366F1',        // Royal indigo
-  AccentPurple: '#9333EA',      // Rich purple
-  AccentCyan: '#06B6D4',        // Cyan accent
-  AccentGreen: '#10B981',       // Emerald green
-  AccentYellow: '#F59E0B',      // Royal gold
-  AccentRed: '#DC2626',         // Deep crimson
-  Comment: '#8B7EC8',           // Muted purple
-  Gray: '#4C1D95',              // Dark purple gray
+  Background: '#1a0d26', // Deep royal purple background
+  Foreground: '#f4f1e8', // Cream/parchment text
+  LightBlue: '#8A7EC8', // Lavender blue
+  AccentBlue: '#6366F1', // Royal indigo
+  AccentPurple: '#9333EA', // Rich purple
+  AccentCyan: '#06B6D4', // Cyan accent
+  AccentGreen: '#10B981', // Emerald green
+  AccentYellow: '#F59E0B', // Royal gold
+  AccentRed: '#DC2626', // Deep crimson
+  Comment: '#8B7EC8', // Muted purple
+  Gray: '#4C1D95', // Dark purple gray
   GradientColors: ['#FFD700', '#9333EA', '#6366F1'], // Gold to purple to indigo
 };
 

@@ -2,257 +2,220 @@
   "master": {
     "tasks": [
       {
-        "id": 11,
-        "title": "Setup Project Monorepo and Core Tooling",
-        "description": "Initialize the project's monorepo structure and configure essential development tools like linters, formatters, and commit hooks.",
-        "details": "Use a tool like Turborepo or Lerna to manage the monorepo. Configure ESLint for code quality, Prettier for consistent formatting, and Husky with lint-staged for pre-commit checks. Establish a clear directory structure for packages (e.g., `packages/cli`, `packages/core`, `packages/providers/*`).",
-        "testStrategy": "Verify that `eslint .` and `prettier --check .` commands run successfully across the monorepo. Confirm that pre-commit hooks trigger and prevent commits with linting or formatting errors.",
+        "id": 28,
+        "title": "Define and Implement Agent Configuration JSON Schema",
+        "description": "Create and implement a JSON Schema to validate the YAML front-matter of agent definition files. This ensures all agent configurations are well-formed and contain the required fields like name, description, tools, and keywords.",
+        "details": "The schema must validate fields specified in the PRD: `name`, `description`, `model` (optional), `tools` (array of strings), `priority`, and `keywords` (array of strings). Use a library like 'ajv' for validation.",
+        "testStrategy": "Create unit tests with valid and invalid YAML front-matter examples to ensure the schema validation works correctly, catching missing fields, incorrect data types, and other constraint violations.",
         "priority": "high",
         "dependencies": [],
         "status": "done",
         "subtasks": []
       },
       {
-        "id": 12,
-        "title": "Design Standardized Provider Interface",
-        "description": "Define a common TypeScript interface that all AI provider packages must implement. This is the core of the multi-provider architecture.",
-        "details": "The interface should define methods for initialization (with credentials), code generation, and potentially other functionalities like streaming responses or listing available models. This interface will be located in a central `core` package to be consumed by all provider implementations.",
-        "testStrategy": "This is a design task. The success will be measured by the successful implementation of the first two provider modules (OpenAI, Gemini) without needing to change the interface. Code review is critical.",
+        "id": 29,
+        "title": "Implement Agent File Discovery and Parser",
+        "description": "Develop the mechanism to discover agent definition files from both project-specific (`.pk/agents/`) and user-global (`~/.pk/agents/`) directories. This includes parsing the Markdown files, extracting the YAML front-matter, and validating it.",
+        "details": "The system should handle name collisions by prioritizing project-specific agents over global ones. Use a library like 'js-yaml' for parsing. Gracefully handle errors for malformed files.",
+        "testStrategy": "Test file discovery from both locations, correct parsing of valid files, and proper error logging for invalid or unparseable files. Verify the project-over-global priority logic.",
         "priority": "high",
-        "dependencies": [
-          11
-        ],
+        "dependencies": [28],
         "status": "done",
         "subtasks": []
       },
       {
-        "id": 13,
-        "title": "Implement Secure Credential Storage Mechanism",
-        "description": "Develop a secure method for storing user API keys and OAuth tokens on the local machine.",
-        "details": "Research and implement a solution using system-level keychains. Use a library like `keytar` in Node.js to interact with macOS Keychain, Windows Credential Manager, and Secret Service API/libsecret on Linux. All credentials must be encrypted at rest.",
-        "testStrategy": "Create unit tests to mock the keychain interactions. Perform manual E2E testing on all target OS (Windows, macOS, Ubuntu) to confirm that credentials can be written, read, and deleted securely and are not stored in plaintext.",
-        "priority": "high",
-        "dependencies": [
-          11
-        ],
-        "status": "done",
-        "subtasks": []
-      },
-      {
-        "id": 14,
-        "title": "Implement OpenAI Provider Module",
-        "description": "Create the first provider package for OpenAI, adhering to the standardized provider interface.",
-        "details": "This package will use the official OpenAI Node.js library. It will implement the `generateCode` method from the standard interface, handle API key authentication, and map standard request parameters to the OpenAI API format.",
-        "testStrategy": "Write integration tests that make live API calls to the OpenAI API using a test key. Mock the API for unit tests to verify request formatting and response parsing. Ensure all methods from the provider interface are implemented.",
-        "priority": "high",
-        "dependencies": [
-          12
-        ],
-        "status": "done",
-        "subtasks": []
-      },
-      {
-        "id": 15,
-        "title": "Implement Gemini Provider Module",
-        "description": "Create the second provider package for Google Gemini, adhering to the standardized provider interface.",
-        "details": "This package will use the official Google AI Generative Language Node.js library. It will implement the `generateCode` method, handle API key authentication, and map standard request parameters to the Gemini API format.",
-        "testStrategy": "Write integration tests that make live API calls to the Gemini API using a test key. Mock the API for unit tests to verify request formatting and response parsing. Ensure all methods from the provider interface are implemented.",
-        "priority": "high",
-        "dependencies": [
-          12
-        ],
-        "status": "done",
-        "subtasks": []
-      },
-      {
-        "id": 16,
-        "title": "Setup Unified CLI Framework",
-        "description": "Initialize the CLI application using a modern framework and set up the basic command structure.",
-        "details": "Use a robust CLI framework like `oclif` or `commander.js`. Create the main `qwen-code` entry point and define placeholders for future commands (`config`, `generate`). Implement global flags like `--help` and `--version`.",
-        "testStrategy": "Run the compiled CLI executable. Verify that the `qwen-code --help` command displays a list of available commands and that `qwen-code --version` shows the correct version from `package.json`.",
-        "priority": "high",
-        "dependencies": [
-          11
-        ],
-        "status": "done",
-        "subtasks": []
-      },
-      {
-        "id": 17,
-        "title": "Implement Centralized Authentication CLI Commands",
-        "description": "Create CLI commands for users to manage their provider credentials.",
-        "details": "Implement `qwen-code auth add <provider>`, `qwen-code auth list`, and `qwen-code auth remove <provider>`. These commands will interact with the secure credential storage mechanism.",
-        "testStrategy": "Write E2E tests for the CLI that add, list, and remove credentials for mock providers. Manually test on all target OSs to ensure the commands work as expected and interact correctly with the system keychain.",
-        "priority": "high",
-        "dependencies": [
-          13,
-          16
-        ],
-        "status": "done",
-        "subtasks": []
-      },
-      {
-        "id": 18,
-        "title": "Implement Core Code Generation Command",
-        "description": "Develop the primary `qwen-code generate` command that takes a prompt and outputs generated code.",
-        "details": "This command will take a text prompt as an argument. It should include an option (`--provider`) to specify which configured provider to use. It will dynamically load the selected provider module, call its `generateCode` method, and print the result to the console.",
-        "testStrategy": "Write integration tests that execute the command and check for expected output, using mocked provider modules. Perform E2E tests with live OpenAI and Gemini providers to confirm functionality.",
-        "priority": "high",
-        "dependencies": [
-          14,
-          15,
-          17
-        ],
-        "status": "done",
-        "subtasks": []
-      },
-      {
-        "id": 19,
-        "title": "Setup CI/CD Pipeline and Test Frameworks",
-        "description": "Configure a CI/CD pipeline for automated testing, code coverage reporting, and build processes.",
-        "details": "Use GitHub Actions. Create a workflow that triggers on push/PR. The workflow should install dependencies, run linters, execute all unit and integration tests using Jest or Vitest, and calculate code coverage. The goal is to enforce a minimum of 90% coverage.",
-        "testStrategy": "Trigger the pipeline by pushing a new branch with a test PR. Verify that all steps (lint, test, coverage) execute successfully and that the PR is blocked if any step fails.",
-        "priority": "high",
-        "dependencies": [
-          11
-        ],
-        "status": "done",
-        "subtasks": []
-      },
-      {
-        "id": 20,
-        "title": "Develop Comprehensive MVP Documentation",
-        "description": "Create and publish user documentation for all MVP features.",
-        "details": "Use a static site generator like Docusaurus or VitePress. Write clear guides for installation (across Windows, macOS, Linux), configuration, authentication (`qwen-code auth`), and usage (`qwen-code generate`) with examples for both OpenAI and Gemini.",
-        "testStrategy": "Have a new team member or beta tester follow the documentation to install and use the tool. Their ability to complete the setup and first code generation in under 5 minutes will validate the documentation's clarity.",
-        "priority": "high",
-        "dependencies": [
-          18
-        ],
-        "status": "done",
-        "subtasks": []
-      },
-      {
-        "id": 21,
-        "title": "Package and Release MVP for Beta Testing",
-        "description": "Package the CLI for distribution and release it to a limited set of beta testers.",
-        "details": "Configure the project to be published to npm. Create scripts for packaging the CLI into standalone executables for different OSs using a tool like `pkg` or `nexe`. Distribute these to a select group of beta testers.",
-        "testStrategy": "Successfully publish a private package to npm. Verify that the packaged executables run correctly on clean machines for all target OSs. Collect feedback from beta testers via a structured survey or issue tracker.",
+        "id": 30,
+        "title": "Implement Hot-Reloading for Agent Definitions",
+        "description": "Enable the system to dynamically detect changes (creation, modification, deletion) in agent definition files and update the available agents in memory without requiring a CLI restart.",
+        "details": "Use a file system watcher to monitor the agent directories. Ensure the reloading process is efficient and handles updates, additions, and removals of agent configurations correctly.",
+        "testStrategy": "Run the CLI and, in a separate process, add, modify, and delete agent files. Verify that the CLI reflects these changes in real-time when listing or using agents.",
         "priority": "medium",
-        "dependencies": [
-          20
-        ],
-        "status": "done",
-        "subtasks": []
-      },
-      {
-        "id": 22,
-        "title": "Implement Provider Fallback Mechanism",
-        "description": "Implement a reliable mechanism to automatically switch to a secondary provider if the primary one fails or is too slow.",
-        "details": "In the core logic that calls providers, add error handling and timeout logic. If a request to the primary provider fails (e.g., API error, timeout), the system should automatically retry the request with a pre-configured fallback provider. This configuration should be user-settable.",
-        "testStrategy": "Create integration tests where the primary provider is mocked to return an error or to delay its response beyond a timeout threshold. Verify that the system correctly falls back to the secondary mock provider and returns its successful response.",
-        "priority": "high",
-        "dependencies": [
-          18
-        ],
-        "status": "done",
-        "subtasks": []
-      },
-      {
-        "id": 23,
-        "title": "Integrate Additional AI Providers (3, 4, 5)",
-        "description": "Integrate three more major AI providers, including OpenRouter, to reach the goal of 5 total providers.",
-        "details": "Following the established pattern, create new provider packages for OpenRouter and two other providers (e.g., Anthropic's Claude, Cohere). Each package must implement the standard provider interface.",
-        "testStrategy": "For each new provider, create a corresponding set of unit and integration tests. Manually verify that each provider can be configured and used via the CLI for code generation.",
-        "priority": "medium",
-        "dependencies": [
-          15
-        ],
-        "status": "done",
-        "subtasks": []
-      },
-      {
-        "id": 24,
-        "title": "Develop VS Code Extension - Core Functionality",
-        "description": "Create a VS Code extension that integrates qwen-code's core functionality directly into the editor.",
-        "details": "Use the official Yeoman generator (`yo code`) to scaffold the extension. Implement features to trigger code generation from the command palette or a right-click context menu. The extension will reuse the core logic from the other packages for authentication and provider communication.",
-        "testStrategy": "Perform manual E2E testing within VS Code. Verify that a user can authenticate and generate code without leaving the editor. Automate testing using `vscode-test`.",
-        "priority": "high",
-        "dependencies": [
-          18
-        ],
-        "status": "done",
-        "subtasks": []
-      },
-      {
-        "id": 25,
-        "title": "Implement Interactive Onboarding Process",
-        "description": "Create a first-run interactive setup command to guide new users through configuration.",
-        "details": "Develop a `qwen-code init` command. This command will use a library like `inquirer.js` to prompt the user for which providers they want to configure and walk them through adding their first API key. This aims to get a user to their first successful call in under 5 minutes.",
-        "testStrategy": "Test the interactive flow manually. Give the CLI to a new user with the instruction to run `qwen-code init` and time how long it takes them to successfully generate code.",
-        "priority": "medium",
-        "dependencies": [
-          17
-        ],
-        "status": "done",
-        "subtasks": []
-      },
-      {
-        "id": 26,
-        "title": "Develop and Document Public Tool Registry API",
-        "description": "Design, build, and document a public API that allows third-party developers to submit their own tool integrations.",
-        "details": "Design a RESTful API for managing tools (create, read, update, delete). The API specification should be written using OpenAPI (Swagger). Implement the backend service (e.g., using Node.js/Express or a serverless platform). Document the API endpoints, authentication, and submission process for developers.",
-        "testStrategy": "Write a full suite of integration tests for the API endpoints. Create a sample client application that consumes the API to demonstrate its functionality. The documentation should be reviewed for clarity by an external developer.",
-        "priority": "high",
-        "dependencies": [
-          21
-        ],
-        "status": "done",
-        "subtasks": []
-      },
-      {
-        "id": 27,
-        "title": "Develop CI/CD Integration for GitHub Actions",
-        "description": "Create and document a GitHub Action that allows qwen-code to be used within a CI/CD workflow.",
-        "details": "Develop a custom GitHub Action that sets up the `qwen-code` CLI and allows users to run generation commands within their workflows (e.g., for generating documentation or test stubs). Publish the action to the GitHub Marketplace and provide clear documentation with usage examples.",
-        "testStrategy": "Create a separate repository that uses the developed GitHub Action in its workflow. Verify that the action runs successfully and produces the expected output. The documentation should be sufficient for a new user to integrate it into their own project.",
-        "priority": "medium",
-        "dependencies": [
-          21
-        ],
+        "dependencies": [29],
         "status": "pending",
         "subtasks": []
       },
       {
-        "id": 28,
-        "title": "Conduct Performance and Load Testing",
-        "description": "Systematically test the performance of the CLI and backend systems to meet NFRs.",
-        "details": "Use tools like `hyperfine` to benchmark CLI command latency (target <200ms). Use `k6` or `artillery.io` to simulate concurrent users and measure API latency. Profile the CLI's memory usage during operation to ensure it stays below 100MB.",
-        "testStrategy": "Create automated performance tests that run as part of a pre-release pipeline. The tests should fail the build if the defined performance metrics (latency, memory) are not met.",
+        "id": 31,
+        "title": "Develop Keyword-Based Routing Engine",
+        "description": "Implement the initial routing logic that delegates an incoming user query to the most appropriate agent based on matching keywords defined in the agent's front-matter.",
+        "details": "The engine should parse the user's prompt and compare it against the `keywords` array of all loaded agents. It should also respect the `priority` field for tie-breaking. A fallback to a default agent must be implemented if no match is found.",
+        "testStrategy": "Create a test suite of sample prompts designed to trigger specific agents. Measure the delegation accuracy against a predefined set of correct outcomes. The target is ≥80% accuracy.",
         "priority": "high",
-        "dependencies": [
-          21
-        ],
+        "dependencies": [29],
         "status": "done",
         "subtasks": []
       },
       {
-        "id": 29,
-        "title": "Implement Automated Dependency Vulnerability Scanning",
-        "description": "Set up a system to automatically scan third-party dependencies for known security vulnerabilities.",
-        "details": "Integrate a tool like Snyk or GitHub's Dependabot into the CI/CD pipeline. Configure it to scan on every PR and on a regular schedule. Set up alerts for high-risk vulnerabilities to be addressed promptly.",
-        "testStrategy": "Introduce a dependency with a known vulnerability into a test branch. Verify that the CI pipeline correctly identifies the vulnerability and fails the build or sends an alert.",
+        "id": 32,
+        "title": "Implement Explicit Agent Invocation Syntax",
+        "description": "Add support for the `pk use <agent>: \"<query>\"` command syntax, allowing users to bypass the automatic routing and explicitly invoke a specific agent by name.",
+        "details": "This requires parsing the new command structure in the CLI. The system should look up the agent by its `name` and execute it with the provided query. Handle cases where the specified agent does not exist.",
+        "testStrategy": "Write end-to-end tests for the CLI, invoking known agents with sample queries and verifying the correct agent is executed. Test error handling for non-existent agent names.",
         "priority": "high",
-        "dependencies": [
-          19
-        ],
+        "dependencies": [29],
         "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 33,
+        "title": "Build the Parallel Execution Engine",
+        "description": "Create the core engine that can execute multiple agents concurrently. The foundational architecture is in place, but requires debugging and completion of key integration points.",
+        "status": "done",
+        "dependencies": [32],
+        "priority": "high",
+        "details": "The engine is built around an `AgentExecutor` class (85% complete) supporting parallel, sequential, and prioritized execution. It integrates with a well-designed `AgentOrchestrator` (90% complete) and an `AgentRouter` (70% complete). Key features include timeout/error handling, resource management, and performance monitoring. Current focus is on fixing the agent router, implementing the `ResultAggregator`, and integrating the content generator.",
+        "testStrategy": "First, resolve the comprehensive but currently failing test suite, particularly the 9 tests related to the agent router's scoring algorithm. Once all tests pass, conduct the benchmark by invoking 3-4 agents in parallel. Measure total wall-clock time against sequential execution to validate performance gains and ensure the overhead remains ≤400ms.",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Fix agent router scoring algorithm to pass all 9 failing tests",
+            "description": "",
+            "status": "done",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Implement the ResultAggregator based on the defined interface",
+            "description": "",
+            "status": "done",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Complete the Content Generator factory integration",
+            "description": "",
+            "status": "done",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Resolve all failing tests to validate functionality",
+            "description": "",
+            "status": "done",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Benchmark performance against the ≤400ms overhead target",
+            "description": "",
+            "status": "done",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 34,
+        "title": "Implement Timeout Handling and Result Aggregation",
+        "description": "Enhance the parallel executor with timeout handling for hung agent processes and a mechanism to aggregate results from all completed agents into a structured output.",
+        "details": "Use `AbortController` to implement timeouts. Design a structured JSON or Markdown format for the aggregated results, clearly indicating which agent produced each part of the output.",
+        "testStrategy": "Test the timeout mechanism by simulating a non-responsive agent. Test the aggregation by running multiple agents and verifying the final output is correctly structured and contains all results.",
+        "priority": "high",
+        "dependencies": [33],
+        "status": "in-progress",
+        "subtasks": []
+      },
+      {
+        "id": 35,
+        "title": "Implement Per-Agent Tool Sandboxing",
+        "description": "Enforce tool permissions on a per-agent basis by restricting each agent to only the tools specified in its `tools` whitelist in the configuration file.",
+        "details": "Integrate with the existing tool permission system. Before an agent executes a tool, verify that the tool is present in its configuration's `tools` array. Block any unauthorized tool usage and log the attempt.",
+        "testStrategy": "Create an agent with a limited tool whitelist. Write tests that attempt to use both allowed and disallowed tools. Verify that allowed tools execute successfully and disallowed tools are blocked with an error.",
+        "priority": "high",
+        "dependencies": [29, 33],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 36,
+        "title": "Create Comprehensive Audit Logging System",
+        "description": "Implement a logging system that creates a complete audit trail of all agent actions, including which agent was invoked, the query it received, the tools it used, and the final output.",
+        "details": "Logs should be structured and easily parsable (e.g., JSON format). The audit trail is critical for compliance, debugging, and monitoring agent behavior.",
+        "testStrategy": "Run a series of agent tasks (single, parallel, explicit) and inspect the generated audit logs to ensure they are complete, accurate, and contain all required information.",
+        "priority": "high",
+        "dependencies": [33],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 37,
+        "title": "Implement Provider Fallback Mechanism",
+        "description": "Build a resilience mechanism that allows the system to automatically retry a failed API call with an alternate LLM provider from a configurable list.",
+        "details": "This should handle provider-specific errors like rate limits, network issues, or API downtime. The fallback chain and retry policies (e.g., number of retries, backoff strategy) should be configurable.",
+        "testStrategy": "Simulate API failures from a primary provider using mocks. Verify that the system automatically retries the request with the configured secondary provider and successfully completes the task.",
+        "priority": "medium",
+        "dependencies": [33],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 38,
+        "title": "Develop CLI Commands for Agent Management",
+        "description": "Create new CLI commands to improve developer experience, such as `pk list-agents` to display all available agents and their descriptions.",
+        "details": "The `list-agents` command should show agents from both project and global scopes, perhaps indicating their origin. Other potential commands could include `pk create-agent` from a template.",
+        "testStrategy": "Execute the new CLI commands and verify their output is correct and well-formatted. Test with no agents, one agent, and multiple agents in both scopes.",
+        "priority": "medium",
+        "dependencies": [29],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 39,
+        "title": "Write User Documentation and 'Hello World' Agent Tutorial",
+        "description": "Create comprehensive documentation for the sub-agent system, including how to create, configure, and use custom agents. A 'Hello World' example is essential for user onboarding.",
+        "details": "The documentation should cover the agent configuration schema, routing logic, parallel execution, and CLI commands. The goal is to enable a user to create and deploy a custom agent in under 5 minutes.",
+        "testStrategy": "Have a new user follow the documentation to create and run a custom agent. Measure the time taken and collect feedback to ensure clarity and ease of use. Target onboarding time is <5 minutes.",
+        "priority": "medium",
+        "dependencies": [28, 32, 38],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 40,
+        "title": "Create Test Suite for Delegation Accuracy",
+        "description": "Build a dedicated test suite of at least 50 sample prompts to rigorously measure and tune the accuracy of the keyword-based routing engine.",
+        "details": "The test suite should cover a wide range of domains (testing, documentation, security, general). Each prompt will have a predefined 'correct' agent. The suite will be used to validate the ≥80% accuracy success metric.",
+        "testStrategy": "Run the test suite against the routing engine and automatically calculate the accuracy score. Use the results to identify weaknesses and refine the routing heuristics or keyword sets.",
+        "priority": "medium",
+        "dependencies": [31],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 41,
+        "title": "Integrate Worker Threads for CPU-Intensive Tasks",
+        "description": "Conditionally integrate worker threads for agents that may perform CPU-intensive tasks, preventing them from blocking the main event loop.",
+        "details": "This is a conditional requirement based on performance analysis. If certain agent tasks (e.g., large data processing) are found to be CPU-bound, they should be offloaded to a worker thread.",
+        "testStrategy": "Identify or create a CPU-bound task for an agent. Benchmark its execution with and without a worker thread to prove it no longer blocks other concurrent operations.",
+        "priority": "low",
+        "dependencies": [33],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 42,
+        "title": "Final MVP Integration and Release Preparation",
+        "description": "Integrate all core components (Agent Loader, Routing, Parallel Executor, Sandboxing, Logging) into the main PK-Code CLI application and prepare for a public beta release.",
+        "details": "This task involves final end-to-end testing, code cleanup, and ensuring all MVP success criteria are met. This includes agent definition loading, keyword routing, parallel execution, tool permissions, and audit logging.",
+        "testStrategy": "Perform a full regression test of the entire PK-Code application. Conduct an internal beta test with team members to gather final feedback before the public release.",
+        "priority": "high",
+        "dependencies": [34, 35, 36, 39],
+        "status": "pending",
         "subtasks": []
       }
     ],
     "metadata": {
       "created": "2025-07-26T18:17:50.719Z",
-      "updated": "2025-07-26T18:40:11.094Z",
+      "updated": "2025-07-27T04:35:36.965Z",
       "description": "Tasks for master context"
     }
   }

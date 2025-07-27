@@ -82,7 +82,7 @@ export function findIndexAfterFraction(
 
 export class GeminiClient {
   private static readonly MAX_TURNS = 100;
-  
+
   private chat?: GeminiChat;
   private contentGenerator?: ContentGenerator;
   private embeddingModel: string;

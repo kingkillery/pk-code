@@ -54,14 +54,14 @@ interface OptimizedSessionStatsContextValue {
 }
 
 // Context definition
-const OptimizedSessionStatsContext = createContext<OptimizedSessionStatsContextValue | undefined>(
-  undefined,
-);
+const OptimizedSessionStatsContext = createContext<
+  OptimizedSessionStatsContextValue | undefined
+>(undefined);
 
 // Provider component using split stores
-export const OptimizedSessionStatsProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+export const OptimizedSessionStatsProvider: React.FC<{
+  children: React.ReactNode;
+}> = ({ children }) => {
   // Initialize telemetry listener on mount
   useEffect(() => {
     initializeTelemetryListener();
@@ -70,7 +70,7 @@ export const OptimizedSessionStatsProvider: React.FC<{ children: React.ReactNode
 
   // Get combined state from both stores
   const combinedState = useCombinedSessionState();
-  
+
   // Get actions from meta store
   const startNewPrompt = useSessionMetaStore((state) => state.startNewPrompt);
   const getPromptCount = useCallback(
@@ -117,18 +117,23 @@ export const useOptimizedSessionStats = () => {
 };
 
 // Selector-based hooks for fine-grained subscriptions
-export const useSessionMeta = () => useSessionMetaStore((state) => ({
+export const useSessionMeta = () =>
+  useSessionMetaStore((state) => ({
     sessionStartTime: state.sessionStartTime,
     promptCount: state.promptCount,
   }));
 
-export const useSessionMetrics = () => useSessionLiveMetricsStore((state) => state.metrics);
+export const useSessionMetrics = () =>
+  useSessionLiveMetricsStore((state) => state.metrics);
 
-export const useLastPromptTokenCount = () => useSessionLiveMetricsStore((state) => state.lastPromptTokenCount);
+export const useLastPromptTokenCount = () =>
+  useSessionLiveMetricsStore((state) => state.lastPromptTokenCount);
 
-export const usePromptCount = () => useSessionMetaStore((state) => state.promptCount);
+export const usePromptCount = () =>
+  useSessionMetaStore((state) => state.promptCount);
 
-export const useStartNewPrompt = () => useSessionMetaStore((state) => state.startNewPrompt);
+export const useStartNewPrompt = () =>
+  useSessionMetaStore((state) => state.startNewPrompt);
 
 // Lightweight provider that only initializes telemetry without React context
 export const TelemetryInitializer: React.FC<{ children: React.ReactNode }> = ({

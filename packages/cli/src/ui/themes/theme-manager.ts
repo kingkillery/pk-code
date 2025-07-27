@@ -63,10 +63,16 @@ class ThemeManager {
   getAvailableThemes(): ThemeDisplay[] {
     // Separate PK themes
     const pkThemes = this.availableThemes.filter(
-      (theme) => theme.name === QwenLight.name || theme.name === QwenDark.name || theme.name === PkRoyalty.name,
+      (theme) =>
+        theme.name === QwenLight.name ||
+        theme.name === QwenDark.name ||
+        theme.name === PkRoyalty.name,
     );
     const otherThemes = this.availableThemes.filter(
-      (theme) => theme.name !== QwenLight.name && theme.name !== QwenDark.name && theme.name !== PkRoyalty.name,
+      (theme) =>
+        theme.name !== QwenLight.name &&
+        theme.name !== QwenDark.name &&
+        theme.name !== PkRoyalty.name,
     );
 
     // Sort other themes by type and then name

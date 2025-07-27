@@ -56,7 +56,7 @@ export const OptimizedToolStatsDisplay: React.FC = () => {
   // Direct subscription to only the metrics slice we need
   const metrics = useSessionMetrics();
   const { tools } = metrics;
-  
+
   const activeTools = Object.entries(tools.byName).filter(
     ([, metrics]) => metrics.count > 0,
   );

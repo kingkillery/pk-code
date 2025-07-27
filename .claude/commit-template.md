@@ -1,6 +1,7 @@
 # Commit Message Template
 
 ## Format
+
 ```
 <type>(<scope>): <subject>
 
@@ -10,6 +11,7 @@
 ```
 
 ## Types
+
 - **feat**: New feature
 - **fix**: Bug fix
 - **docs**: Documentation only
@@ -20,6 +22,7 @@
 - **chore**: Maintenance tasks, dependency updates
 
 ## Scope Examples
+
 - core
 - utils
 - api
@@ -28,12 +31,14 @@
 - tests
 
 ## Subject Rules
+
 - Use imperative mood ("add" not "added")
 - Don't capitalize first letter
 - No period at the end
 - Max 50 characters
 
 ## Body Guidelines
+
 - Explain WHAT and WHY, not HOW
 - Include issue/ticket reference
 - Note breaking changes

@@ -12,10 +12,10 @@ import {
   EmbedContentResponse,
   EmbedContentParameters,
 } from '@google/genai';
-import { 
-  ContentGenerator, 
-  MultimodalContentGenerator, 
-  VisionModelConfig 
+import {
+  ContentGenerator,
+  MultimodalContentGenerator,
+  VisionModelConfig,
 } from './contentGenerator.js';
 import { ModelRoutingStrategy } from './modelRoutingStrategy.js';
 import { UserTierId } from '../code_assist/types.js';
@@ -31,7 +31,7 @@ export class RoutingContentGenerator implements MultimodalContentGenerator {
     private textModel: ContentGenerator,
     private visionModel: ContentGenerator,
     private visionConfig: VisionModelConfig,
-    private textModelName: string
+    private textModelName: string,
   ) {
     this.routingStrategy = new ModelRoutingStrategy(visionConfig);
   }
@@ -43,19 +43,26 @@ export class RoutingContentGenerator implements MultimodalContentGenerator {
     request: GenerateContentParameters,
   ): Promise<GenerateContentResponse> {
     const shouldUseVision = this.routingStrategy.shouldUseVision(request);
-    
+
     try {
       if (shouldUseVision) {
-        console.debug(`[RoutingContentGenerator] Routing to vision model: ${this.visionConfig.visionModel}`);
+        console.debug(
+          `[RoutingContentGenerator] Routing to vision model: ${this.visionConfig.visionModel}`,
+        );
         return await this.visionModel.generateContent(request);
       } else {
-        console.debug(`[RoutingContentGenerator] Routing to text model: ${this.textModelName}`);
+        console.debug(
+          `[RoutingContentGenerator] Routing to text model: ${this.textModelName}`,
+        );
         return await this.textModel.generateContent(request);
       }
     } catch (error) {
       // If vision model fails and fallback is enabled, try text model
       if (shouldUseVision && this.routingStrategy.shouldFallbackToText()) {
-        console.warn(`[RoutingContentGenerator] Vision model failed, falling back to text model:`, error);
+        console.warn(
+          `[RoutingContentGenerator] Vision model failed, falling back to text model:`,
+          error,
+        );
         return await this.textModel.generateContent(request);
       }
       throw error;
@@ -69,19 +76,26 @@ export class RoutingContentGenerator implements MultimodalContentGenerator {
     request: GenerateContentParameters,
   ): Promise<AsyncGenerator<GenerateContentResponse>> {
     const shouldUseVision = this.routingStrategy.shouldUseVision(request);
-    
+
     try {
       if (shouldUseVision) {
-        console.debug(`[RoutingContentGenerator] Streaming from vision model: ${this.visionConfig.visionModel}`);
+        console.debug(
+          `[RoutingContentGenerator] Streaming from vision model: ${this.visionConfig.visionModel}`,
+        );
         return await this.visionModel.generateContentStream(request);
       } else {
-        console.debug(`[RoutingContentGenerator] Streaming from text model: ${this.textModelName}`);
+        console.debug(
+          `[RoutingContentGenerator] Streaming from text model: ${this.textModelName}`,
+        );
         return await this.textModel.generateContentStream(request);
       }
     } catch (error) {
       // If vision model fails and fallback is enabled, try text model
       if (shouldUseVision && this.routingStrategy.shouldFallbackToText()) {
-        console.warn(`[RoutingContentGenerator] Vision streaming failed, falling back to text model:`, error);
+        console.warn(
+          `[RoutingContentGenerator] Vision streaming failed, falling back to text model:`,
+          error,
+        );
         return await this.textModel.generateContentStream(request);
       }
       throw error;
@@ -94,13 +108,18 @@ export class RoutingContentGenerator implements MultimodalContentGenerator {
   async generateContentWithVision(
     request: GenerateContentParameters,
   ): Promise<GenerateContentResponse> {
-    console.debug(`[RoutingContentGenerator] Explicit vision model request: ${this.visionConfig.visionModel}`);
-    
+    console.debug(
+      `[RoutingContentGenerator] Explicit vision model request: ${this.visionConfig.visionModel}`,
+    );
+
     try {
       return await this.visionModel.generateContent(request);
     } catch (error) {
       if (this.routingStrategy.shouldFallbackToText()) {
-        console.warn(`[RoutingContentGenerator] Explicit vision request failed, falling back to text model:`, error);
+        console.warn(
+          `[RoutingContentGenerator] Explicit vision request failed, falling back to text model:`,
+          error,
+        );
         return await this.textModel.generateContent(request);
       }
       throw error;
@@ -110,9 +129,11 @@ export class RoutingContentGenerator implements MultimodalContentGenerator {
   /**
    * Count tokens using the appropriate model based on routing logic
    */
-  async countTokens(request: CountTokensParameters): Promise<CountTokensResponse> {
+  async countTokens(
+    request: CountTokensParameters,
+  ): Promise<CountTokensResponse> {
     const shouldUseVision = this.routingStrategy.shouldUseVision(request);
-    
+
     try {
       if (shouldUseVision) {
         return await this.visionModel.countTokens(request);
@@ -131,7 +152,9 @@ export class RoutingContentGenerator implements MultimodalContentGenerator {
   /**
    * Embed content using the text model (vision models typically don't support embeddings)
    */
-  async embedContent(request: EmbedContentParameters): Promise<EmbedContentResponse> {
+  async embedContent(
+    request: EmbedContentParameters,
+  ): Promise<EmbedContentResponse> {
     // Always use text model for embeddings
     return await this.textModel.embedContent(request);
   }
@@ -182,14 +205,18 @@ export class RoutingContentGenerator implements MultimodalContentGenerator {
   /**
    * Force routing to vision model for the next request
    */
-  async forceVisionRouting(request: GenerateContentParameters): Promise<GenerateContentResponse> {
+  async forceVisionRouting(
+    request: GenerateContentParameters,
+  ): Promise<GenerateContentResponse> {
     return await this.generateContentWithVision(request);
   }
 
   /**
    * Force routing to text model for the next request
    */
-  async forceTextRouting(request: GenerateContentParameters): Promise<GenerateContentResponse> {
+  async forceTextRouting(
+    request: GenerateContentParameters,
+  ): Promise<GenerateContentResponse> {
     return await this.textModel.generateContent(request);
   }
 }

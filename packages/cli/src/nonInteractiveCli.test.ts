@@ -12,9 +12,8 @@ import { GenerateContentResponse, Part, FunctionCall } from '@google/genai';
 
 // Mock dependencies
 vi.mock('@pk-code/core', async () => {
-  const actualCore = await vi.importActual<
-    typeof import('@pk-code/core')
-  >('@pk-code/core');
+  const actualCore =
+    await vi.importActual<typeof import('@pk-code/core')>('@pk-code/core');
   return {
     ...actualCore,
     GeminiClient: vi.fn(),

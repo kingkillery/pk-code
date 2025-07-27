@@ -87,6 +87,71 @@ PK Code supports a variety of AI providers, allowing you to choose the one that 
 - Anthropic
 - Cohere
 
+## Vision Model Support
+
+PK Code includes advanced multimodal capabilities with intelligent routing between text and vision models. This feature is particularly powerful for browser automation, UI analysis, and screenshot interpretation tasks.
+
+### Key Features
+
+- **Smart Model Routing**: Automatically switches between text and vision models based on context
+- **UI-Optimized Vision Model**: Uses `bytedance/ui-tars-1.5-7b` specifically tuned for UI/browser analysis
+- **Multiple Routing Strategies**: Auto, explicit, and tool-based routing options
+- **Seamless Integration**: Works transparently with browser MCP tools
+- **Fallback Support**: Gracefully falls back to text models if vision processing fails
+
+### Vision Model Configuration
+
+To enable vision model routing, add these environment variables to your `.env` file:
+
+```bash
+# Vision Model Configuration (for Browser MCP Enhancement)
+ENABLE_VISION_ROUTING="true"                         # Enable vision model routing
+VISION_MODEL_NAME="bytedance/ui-tars-1.5-7b"         # Vision model for UI/browser analysis
+VISION_MODEL_PROVIDER="openrouter"                   # Provider hosting the vision model
+VISION_MODEL_API_KEY="your_openrouter_key"           # API key for vision model (optional, defaults to OPENROUTER_API_KEY)
+VISION_ROUTING_STRATEGY="auto"                        # Routing strategy: "auto", "explicit", or "tool-based"
+VISION_FALLBACK_TO_TEXT="true"                       # Fallback to text model if vision fails
+```
+
+### Routing Strategies
+
+#### Auto Mode (Recommended)
+Automatically detects when to use vision models based on:
+- Image content in requests
+- Browser/UI related keywords
+- Screenshot or snapshot operations
+- Visual analysis requests
+
+#### Explicit Mode
+Only uses vision models when requests contain explicit keywords like:
+- "analyze this image"
+- "describe the screenshot"
+- "what do you see"
+- "analyze the ui"
+- "describe the interface"
+
+#### Tool-Based Mode
+Activates vision models when using vision-related tools such as:
+- `browser_screenshot`
+- `browser_snapshot`
+- `screenshot`
+- `capture`
+
+### Usage Examples
+
+Once configured, vision routing works automatically:
+
+```bash
+# These requests will automatically use the vision model
+pk "Take a screenshot and analyze the UI layout"
+pk "Describe what's shown in this browser snapshot"
+pk "Analyze the visual elements on this webpage"
+
+# Regular code requests continue using the text model
+pk "Refactor this function to improve performance"
+pk "Add error handling to this API endpoint"
+```
+
 ## Usage Examples
 
 ### Interactive Mode
@@ -144,14 +209,14 @@ jobs:
 
 ### Inputs
 
--   `prompt` (required): The prompt to send to PK Code.
--   `model` (optional): The model to use. Defaults to the PK Code default.
--   `openai-api-key` (optional): Your OpenAI API key. It's recommended to store this as a secret in your repository settings.
--   `working-directory` (optional): The directory to run the command in. Defaults to the repository root.
+- `prompt` (required): The prompt to send to PK Code.
+- `model` (optional): The model to use. Defaults to the PK Code default.
+- `openai-api-key` (optional): Your OpenAI API key. It's recommended to store this as a secret in your repository settings.
+- `working-directory` (optional): The directory to run the command in. Defaults to the repository root.
 
 ### Outputs
 
--   `response`: The response text from the PK Code AI.
+- `response`: The response text from the PK Code AI.
 
 ## Popular Tasks
 
@@ -183,8 +248,8 @@ jobs:
 
 ### Terminal-Bench
 
-| Agent     | Model              | Accuracy |
-| --------- | ------------------ | -------- |
+| Agent   | Model            | Accuracy |
+| ------- | ---------------- | -------- |
 | PK Code | PK3-Coder-480A35 | 37.5     |
 
 ## Project Structure

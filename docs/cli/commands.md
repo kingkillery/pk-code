@@ -23,8 +23,6 @@ These commands are run directly from your terminal.
   - **Description:** Generates code from a prompt using the configured provider.
   - **Usage:** `pk generate "create a react component that displays a button"`
 
-
-
 Slash commands provide meta-level control over the CLI itself.
 
 - **`/bug`**

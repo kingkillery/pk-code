@@ -19,7 +19,12 @@ import { parse } from 'shell-quote';
 import { MCPServerConfig } from '../config/config.js';
 import { DiscoveredMCPTool } from './mcp-tool.js';
 import { VisionMCPTool } from './visionMcpTool.js';
-import { FunctionDeclaration, Type, mcpToTool, CallableTool } from '@google/genai';
+import {
+  FunctionDeclaration,
+  Type,
+  mcpToTool,
+  CallableTool,
+} from '@google/genai';
 import { sanitizeParameters, ToolRegistry } from './tool-registry.js';
 import { MultimodalContentGenerator } from '../core/contentGenerator.js';
 
@@ -435,27 +440,30 @@ export function generateValidName(
 
 /**
  * Enhance discovered MCP tools with vision capabilities if available
- * 
+ *
  * @param tools Array of discovered MCP tools to enhance
  * @param visionContentGenerator Optional vision content generator for enhancement
  * @returns Array of potentially enhanced tools
  */
 export function enhanceToolsWithVision(
   tools: DiscoveredMCPTool[],
-  visionContentGenerator?: MultimodalContentGenerator
+  visionContentGenerator?: MultimodalContentGenerator,
 ): Array<DiscoveredMCPTool | VisionMCPTool> {
   if (!visionContentGenerator || !visionContentGenerator.isVisionCapable()) {
     return tools;
   }
 
-  return tools.map(tool => {
+  return tools.map((tool) => {
     // Check if this tool would benefit from vision enhancement
-    const shouldEnhance = isVisionEnhanceableToolName(tool.name) || 
-                          isVisionEnhanceableToolName(tool.serverToolName);
-    
+    const shouldEnhance =
+      isVisionEnhanceableToolName(tool.name) ||
+      isVisionEnhanceableToolName(tool.serverToolName);
+
     if (shouldEnhance) {
-      console.debug(`[MCP] Enhancing tool '${tool.name}' with vision capabilities`);
-      
+      console.debug(
+        `[MCP] Enhancing tool '${tool.name}' with vision capabilities`,
+      );
+
       // Create a new VisionMCPTool with the same parameters
       const visionTool = new VisionMCPTool(
         (tool as unknown as { mcpTool: CallableTool }).mcpTool, // Access private property
@@ -466,12 +474,12 @@ export function enhanceToolsWithVision(
         tool.serverToolName,
         tool.timeout,
         tool.trust,
-        visionContentGenerator
+        visionContentGenerator,
       );
-      
+
       return visionTool;
     }
-    
+
     return tool;
   });
 }
@@ -482,17 +490,17 @@ export function enhanceToolsWithVision(
 function isVisionEnhanceableToolName(toolName: string): boolean {
   const visionToolNames = [
     'screenshot',
-    'snapshot', 
+    'snapshot',
     'browser_screenshot',
     'browser_snapshot',
     'capture',
     'image',
-    'visual'
+    'visual',
   ];
-  
+
   const lowerToolName = toolName.toLowerCase();
-  return visionToolNames.some(visionName => 
-    lowerToolName.includes(visionName)
+  return visionToolNames.some((visionName) =>
+    lowerToolName.includes(visionName),
   );
 }
 

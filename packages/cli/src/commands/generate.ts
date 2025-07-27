@@ -11,10 +11,15 @@ import { OpenRouterProvider } from '@pk-code/openrouter';
 import { AnthropicProvider } from '@pk-code/anthropic';
 import { CohereProvider } from '@pk-code/cohere';
 
-export async function handleGenerateCommand(prompt: string, providerName: string): Promise<string | null> {
+export async function handleGenerateCommand(
+  prompt: string,
+  providerName: string,
+): Promise<string | null> {
   const apiKey = await getCredential(providerName);
   if (!apiKey) {
-    console.error(`API key for ${providerName} not found. Please configure it using the "config" command.`);
+    console.error(
+      `API key for ${providerName} not found. Please configure it using the "config" command.`,
+    );
     return null;
   }
 
@@ -49,12 +54,15 @@ export async function handleGenerateCommand(prompt: string, providerName: string
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error(`Error with ${providerName}:`, errorMessage);
-    const fallbackProviderName = providerName === 'openai' ? 'gemini' : 'openai';
+    const fallbackProviderName =
+      providerName === 'openai' ? 'gemini' : 'openai';
     console.log(`Attempting to fallback to ${fallbackProviderName}...`);
 
     const fallbackApiKey = await getCredential(fallbackProviderName);
     if (!fallbackApiKey) {
-      console.error(`API key for fallback provider ${fallbackProviderName} not found.`);
+      console.error(
+        `API key for fallback provider ${fallbackProviderName} not found.`,
+      );
       return null;
     }
 
@@ -70,8 +78,14 @@ export async function handleGenerateCommand(prompt: string, providerName: string
       console.log(generatedCode);
       return generatedCode;
     } catch (fallbackError) {
-      const fallbackErrorMessage = fallbackError instanceof Error ? fallbackError.message : String(fallbackError);
-      console.error(`Error with fallback provider ${fallbackProviderName}:`, fallbackErrorMessage);
+      const fallbackErrorMessage =
+        fallbackError instanceof Error
+          ? fallbackError.message
+          : String(fallbackError);
+      console.error(
+        `Error with fallback provider ${fallbackProviderName}:`,
+        fallbackErrorMessage,
+      );
       return null;
     }
   }

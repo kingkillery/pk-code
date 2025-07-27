@@ -23,7 +23,7 @@ export class VisionMCPTool extends DiscoveredMCPTool {
     serverToolName: string,
     timeout?: number,
     trust?: boolean,
-    private visionContentGenerator?: MultimodalContentGenerator
+    private visionContentGenerator?: MultimodalContentGenerator,
   ) {
     super(
       callableTool,
@@ -33,19 +33,26 @@ export class VisionMCPTool extends DiscoveredMCPTool {
       parameters,
       serverToolName,
       timeout,
-      trust
+      trust,
     );
   }
 
   /**
    * Execute the MCP tool with optional vision enhancement
    */
-  async execute(params: Record<string, unknown>, _signal?: AbortSignal): Promise<ToolResult> {
+  async execute(
+    params: Record<string, unknown>,
+    _signal?: AbortSignal,
+  ): Promise<ToolResult> {
     const result = await super.execute(params);
 
     // If this is a vision-capable browser tool and we have vision support, enhance the result
     if (this.shouldEnhanceWithVision() && this.visionContentGenerator) {
-      return this.enhanceWithVisionAnalysis(result as unknown as Record<string, unknown>, params, _signal);
+      return this.enhanceWithVisionAnalysis(
+        result as unknown as Record<string, unknown>,
+        params,
+        _signal,
+      );
     }
 
     return result;
@@ -55,7 +62,10 @@ export class VisionMCPTool extends DiscoveredMCPTool {
    * Check if this tool should be enhanced with vision analysis
    */
   private shouldEnhanceWithVision(): boolean {
-    if (!this.visionContentGenerator || !this.visionContentGenerator.isVisionCapable()) {
+    if (
+      !this.visionContentGenerator ||
+      !this.visionContentGenerator.isVisionCapable()
+    ) {
       return false;
     }
 
@@ -65,12 +75,13 @@ export class VisionMCPTool extends DiscoveredMCPTool {
       'snapshot',
       'browser_screenshot',
       'browser_snapshot',
-      'capture'
+      'capture',
     ];
 
-    return visionToolNames.some(visionName =>
-      this.name.toLowerCase().includes(visionName.toLowerCase()) ||
-      this.serverToolName.toLowerCase().includes(visionName.toLowerCase())
+    return visionToolNames.some(
+      (visionName) =>
+        this.name.toLowerCase().includes(visionName.toLowerCase()) ||
+        this.serverToolName.toLowerCase().includes(visionName.toLowerCase()),
     );
   }
 
@@ -80,40 +91,53 @@ export class VisionMCPTool extends DiscoveredMCPTool {
   private async enhanceWithVisionAnalysis(
     browserResult: Record<string, unknown>,
     originalParams: Record<string, unknown>,
-    _signal?: AbortSignal
+    _signal?: AbortSignal,
   ): Promise<ToolResult> {
     try {
       // Extract image data from the browser result
       const imageData = this.extractImageDataFromResult(browserResult);
-      
+
       if (!imageData) {
-        console.debug('[VisionMCPTool] No image data found in browser result, skipping vision enhancement');
+        console.debug(
+          '[VisionMCPTool] No image data found in browser result, skipping vision enhancement',
+        );
         return browserResult as unknown as ToolResult;
       }
 
-      console.debug(`[VisionMCPTool] Enhancing ${this.name} result with vision analysis using ${this.visionContentGenerator!.getVisionModel()}`);
+      console.debug(
+        `[VisionMCPTool] Enhancing ${this.name} result with vision analysis using ${this.visionContentGenerator!.getVisionModel()}`,
+      );
 
       // Create vision analysis request
       const visionRequest = {
-        model: this.visionContentGenerator!.getVisionModel() || 'bytedance/ui-tars-1.5-7b',
-        contents: [{
-          parts: [
-            {
-              text: this.createVisionAnalysisPrompt(originalParams)
-            },
-            {
-              inlineData: {
-                mimeType: imageData.mimeType,
-                data: imageData.data
-              }
-            }
-          ]
-        }]
+        model:
+          this.visionContentGenerator!.getVisionModel() ||
+          'bytedance/ui-tars-1.5-7b',
+        contents: [
+          {
+            parts: [
+              {
+                text: this.createVisionAnalysisPrompt(originalParams),
+              },
+              {
+                inlineData: {
+                  mimeType: imageData.mimeType,
+                  data: imageData.data,
+                },
+              },
+            ],
+          },
+        ],
       };
 
       // Get vision analysis
-      const visionAnalysis = await this.visionContentGenerator!.generateContentWithVision(visionRequest);
-      const analysisText = getResponseText(visionAnalysis) || 'Vision analysis completed but no text response available.';
+      const visionAnalysis =
+        await this.visionContentGenerator!.generateContentWithVision(
+          visionRequest,
+        );
+      const analysisText =
+        getResponseText(visionAnalysis) ||
+        'Vision analysis completed but no text response available.';
 
       console.debug('[VisionMCPTool] Vision analysis completed successfully');
 
@@ -122,11 +146,16 @@ export class VisionMCPTool extends DiscoveredMCPTool {
         ...browserResult,
         visionAnalysis: analysisText,
         llmContent: this.combineResultsForLLM(browserResult, analysisText),
-        returnDisplay: this.combineResultsForDisplay(browserResult, analysisText)
+        returnDisplay: this.combineResultsForDisplay(
+          browserResult,
+          analysisText,
+        ),
       } as ToolResult;
-
     } catch (error) {
-      console.warn('[VisionMCPTool] Vision analysis failed, returning original result:', error);
+      console.warn(
+        '[VisionMCPTool] Vision analysis failed, returning original result:',
+        error,
+      );
       return browserResult as unknown as ToolResult;
     }
   }
@@ -134,16 +163,18 @@ export class VisionMCPTool extends DiscoveredMCPTool {
   /**
    * Extract image data from browser MCP result
    */
-  private extractImageDataFromResult(result: Record<string, unknown>): { mimeType: string; data: string } | null {
+  private extractImageDataFromResult(
+    result: Record<string, unknown>,
+  ): { mimeType: string; data: string } | null {
     // Try different possible locations for image data in the result
-    
+
     // Check for direct image data
     if (result.image || result.screenshot) {
       const imageData = result.image || result.screenshot;
       if (typeof imageData === 'string') {
         return {
           mimeType: 'image/png',
-          data: imageData
+          data: imageData,
         };
       }
       if (typeof imageData === 'object' && imageData !== null) {
@@ -151,7 +182,7 @@ export class VisionMCPTool extends DiscoveredMCPTool {
         if (imgObj.data && imgObj.mimeType) {
           return {
             mimeType: String(imgObj.mimeType),
-            data: String(imgObj.data)
+            data: String(imgObj.data),
           };
         }
       }
@@ -159,22 +190,26 @@ export class VisionMCPTool extends DiscoveredMCPTool {
 
     // Check for base64 encoded images in content
     if (result.content && typeof result.content === 'string') {
-      const base64ImageMatch = result.content.match(/data:image\/(png|jpeg|jpg|gif);base64,([^"]+)/);
+      const base64ImageMatch = result.content.match(
+        /data:image\/(png|jpeg|jpg|gif);base64,([^"]+)/,
+      );
       if (base64ImageMatch) {
         return {
           mimeType: `image/${base64ImageMatch[1]}`,
-          data: base64ImageMatch[2]
+          data: base64ImageMatch[2],
         };
       }
     }
 
     // Check for browser-specific result structures
     if (result.llmContent && typeof result.llmContent === 'string') {
-      const base64ImageMatch = result.llmContent.match(/data:image\/(png|jpeg|jpg|gif);base64,([^"]+)/);
+      const base64ImageMatch = result.llmContent.match(
+        /data:image\/(png|jpeg|jpg|gif);base64,([^"]+)/,
+      );
       if (base64ImageMatch) {
         return {
           mimeType: `image/${base64ImageMatch[1]}`,
-          data: base64ImageMatch[2]
+          data: base64ImageMatch[2],
         };
       }
     }
@@ -185,9 +220,11 @@ export class VisionMCPTool extends DiscoveredMCPTool {
   /**
    * Create a contextual prompt for vision analysis based on the tool and parameters
    */
-  private createVisionAnalysisPrompt(originalParams: Record<string, unknown>): string {
+  private createVisionAnalysisPrompt(
+    originalParams: Record<string, unknown>,
+  ): string {
     const toolName = this.name.toLowerCase();
-    
+
     if (toolName.includes('screenshot') || toolName.includes('snapshot')) {
       return `You are analyzing a webpage screenshot. Please provide a detailed analysis of:
 
@@ -209,9 +246,15 @@ Additional context from the tool call: ${JSON.stringify(originalParams, null, 2)
   /**
    * Combine browser result and vision analysis for LLM context
    */
-  private combineResultsForLLM(browserResult: Record<string, unknown>, visionAnalysis: string): string {
-    const originalContent = browserResult.llmContent || browserResult.content || 'Browser tool executed successfully.';
-    
+  private combineResultsForLLM(
+    browserResult: Record<string, unknown>,
+    visionAnalysis: string,
+  ): string {
+    const originalContent =
+      browserResult.llmContent ||
+      browserResult.content ||
+      'Browser tool executed successfully.';
+
     return `${originalContent}
 
 ## Vision Analysis
@@ -221,9 +264,15 @@ ${visionAnalysis}`;
   /**
    * Combine browser result and vision analysis for user display
    */
-  private combineResultsForDisplay(browserResult: Record<string, unknown>, visionAnalysis: string): string {
-    const originalDisplay = browserResult.returnDisplay || browserResult.content || 'Browser tool executed successfully.';
-    
+  private combineResultsForDisplay(
+    browserResult: Record<string, unknown>,
+    visionAnalysis: string,
+  ): string {
+    const originalDisplay =
+      browserResult.returnDisplay ||
+      browserResult.content ||
+      'Browser tool executed successfully.';
+
     return `${originalDisplay}
 
 ---
@@ -235,7 +284,9 @@ ${visionAnalysis}`;
   /**
    * Set the vision content generator for this tool
    */
-  setVisionContentGenerator(visionContentGenerator: MultimodalContentGenerator) {
+  setVisionContentGenerator(
+    visionContentGenerator: MultimodalContentGenerator,
+  ) {
     this.visionContentGenerator = visionContentGenerator;
   }
 
@@ -243,7 +294,10 @@ ${visionAnalysis}`;
    * Check if this tool has vision capabilities
    */
   hasVisionCapabilities(): boolean {
-    return !!this.visionContentGenerator && this.visionContentGenerator.isVisionCapable();
+    return (
+      !!this.visionContentGenerator &&
+      this.visionContentGenerator.isVisionCapable()
+    );
   }
 
   /**
@@ -258,7 +312,7 @@ ${visionAnalysis}`;
       hasVision: this.visionContentGenerator.isVisionCapable(),
       visionModel: this.visionContentGenerator.getVisionModel(),
       textModel: this.visionContentGenerator.getTextModel(),
-      enhancesThisTool: this.shouldEnhanceWithVision()
+      enhancesThisTool: this.shouldEnhanceWithVision(),
     };
   }
 }

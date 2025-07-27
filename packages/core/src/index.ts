@@ -60,7 +60,6 @@ export * from './tools/mcp-tool.js';
 
 // Export telemetry functions
 export * from './telemetry/index.js';
-export { sessionId } from './utils/session.js';
 
 // OpenAI Logging Utilities
 export { OpenAILogger, openaiLogger } from './utils/openaiLogger.js';
@@ -70,3 +69,6 @@ export { default as OpenAIAnalytics } from './utils/openaiAnalytics.js';
 // Export credentials and provider
 export * from './provider.js';
 export * from './credentials.js';
+
+// Export agent system
+export * from './agents/index.js';
