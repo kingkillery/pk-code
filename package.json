@@ -1,6 +1,6 @@
 {
   "name": "pk-code-cli",
-  "version": "0.0.1-alpha.8",
+  "version": "0.0.1-alpha.9",
   "description": "PK Code - AI-powered coding assistant CLI with interactive terminal interface",
   "keywords": ["ai", "cli", "coding-assistant", "terminal", "developer-tools", "code-generation", "pk-code"],
   "author": "PK Code Team",
@@ -107,7 +107,6 @@
     "@opentelemetry/sdk-node": "^0.203.0",
     "@opentelemetry/sdk-trace-node": "^2.0.1",
     "@opentelemetry/semantic-conventions": "^1.36.0",
-    "@pk-code/pk-code": "^0.0.1-alpha.8",
     "@rollup/rollup-win32-x64-msvc": "^4.45.1",
     "@types/html-to-text": "^9.0.4",
     "ajv": "^8.17.1",
