@@ -1,6 +1,6 @@
 {
   "name": "pk-code-cli",
-  "version": "0.0.1-alpha.9",
+  "version": "0.0.2-alpha",
   "description": "PK Code - AI-powered coding assistant CLI with interactive terminal interface",
   "keywords": [
     "ai",

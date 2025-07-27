@@ -260,9 +260,9 @@ describe('AgentExecutor', () => {
 
     beforeEach(() => {
       agents = [
-        createMockAgent('agent1', ['code'], ['edit'], 1000),
-        createMockAgent('agent2', ['test'], ['shell'], 800),
-        createMockAgent('agent3', ['docs'], ['write'], 1200),
+        createMockAgent('agent1', ['code'], ['edit']),
+        createMockAgent('agent2', ['test'], ['shell']),
+        createMockAgent('agent3', ['docs'], ['write']),
       ];
 
       multiRoutingResult = {

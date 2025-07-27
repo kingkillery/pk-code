@@ -67,7 +67,7 @@ const parseAgentFromFile = async (filePath: string, content: string): Promise<Ag
 const createAgentCommand: Command = {
   name: 'create-agent',
   description: 'Create a new sub-agent. Usage: /create-agent <name> "<description>" "<keywords>" [tools] [model] [provider]',
-  action: async (context: CommandContext): Promise<MessageActionReturn> => {
+  action: async (context: CommandContext, args: string): Promise<MessageActionReturn> => {
     const { services } = context;
     
     if (!services.config?.getProjectRoot()) {
@@ -201,7 +201,7 @@ const listAgentsCommand: Command = {
   name: 'list-agents',
   altName: 'agents',
   description: 'List all available sub-agents',
-  action: async (context: CommandContext): Promise<MessageActionReturn> => {
+  action: async (context: CommandContext, args: string): Promise<MessageActionReturn> => {
     const { services } = context;
     
     if (!services.config?.getProjectRoot()) {

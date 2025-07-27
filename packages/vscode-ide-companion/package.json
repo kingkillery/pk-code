@@ -2,7 +2,7 @@
   "name": "@pk-code/pk-code-vscode-ide-companion",
   "displayName": "PK Code VSCode IDE Companion",
   "description": "",
-  "version": "0.0.1-alpha.8",
+  "version": "0.0.2-alpha",
   "engines": {
     "vscode": "^1.101.0"
   },
