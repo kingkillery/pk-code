@@ -93,6 +93,8 @@ import { handleInitCommand } from './commands/init.js';
 
 import { handleUseCommand, parseUseCommandSyntax } from './commands/use.js';
 
+import { handleCreateAgentCommand } from './commands/create-agent.js';
+
 export async function main() {
   const argv = await parseArguments();
   if (argv._[0] === 'init') {
@@ -110,6 +112,10 @@ export async function main() {
       argv.apiKey || '',
     );
     process.exit(0);
+  }
+  if (argv._[0] === 'create-agent') {
+    handleCreateAgentCommand();
+    return;
   }
   if (argv._[0] === 'use') {
     // Handle both "pk use agent query" and "pk use agent: query" syntaxes

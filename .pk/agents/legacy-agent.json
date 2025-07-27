@@ -2,10 +2,7 @@
   "name": "legacy-agent",
   "description": "A legacy agent stored in JSON format for backward compatibility testing",
   "keywords": ["legacy", "json", "test"],
-  "tools": [
-    {"name": "file-system"},
-    {"name": "web-search"}
-  ],
+  "tools": [{ "name": "file-system" }, { "name": "web-search" }],
   "model": "gpt-4",
   "provider": "openai",
   "temperature": 0.7,

@@ -28,35 +28,40 @@ const ensureAgentsDir = async (projectRoot: string): Promise<string> => {
 /**
  * Parse agent content from file (supports both JSON and Markdown formats)
  */
-const parseAgentFromFile = async (filePath: string, content: string): Promise<AgentConfig> => {
+const parseAgentFromFile = async (
+  filePath: string,
+  content: string,
+): Promise<AgentConfig> => {
   if (filePath.endsWith('.json')) {
     // Legacy JSON format
     return JSON.parse(content) as AgentConfig;
   } else {
     // New Markdown format with YAML frontmatter
     const frontMatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
-    
+
     if (!frontMatterMatch) {
       throw new Error('No YAML front-matter found in agent file');
     }
-    
+
     const yamlContent = frontMatterMatch[1];
     const parsed = yamlLoad(yamlContent);
-    
+
     if (typeof parsed !== 'object' || parsed === null) {
       throw new Error('Invalid YAML front-matter in agent file');
     }
-    
+
     const agent = parsed as AgentConfig;
-    
+
     // Extract system prompt from markdown content if not already set
     if (!agent.systemPrompt) {
-      const markdownContent = content.substring(frontMatterMatch[0].length).trim();
+      const markdownContent = content
+        .substring(frontMatterMatch[0].length)
+        .trim();
       if (markdownContent) {
         agent.systemPrompt = markdownContent;
       }
     }
-    
+
     return agent;
   }
 };
@@ -66,35 +71,41 @@ const parseAgentFromFile = async (filePath: string, content: string): Promise<Ag
  */
 const createAgentCommand: Command = {
   name: 'create-agent',
-  description: 'Create a new sub-agent. Usage: /create-agent <name> "<description>" "<keywords>" [tools] [model] [provider]',
-  action: async (context: CommandContext, args: string): Promise<MessageActionReturn> => {
+  description:
+    'Create a new sub-agent. Usage: /create-agent <name> "<description>" "<keywords>" [tools] [model] [provider]',
+  action: async (
+    context: CommandContext,
+    args: string,
+  ): Promise<MessageActionReturn> => {
     const { services } = context;
-    
+
     if (!services.config?.getProjectRoot()) {
       return {
         type: 'message',
         messageType: 'error',
-        content: 'No project root found. Please run this command from within a project.',
+        content:
+          'No project root found. Please run this command from within a project.',
       };
     }
 
     const projectRoot = services.config.getProjectRoot();
-    
+
     if (!args.trim()) {
       return {
         type: 'message',
         messageType: 'error',
-        content: 'Usage: /create-agent <name> "<description>" "<keywords>" [tools] [model] [provider]\n\nExample: /create-agent "code-reviewer" "Reviews code for best practices" "review,code,quality" "file-system,web-search" "gemini-2.0-flash-exp" "gemini"',
+        content:
+          'Usage: /agent create <name> "<description>" "<keywords>" [tools] [model] [provider]\n\nExample: /agent create "code-reviewer" "Reviews code for best practices" "review,code,quality" "file-system,web-search" "gemini-2.0-flash-exp" "gemini"',
       };
     }
-    
+
     try {
       // Parse arguments - handle quoted strings
       const argParts = [];
       let current = '';
       let inQuotes = false;
       let quoteChar = '';
-      
+
       for (let i = 0; i < args.length; i++) {
         const char = args[i];
         if ((char === '"' || char === "'") && !inQuotes) {
@@ -115,23 +126,27 @@ const createAgentCommand: Command = {
       if (current.trim()) {
         argParts.push(current.trim());
       }
-      
+
       if (argParts.length < 3) {
         return {
           type: 'message',
           messageType: 'error',
-          content: 'Missing required arguments. Usage: /create-agent <name> "<description>" "<keywords>" [tools] [model] [provider]',
+          content:
+            'Missing required arguments. Usage: /agent create <name> "<description>" "<keywords>" [tools] [model] [provider]',
         };
       }
-      
+
       const name = argParts[0];
       const description = argParts[1];
       const keywordsInput = argParts[2];
       const toolsInput = argParts[3] || 'all';
       const model = argParts[4] || 'gemini-2.0-flash-exp';
       const provider = argParts[5] || 'gemini';
-      
-      const keywords = keywordsInput.split(',').map(k => k.trim()).filter(k => k);
+
+      const keywords = keywordsInput
+        .split(',')
+        .map((k) => k.trim())
+        .filter((k) => k);
       if (keywords.length === 0) {
         return {
           type: 'message',
@@ -140,7 +155,13 @@ const createAgentCommand: Command = {
         };
       }
 
-      const tools = toolsInput === 'all' ? [] : toolsInput.split(',').map(t => ({ name: t.trim() })).filter(t => t.name);
+      const tools =
+        toolsInput === 'all'
+          ? []
+          : toolsInput
+              .split(',')
+              .map((t) => ({ name: t.trim() }))
+              .filter((t) => t.name);
 
       // Create agent configuration for YAML frontmatter
       const agentConfig: AgentConfig = {
@@ -155,11 +176,11 @@ const createAgentCommand: Command = {
 
       // Ensure agents directory exists
       const agentsDir = await ensureAgentsDir(projectRoot);
-      
+
       // Create agent file with .md extension
       const fileName = `${name.toLowerCase().replace(/[^a-z0-9]/g, '-')}.md`;
       const filePath = path.join(agentsDir, fileName);
-      
+
       // Check if agent already exists
       try {
         await fs.access(filePath);
@@ -182,7 +203,7 @@ const createAgentCommand: Command = {
       return {
         type: 'message',
         messageType: 'info',
-        content: `✅ Agent "${name}" created successfully at ${filePath}\n\nConfiguration:\n- Description: ${description}\n- Keywords: ${keywords.join(', ')}\n- Tools: ${tools.length === 0 ? 'all' : tools.map(t => t.name).join(', ')}\n- Model: ${model} (${provider})`,
+        content: `✅ Agent "${name}" created successfully at ${filePath}\n\nConfiguration:\n- Description: ${description}\n- Keywords: ${keywords.join(', ')}\n- Tools: ${tools.length === 0 ? 'all' : tools.map((t) => t.name).join(', ')}\n- Model: ${model} (${provider})`,
       };
     } catch (error) {
       return {
@@ -203,18 +224,19 @@ const listAgentsCommand: Command = {
   description: 'List all available sub-agents',
   action: async (context: CommandContext): Promise<MessageActionReturn> => {
     const { services } = context;
-    
+
     if (!services.config?.getProjectRoot()) {
       return {
         type: 'message',
         messageType: 'error',
-        content: 'No project root found. Please run this command from within a project.',
+        content:
+          'No project root found. Please run this command from within a project.',
       };
     }
 
     try {
       const agentsDir = getAgentsDir(services.config.getProjectRoot());
-      
+
       // Check if agents directory exists
       try {
         await fs.access(agentsDir);
@@ -222,24 +244,29 @@ const listAgentsCommand: Command = {
         return {
           type: 'message',
           messageType: 'info',
-          content: 'No agents directory found. Use /create-agent to create your first agent.',
+          content:
+            'No agents directory found. Use /agent create to create your first agent.',
         };
       }
 
       // Read all agent files (both .md and .json for backward compatibility)
       const files = await fs.readdir(agentsDir);
-      const agentFiles = files.filter(f => f.endsWith('.md') || f.endsWith('.markdown') || f.endsWith('.json'));
-      
+      const agentFiles = files.filter(
+        (f) =>
+          f.endsWith('.md') || f.endsWith('.markdown') || f.endsWith('.json'),
+      );
+
       if (agentFiles.length === 0) {
         return {
           type: 'message',
           messageType: 'info',
-          content: 'No agents found. Use /create-agent to create your first agent.',
+          content:
+            'No agents found. Use /agent create to create your first agent.',
         };
       }
 
       const agents: AgentConfig[] = [];
-      
+
       for (const file of agentFiles) {
         try {
           const filePath = path.join(agentsDir, file);
@@ -261,13 +288,13 @@ const listAgentsCommand: Command = {
 
       // Format agent list
       let output = `\n🤖 **Available Sub-Agents (${agents.length})**\n\n`;
-      
+
       for (const agent of agents) {
         output += `**${agent.name}**\n`;
         output += `  Description: ${agent.description}\n`;
         output += `  Keywords: ${agent.keywords.join(', ')}\n`;
         output += `  Model: ${agent.model} (${agent.provider})\n`;
-        output += `  Tools: ${agent.tools.length === 0 ? 'all' : agent.tools.map(t => t.name).join(', ')}\n\n`;
+        output += `  Tools: ${agent.tools.length === 0 ? 'all' : agent.tools.map((t) => t.name).join(', ')}\n\n`;
       }
 
       return {
@@ -291,14 +318,18 @@ const listAgentsCommand: Command = {
 const deleteAgentCommand: Command = {
   name: 'delete-agent',
   description: 'Delete a sub-agent',
-  action: async (context: CommandContext, args: string): Promise<MessageActionReturn> => {
+  action: async (
+    context: CommandContext,
+    args: string,
+  ): Promise<MessageActionReturn> => {
     const { services } = context;
-    
+
     if (!services.config?.getProjectRoot()) {
       return {
         type: 'message',
         messageType: 'error',
-        content: 'No project root found. Please run this command from within a project.',
+        content:
+          'No project root found. Please run this command from within a project.',
       };
     }
 
@@ -307,18 +338,18 @@ const deleteAgentCommand: Command = {
       return {
         type: 'message',
         messageType: 'error',
-        content: 'Usage: /delete-agent <agent-name>',
+        content: 'Usage: /agent delete <agent-name>',
       };
     }
 
     try {
       const agentsDir = getAgentsDir(services.config.getProjectRoot());
       const baseFileName = agentName.toLowerCase().replace(/[^a-z0-9]/g, '-');
-      
+
       // Try to find the agent file (check both .md and .json extensions)
       const possibleExtensions = ['.md', '.json'];
       let filePath: string | null = null;
-      
+
       for (const ext of possibleExtensions) {
         const testPath = path.join(agentsDir, baseFileName + ext);
         try {
@@ -329,7 +360,7 @@ const deleteAgentCommand: Command = {
           // File doesn't exist, try next extension
         }
       }
-      
+
       if (!filePath) {
         return {
           type: 'message',
@@ -383,5 +414,5 @@ export const agentCommand: Command = {
   ],
 };
 
-// Export individual commands for backward compatibility
-export { createAgentCommand, listAgentsCommand, deleteAgentCommand };
+// Only export the hierarchical agent command structure
+// Individual commands are now only accessible via /agent subcommands

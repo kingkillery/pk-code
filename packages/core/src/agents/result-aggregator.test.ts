@@ -741,7 +741,9 @@ describe('ResultAggregator', () => {
       expect(result.structured.version).toBe('1.0');
       expect(result.structured.primary.agent).toBe('code-expert');
       expect(result.structured.primary.confidence).toBe(0.9);
-      expect(result.structured.primary.content).toContain('function createUser');
+      expect(result.structured.primary.content).toContain(
+        'function createUser',
+      );
       expect(result.structured.primary.quality).toBeDefined();
       expect(result.structured.primary.executionTime).toBeGreaterThan(0);
     });
@@ -755,7 +757,9 @@ describe('ResultAggregator', () => {
 
       expect(result.structured.supporting).toHaveLength(2);
       expect(result.structured.supporting[0].agent).toBe('test-specialist');
-      expect(result.structured.supporting[0].reason).toContain('Alternative approach');
+      expect(result.structured.supporting[0].reason).toContain(
+        'Alternative approach',
+      );
       expect(result.structured.supporting[0].quality).toBeDefined();
     });
 
@@ -767,7 +771,9 @@ describe('ResultAggregator', () => {
       );
 
       expect(result.structured.analysis).toBeDefined();
-      expect(result.structured.analysis.recommendationStrength).toBeGreaterThan(0);
+      expect(result.structured.analysis.recommendationStrength).toBeGreaterThan(
+        0,
+      );
       expect(result.structured.analysis.consensus).toBeInstanceOf(Array);
       expect(result.structured.analysis.conflicts).toBeInstanceOf(Array);
       expect(result.structured.analysis.performance.totalAgents).toBe(3);
@@ -783,8 +789,12 @@ describe('ResultAggregator', () => {
       );
 
       expect(result.structured.metadata).toBeDefined();
-      expect(result.structured.metadata.strategy).toBe(ConsensusStrategy.INTELLIGENT_MERGE);
-      expect(result.structured.metadata.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+      expect(result.structured.metadata.strategy).toBe(
+        ConsensusStrategy.INTELLIGENT_MERGE,
+      );
+      expect(result.structured.metadata.timestamp).toMatch(
+        /^\d{4}-\d{2}-\d{2}T/,
+      );
       expect(result.structured.metadata.query).toBe(query);
       expect(result.structured.metadata.processingTime).toBeGreaterThan(0);
     });
@@ -808,7 +818,9 @@ describe('ResultAggregator', () => {
         expect(result.structured.version).toBe('1.0');
         expect(result.structured.primary).toBeDefined();
         expect(result.structured.metadata.strategy).toBe(strategy);
-        expect(result.structured.analysis.performance.totalAgents).toBeGreaterThan(0);
+        expect(
+          result.structured.analysis.performance.totalAgents,
+        ).toBeGreaterThan(0);
       }
     });
   });

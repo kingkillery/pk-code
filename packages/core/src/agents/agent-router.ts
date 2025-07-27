@@ -189,7 +189,7 @@ export class AgentRouter {
     );
 
     // Select primary agents (high confidence, up to maxAgents)
-    const primaryAgents = highConfidence.slice(0, maxAgents).map(scored => ({
+    const primaryAgents = highConfidence.slice(0, maxAgents).map((scored) => ({
       agent: scored.agent,
       confidence: scored.confidence,
       reason: scored.reason,
@@ -197,21 +197,23 @@ export class AgentRouter {
         agent: ParsedAgent;
         confidence: RoutingConfidence;
         reason: string;
-      }>
+      }>,
     }));
 
     // Select secondary agents (medium confidence, fill remaining slots)
     const remainingSlots = maxAgents - primaryAgents.length;
-    const secondaryAgents = mediumConfidence.slice(0, remainingSlots).map(scored => ({
-      agent: scored.agent,
-      confidence: scored.confidence,
-      reason: scored.reason,
-      alternatives: [] as Array<{
-        agent: ParsedAgent;
-        confidence: RoutingConfidence;
-        reason: string;
-      }>
-    }));
+    const secondaryAgents = mediumConfidence
+      .slice(0, remainingSlots)
+      .map((scored) => ({
+        agent: scored.agent,
+        confidence: scored.confidence,
+        reason: scored.reason,
+        alternatives: [] as Array<{
+          agent: ParsedAgent;
+          confidence: RoutingConfidence;
+          reason: string;
+        }>,
+      }));
 
     // Determine execution strategy
     let strategy: 'sequential' | 'parallel' | 'prioritized' = 'parallel';
@@ -263,7 +265,6 @@ export class AgentRouter {
    * Analyze query to extract routing-relevant information
    */
   private analyzeQuery(query: string): QueryAnalysis {
-
     // Check for explicit agent invocation pattern
     const explicitMatch = query.match(
       /pk\s+use\s+([a-zA-Z0-9-_]+):\s*"([^"]+)"/,
@@ -639,8 +640,10 @@ export class AgentRouter {
     const baseTime = 2000;
 
     // Additional time based on agent complexity
-    const complexityTime = agents.reduce((total, agent) => 
-      total + agent.config.tools.length * 100, 0);
+    const complexityTime = agents.reduce(
+      (total, agent) => total + agent.config.tools.length * 100,
+      0,
+    );
 
     // Parallel execution reduces total time
     const parallelFactor = agents.length > 1 ? 0.7 : 1.0;

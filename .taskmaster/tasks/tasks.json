@@ -19,9 +19,7 @@
         "details": "The system should handle name collisions by prioritizing project-specific agents over global ones. Use a library like 'js-yaml' for parsing. Gracefully handle errors for malformed files.",
         "testStrategy": "Test file discovery from both locations, correct parsing of valid files, and proper error logging for invalid or unparseable files. Verify the project-over-global priority logic.",
         "priority": "high",
-        "dependencies": [
-          28
-        ],
+        "dependencies": [28],
         "status": "done",
         "subtasks": []
       },
@@ -32,9 +30,7 @@
         "details": "Use a file system watcher to monitor the agent directories. Ensure the reloading process is efficient and handles updates, additions, and removals of agent configurations correctly.",
         "testStrategy": "Run the CLI and, in a separate process, add, modify, and delete agent files. Verify that the CLI reflects these changes in real-time when listing or using agents.",
         "priority": "medium",
-        "dependencies": [
-          29
-        ],
+        "dependencies": [29],
         "status": "pending",
         "subtasks": []
       },
@@ -45,9 +41,7 @@
         "details": "The engine should parse the user's prompt and compare it against the `keywords` array of all loaded agents. It should also respect the `priority` field for tie-breaking. A fallback to a default agent must be implemented if no match is found.",
         "testStrategy": "Create a test suite of sample prompts designed to trigger specific agents. Measure the delegation accuracy against a predefined set of correct outcomes. The target is ≥80% accuracy.",
         "priority": "high",
-        "dependencies": [
-          29
-        ],
+        "dependencies": [29],
         "status": "done",
         "subtasks": []
       },
@@ -58,9 +52,7 @@
         "details": "This requires parsing the new command structure in the CLI. The system should look up the agent by its `name` and execute it with the provided query. Handle cases where the specified agent does not exist.",
         "testStrategy": "Write end-to-end tests for the CLI, invoking known agents with sample queries and verifying the correct agent is executed. Test error handling for non-existent agent names.",
         "priority": "high",
-        "dependencies": [
-          29
-        ],
+        "dependencies": [29],
         "status": "done",
         "subtasks": []
       },
@@ -69,9 +61,7 @@
         "title": "Build the Parallel Execution Engine",
         "description": "Create the core engine that can execute multiple agents concurrently. The foundational architecture is in place, but requires debugging and completion of key integration points.",
         "status": "done",
-        "dependencies": [
-          32
-        ],
+        "dependencies": [32],
         "priority": "high",
         "details": "The engine is built around an `AgentExecutor` class (85% complete) supporting parallel, sequential, and prioritized execution. It integrates with a well-designed `AgentOrchestrator` (90% complete) and an `AgentRouter` (70% complete). Key features include timeout/error handling, resource management, and performance monitoring. Current focus is on fixing the agent router, implementing the `ResultAggregator`, and integrating the content generator.",
         "testStrategy": "First, resolve the comprehensive but currently failing test suite, particularly the 9 tests related to the agent router's scoring algorithm. Once all tests pass, conduct the benchmark by invoking 3-4 agents in parallel. Measure total wall-clock time against sequential execution to validate performance gains and ensure the overhead remains ≤400ms.",
@@ -130,9 +120,7 @@
         "details": "Use `AbortController` to implement timeouts. Design a structured JSON or Markdown format for the aggregated results, clearly indicating which agent produced each part of the output.",
         "testStrategy": "Test the timeout mechanism by simulating a non-responsive agent. Test the aggregation by running multiple agents and verifying the final output is correctly structured and contains all results.",
         "priority": "high",
-        "dependencies": [
-          33
-        ],
+        "dependencies": [33],
         "status": "done",
         "subtasks": []
       },
@@ -143,10 +131,7 @@
         "details": "Integrate with the existing tool permission system. Before an agent executes a tool, verify that the tool is present in its configuration's `tools` array. Block any unauthorized tool usage and log the attempt.",
         "testStrategy": "Create an agent with a limited tool whitelist. Write tests that attempt to use both allowed and disallowed tools. Verify that allowed tools execute successfully and disallowed tools are blocked with an error.",
         "priority": "high",
-        "dependencies": [
-          29,
-          33
-        ],
+        "dependencies": [29, 33],
         "status": "pending",
         "subtasks": []
       },
@@ -157,9 +142,7 @@
         "details": "Logs should be structured and easily parsable (e.g., JSON format). The audit trail is critical for compliance, debugging, and monitoring agent behavior.",
         "testStrategy": "Run a series of agent tasks (single, parallel, explicit) and inspect the generated audit logs to ensure they are complete, accurate, and contain all required information.",
         "priority": "high",
-        "dependencies": [
-          33
-        ],
+        "dependencies": [33],
         "status": "pending",
         "subtasks": []
       },
@@ -170,9 +153,7 @@
         "details": "This should handle provider-specific errors like rate limits, network issues, or API downtime. The fallback chain and retry policies (e.g., number of retries, backoff strategy) should be configurable.",
         "testStrategy": "Simulate API failures from a primary provider using mocks. Verify that the system automatically retries the request with the configured secondary provider and successfully completes the task.",
         "priority": "medium",
-        "dependencies": [
-          33
-        ],
+        "dependencies": [33],
         "status": "pending",
         "subtasks": []
       },
@@ -183,9 +164,7 @@
         "details": "The `list-agents` command should show agents from both project and global scopes, perhaps indicating their origin. Other potential commands could include `pk create-agent` from a template.",
         "testStrategy": "Execute the new CLI commands and verify their output is correct and well-formatted. Test with no agents, one agent, and multiple agents in both scopes.",
         "priority": "medium",
-        "dependencies": [
-          29
-        ],
+        "dependencies": [29],
         "status": "pending",
         "subtasks": []
       },
@@ -196,11 +175,7 @@
         "details": "The documentation should cover the agent configuration schema, routing logic, parallel execution, and CLI commands. The goal is to enable a user to create and deploy a custom agent in under 5 minutes.",
         "testStrategy": "Have a new user follow the documentation to create and run a custom agent. Measure the time taken and collect feedback to ensure clarity and ease of use. Target onboarding time is <5 minutes.",
         "priority": "medium",
-        "dependencies": [
-          28,
-          32,
-          38
-        ],
+        "dependencies": [28, 32, 38],
         "status": "pending",
         "subtasks": []
       },
@@ -211,9 +186,7 @@
         "details": "The test suite should cover a wide range of domains (testing, documentation, security, general). Each prompt will have a predefined 'correct' agent. The suite will be used to validate the ≥80% accuracy success metric.",
         "testStrategy": "Run the test suite against the routing engine and automatically calculate the accuracy score. Use the results to identify weaknesses and refine the routing heuristics or keyword sets.",
         "priority": "medium",
-        "dependencies": [
-          31
-        ],
+        "dependencies": [31],
         "status": "pending",
         "subtasks": []
       },
@@ -224,9 +197,7 @@
         "details": "This is a conditional requirement based on performance analysis. If certain agent tasks (e.g., large data processing) are found to be CPU-bound, they should be offloaded to a worker thread.",
         "testStrategy": "Identify or create a CPU-bound task for an agent. Benchmark its execution with and without a worker thread to prove it no longer blocks other concurrent operations.",
         "priority": "low",
-        "dependencies": [
-          33
-        ],
+        "dependencies": [33],
         "status": "pending",
         "subtasks": []
       },
@@ -237,12 +208,7 @@
         "details": "This task involves final end-to-end testing, code cleanup, and ensuring all MVP success criteria are met. This includes agent definition loading, keyword routing, parallel execution, tool permissions, and audit logging.",
         "testStrategy": "Perform a full regression test of the entire PK-Code application. Conduct an internal beta test with team members to gather final feedback before the public release.",
         "priority": "high",
-        "dependencies": [
-          34,
-          35,
-          36,
-          39
-        ],
+        "dependencies": [34, 35, 36, 39],
         "status": "pending",
         "subtasks": []
       },
@@ -253,9 +219,7 @@
         "details": "Implement the following slash commands:\n1. `/create-agent` - Interactive command to create new sub-agents with prompts for:\n   - Agent name and description\n   - Tool permissions/whitelist\n   - Keywords for routing\n   - Configuration validation\n2. `/list-agents` or `/agents` - Display all available sub-agents with:\n   - Agent names and descriptions\n   - Tool permissions\n   - Keywords\n   - Status (active/inactive)\n3. `/edit-agent` - Modify existing agent configurations\n4. `/delete-agent` - Remove agents with confirmation\n\nIntegrate with existing CLI infrastructure and ensure proper error handling and validation.",
         "testStrategy": "Create unit tests for each command, test interactive prompts, validate agent creation/modification, and ensure proper integration with the CLI system.",
         "status": "done",
-        "dependencies": [
-          29
-        ],
+        "dependencies": [29],
         "priority": "high",
         "subtasks": []
       },
@@ -266,9 +230,7 @@
         "details": "Modify agentCommands.ts to create and read .md files instead of .json files. The new format should have YAML frontmatter containing agent metadata (name, description, keywords, tools, model, provider, temperature, maxTokens) and the system prompt content in the markdown body. Update file parsing logic to extract YAML frontmatter and markdown content. Ensure backward compatibility during migration.",
         "testStrategy": "Create test agents in both old JSON and new Markdown formats. Verify that the system can read existing JSON files and create new Markdown files. Test YAML frontmatter parsing and markdown content extraction. Validate that agent selection works correctly with the new format.",
         "priority": "high",
-        "dependencies": [
-          43
-        ],
+        "dependencies": [43],
         "status": "done",
         "subtasks": []
       },
@@ -279,9 +241,7 @@
         "details": "Update the agent configuration schema to include system prompt content stored in the markdown body of agent files. Modify the agent loading and execution logic to use the system prompt when initializing conversations with LLM providers. Add validation to ensure system prompts are properly formatted and not empty. Update agentCommands.ts to handle system prompt input during agent creation.",
         "testStrategy": "Create agents with various system prompts and test that they behave differently based on their prompts. Verify that system prompts are correctly passed to LLM providers during agent execution. Test edge cases like empty prompts, very long prompts, and prompts with special characters.",
         "priority": "high",
-        "dependencies": [
-          44
-        ],
+        "dependencies": [44],
         "status": "pending",
         "subtasks": []
       }

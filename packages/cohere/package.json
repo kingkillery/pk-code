@@ -6,7 +6,8 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "echo \"No tests specified\" && exit 0"
   },
   "dependencies": {
     "@pk-code/core": "0.0.2-alpha",

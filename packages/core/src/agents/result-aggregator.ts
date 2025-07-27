@@ -274,7 +274,7 @@ export class ResultAggregator {
     // Generate summary and alternatives
     const summary = this.generateIntelligentSummary(
       qualityEvaluations,
-      conflictAnalysis
+      conflictAnalysis,
     );
 
     const alternatives = this.generateAlternatives(
@@ -514,7 +514,7 @@ export class ResultAggregator {
       quality: ResponseQuality;
       confidence: number;
       routingResult?: RoutingResult;
-    }>
+    }>,
   ): ConflictAnalysis {
     // Simplified conflict detection - in practice, this would use advanced NLP
     const responses = evaluations.map((e) =>
@@ -643,7 +643,7 @@ export class ResultAggregator {
       confidence: number;
       routingResult?: RoutingResult;
     }>,
-    conflictAnalysis: ConflictAnalysis
+    conflictAnalysis: ConflictAnalysis,
   ): string {
     const agentCount = evaluations.length;
     const avgQuality =
@@ -713,9 +713,9 @@ export class ResultAggregator {
       })),
       analysis: {
         recommendationStrength,
-        consensus: conflictAnalysis.consensus.map(c => c.agreement),
-        conflicts: conflictAnalysis.conflicts.map(c => 
-          `${c.aspect}: ${c.agentOpinions.length} different opinions`
+        consensus: conflictAnalysis.consensus.map((c) => c.agreement),
+        conflicts: conflictAnalysis.conflicts.map(
+          (c) => `${c.aspect}: ${c.agentOpinions.length} different opinions`,
         ),
         performance: {
           totalAgents,

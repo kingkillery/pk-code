@@ -138,13 +138,21 @@ describe('handleUseCommand', () => {
     const { getGlobalAgentRegistry, createCodeAssistContentGenerator } =
       await import('@pk-code/core');
 
-    (getGlobalAgentRegistry as ReturnType<typeof vi.fn>).mockReturnValue(mockRegistry);
-    (mockRegistry.getAgent as ReturnType<typeof vi.fn>).mockReturnValue(mockAgent);
-    (createCodeAssistContentGenerator as ReturnType<typeof vi.fn>).mockResolvedValue(
-      mockContentGenerator,
+    (getGlobalAgentRegistry as ReturnType<typeof vi.fn>).mockReturnValue(
+      mockRegistry,
     );
-    (mockConfig.getContentGeneratorConfig as ReturnType<typeof vi.fn>).mockReturnValue({});
-    (mockContentGenerator.generateContent as ReturnType<typeof vi.fn>).mockResolvedValue({
+    (mockRegistry.getAgent as ReturnType<typeof vi.fn>).mockReturnValue(
+      mockAgent,
+    );
+    (
+      createCodeAssistContentGenerator as ReturnType<typeof vi.fn>
+    ).mockResolvedValue(mockContentGenerator);
+    (
+      mockConfig.getContentGeneratorConfig as ReturnType<typeof vi.fn>
+    ).mockReturnValue({});
+    (
+      mockContentGenerator.generateContent as ReturnType<typeof vi.fn>
+    ).mockResolvedValue({
       candidates: [
         {
           content: {
@@ -176,8 +184,12 @@ describe('handleUseCommand', () => {
     // Arrange
     const { getGlobalAgentRegistry } = await import('@pk-code/core');
 
-    (getGlobalAgentRegistry as ReturnType<typeof vi.fn>).mockReturnValue(mockRegistry);
-    (mockRegistry.getAgent as ReturnType<typeof vi.fn>).mockReturnValue(undefined);
+    (getGlobalAgentRegistry as ReturnType<typeof vi.fn>).mockReturnValue(
+      mockRegistry,
+    );
+    (mockRegistry.getAgent as ReturnType<typeof vi.fn>).mockReturnValue(
+      undefined,
+    );
     (mockRegistry.searchAgents as ReturnType<typeof vi.fn>).mockReturnValue([]);
     (mockRegistry.getAgents as ReturnType<typeof vi.fn>).mockReturnValue([]);
 
@@ -212,8 +224,12 @@ describe('handleUseCommand', () => {
       config: { ...mockAgent.config, name: 'test-assistant' },
     };
 
-    (getGlobalAgentRegistry as ReturnType<typeof vi.fn>).mockReturnValue(mockRegistry);
-    (mockRegistry.getAgent as ReturnType<typeof vi.fn>).mockReturnValue(undefined);
+    (getGlobalAgentRegistry as ReturnType<typeof vi.fn>).mockReturnValue(
+      mockRegistry,
+    );
+    (mockRegistry.getAgent as ReturnType<typeof vi.fn>).mockReturnValue(
+      undefined,
+    );
     (mockRegistry.searchAgents as ReturnType<typeof vi.fn>).mockReturnValue([
       similarAgent1,
       similarAgent2,
@@ -246,14 +262,24 @@ describe('handleUseCommand', () => {
       config: { ...mockAgent.config, name: 'test-helper' },
     };
 
-    (getGlobalAgentRegistry as ReturnType<typeof vi.fn>).mockReturnValue(mockRegistry);
-    (mockRegistry.getAgent as ReturnType<typeof vi.fn>).mockReturnValue(undefined);
-    (mockRegistry.searchAgents as ReturnType<typeof vi.fn>).mockReturnValue([similarAgent]);
-    (createCodeAssistContentGenerator as ReturnType<typeof vi.fn>).mockResolvedValue(
-      mockContentGenerator,
+    (getGlobalAgentRegistry as ReturnType<typeof vi.fn>).mockReturnValue(
+      mockRegistry,
     );
-    (mockConfig.getContentGeneratorConfig as ReturnType<typeof vi.fn>).mockReturnValue({});
-    (mockContentGenerator.generateContent as ReturnType<typeof vi.fn>).mockResolvedValue({
+    (mockRegistry.getAgent as ReturnType<typeof vi.fn>).mockReturnValue(
+      undefined,
+    );
+    (mockRegistry.searchAgents as ReturnType<typeof vi.fn>).mockReturnValue([
+      similarAgent,
+    ]);
+    (
+      createCodeAssistContentGenerator as ReturnType<typeof vi.fn>
+    ).mockResolvedValue(mockContentGenerator);
+    (
+      mockConfig.getContentGeneratorConfig as ReturnType<typeof vi.fn>
+    ).mockReturnValue({});
+    (
+      mockContentGenerator.generateContent as ReturnType<typeof vi.fn>
+    ).mockResolvedValue({
       candidates: [
         {
           content: {
@@ -282,15 +308,21 @@ describe('handleUseCommand', () => {
     const { getGlobalAgentRegistry, createCodeAssistContentGenerator } =
       await import('@pk-code/core');
 
-    (getGlobalAgentRegistry as ReturnType<typeof vi.fn>).mockReturnValue(mockRegistry);
-    (mockRegistry.getAgent as ReturnType<typeof vi.fn>).mockReturnValue(mockAgent);
-    (createCodeAssistContentGenerator as ReturnType<typeof vi.fn>).mockResolvedValue(
-      mockContentGenerator,
+    (getGlobalAgentRegistry as ReturnType<typeof vi.fn>).mockReturnValue(
+      mockRegistry,
     );
-    (mockConfig.getContentGeneratorConfig as ReturnType<typeof vi.fn>).mockReturnValue({});
-    (mockContentGenerator.generateContent as ReturnType<typeof vi.fn>).mockRejectedValue(
-      new Error('Generation failed'),
+    (mockRegistry.getAgent as ReturnType<typeof vi.fn>).mockReturnValue(
+      mockAgent,
     );
+    (
+      createCodeAssistContentGenerator as ReturnType<typeof vi.fn>
+    ).mockResolvedValue(mockContentGenerator);
+    (
+      mockConfig.getContentGeneratorConfig as ReturnType<typeof vi.fn>
+    ).mockReturnValue({});
+    (
+      mockContentGenerator.generateContent as ReturnType<typeof vi.fn>
+    ).mockRejectedValue(new Error('Generation failed'));
 
     // Act
     const result = await handleUseCommand(
@@ -312,13 +344,21 @@ describe('handleUseCommand', () => {
     const { getGlobalAgentRegistry, createCodeAssistContentGenerator } =
       await import('@pk-code/core');
 
-    (getGlobalAgentRegistry as ReturnType<typeof vi.fn>).mockReturnValue(mockRegistry);
-    (mockRegistry.getAgent as ReturnType<typeof vi.fn>).mockReturnValue(mockAgent);
-    (createCodeAssistContentGenerator as ReturnType<typeof vi.fn>).mockResolvedValue(
-      mockContentGenerator,
+    (getGlobalAgentRegistry as ReturnType<typeof vi.fn>).mockReturnValue(
+      mockRegistry,
     );
-    (mockConfig.getContentGeneratorConfig as ReturnType<typeof vi.fn>).mockReturnValue({});
-    (mockContentGenerator.generateContent as ReturnType<typeof vi.fn>).mockResolvedValue({
+    (mockRegistry.getAgent as ReturnType<typeof vi.fn>).mockReturnValue(
+      mockAgent,
+    );
+    (
+      createCodeAssistContentGenerator as ReturnType<typeof vi.fn>
+    ).mockResolvedValue(mockContentGenerator);
+    (
+      mockConfig.getContentGeneratorConfig as ReturnType<typeof vi.fn>
+    ).mockReturnValue({});
+    (
+      mockContentGenerator.generateContent as ReturnType<typeof vi.fn>
+    ).mockResolvedValue({
       candidates: [
         {
           content: {
@@ -355,17 +395,25 @@ describe('handleUseCommand', () => {
         throw new Error('Registry not initialized');
       })
       .mockReturnValue(mockRegistry);
-    (initializeGlobalAgentRegistry as ReturnType<typeof vi.fn>).mockResolvedValue({
+    (
+      initializeGlobalAgentRegistry as ReturnType<typeof vi.fn>
+    ).mockResolvedValue({
       agents: [],
       errors: [],
       filesProcessed: 0,
     });
-    (mockRegistry.getAgent as ReturnType<typeof vi.fn>).mockReturnValue(mockAgent);
-    (createCodeAssistContentGenerator as ReturnType<typeof vi.fn>).mockResolvedValue(
-      mockContentGenerator,
+    (mockRegistry.getAgent as ReturnType<typeof vi.fn>).mockReturnValue(
+      mockAgent,
     );
-    (mockConfig.getContentGeneratorConfig as ReturnType<typeof vi.fn>).mockReturnValue({});
-    (mockContentGenerator.generateContent as ReturnType<typeof vi.fn>).mockResolvedValue({
+    (
+      createCodeAssistContentGenerator as ReturnType<typeof vi.fn>
+    ).mockResolvedValue(mockContentGenerator);
+    (
+      mockConfig.getContentGeneratorConfig as ReturnType<typeof vi.fn>
+    ).mockReturnValue({});
+    (
+      mockContentGenerator.generateContent as ReturnType<typeof vi.fn>
+    ).mockResolvedValue({
       candidates: [
         {
           content: {
@@ -394,8 +442,12 @@ describe('handleUseCommand', () => {
     // Arrange
     const { getGlobalAgentRegistry } = await import('@pk-code/core');
 
-    (getGlobalAgentRegistry as ReturnType<typeof vi.fn>).mockReturnValue(mockRegistry);
-    (mockRegistry.getAgent as ReturnType<typeof vi.fn>).mockReturnValue(mockAgent);
+    (getGlobalAgentRegistry as ReturnType<typeof vi.fn>).mockReturnValue(
+      mockRegistry,
+    );
+    (mockRegistry.getAgent as ReturnType<typeof vi.fn>).mockReturnValue(
+      mockAgent,
+    );
 
     // Act
     const result = await handleUseCommand('test-agent', 'Fix the bug');

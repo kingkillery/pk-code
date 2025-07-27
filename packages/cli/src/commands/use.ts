@@ -107,7 +107,7 @@ async function executeAgent(
         'User-Agent': `PK-Code-CLI/${version} (${process.platform}; ${process.arch})`,
       },
     };
-    
+
     const contentGenerator = await createCodeAssistContentGenerator(
       httpOptions,
       AuthType.LOGIN_WITH_GOOGLE,

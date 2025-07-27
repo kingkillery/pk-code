@@ -249,6 +249,7 @@ export async function parseArguments(): Promise<CliArgs> {
             demandOption: true,
           }),
     )
+    .command('create-agent', 'Create a new agent interactively', () => {})
 
     .version(false) // Disable default version, we'll handle it manually
     .alias('v', 'version')

@@ -414,6 +414,7 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
     setRawMode,
     isValidPath,
     shellModeActive,
+    onChange: () => {}, // Prevent infinite cycle by providing empty onChange
   });
 
   const handleExit = useCallback(

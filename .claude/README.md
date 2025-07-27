@@ -10,7 +10,7 @@ This is the default engineering mode for the Qwen-Code codebase. It combines rig
 2. **quick-reference.md** - At-a-glance reminders
 3. **self-discovery-mode.md** - Complex problem-solving framework
 4. **commit-template.md** - Standardized commit message format
-5. **code-agent-prompting-schema.json** - JSON schema for documenting code agent best practices
+5. **code-agent-prompting-schema.md** - Schema documentation for code agent best practices
 
 ## Usage Instructions
 

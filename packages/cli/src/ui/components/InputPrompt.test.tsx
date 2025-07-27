@@ -50,6 +50,12 @@ const _mockCommands: Command[] = [
   },
 ];
 
+const mockSlashCommands = [
+  { name: 'help', description: 'Show help', action: vi.fn() },
+  { name: 'clear', description: 'Clear screen', action: vi.fn() },
+  { name: 'exit', description: 'Exit application', action: vi.fn() },
+];
+
 describe('InputPrompt', () => {
   let props: InputPromptProps;
   let mockShellHistory: MockedUseShellHistory;
@@ -311,8 +317,8 @@ describe('InputPrompt', () => {
       expect(actualCall[0]).toBe(5); // start offset
       expect(actualCall[1]).toBe(5); // end offset
       expect(actualCall[2]).toMatch(
-        /@.*\.gemini-clipboard[/]clipboard-456\.png/,
-      ); // flexible path match
+        /@.*\.gemini-clipboard[/\\]clipboard-456\.png/,
+      ); // flexible path match for both Unix and Windows
       unmount();
     });
 
@@ -343,6 +349,7 @@ describe('InputPrompt', () => {
 
   it('should complete a partial parent command and add a space', async () => {
     // SCENARIO: /mem -> Tab
+    props.slashCommands = _mockCommands; // Use commands with subcommands
     mockedUseCompletion.mockReturnValue({
       ...mockCompletion,
       showSuggestions: true,
@@ -363,6 +370,7 @@ describe('InputPrompt', () => {
 
   it('should append a sub-command when the parent command is already complete with a space', async () => {
     // SCENARIO: /memory  -> Tab (to accept 'add')
+    props.slashCommands = _mockCommands; // Use commands with subcommands
     mockedUseCompletion.mockReturnValue({
       ...mockCompletion,
       showSuggestions: true,
@@ -387,6 +395,7 @@ describe('InputPrompt', () => {
   it('should handle the "backspace" edge case correctly', async () => {
     // SCENARIO: /memory  -> Backspace -> /memory -> Tab (to accept 'show')
     // This is the critical bug we fixed.
+    props.slashCommands = _mockCommands; // Use commands with subcommands
     mockedUseCompletion.mockReturnValue({
       ...mockCompletion,
       showSuggestions: true,
@@ -412,6 +421,7 @@ describe('InputPrompt', () => {
 
   it('should complete a partial argument for a command', async () => {
     // SCENARIO: /chat resume fi- -> Tab
+    props.slashCommands = _mockCommands; // Use commands with subcommands
     mockedUseCompletion.mockReturnValue({
       ...mockCompletion,
       showSuggestions: true,

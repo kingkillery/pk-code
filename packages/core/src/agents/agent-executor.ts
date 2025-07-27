@@ -167,7 +167,10 @@ export class AgentExecutor {
 
     // Check circuit breaker if configured
     if (circuitBreakerConfig) {
-      const isAllowed = this.checkCircuitBreaker(routingResult.agent, circuitBreakerConfig);
+      const isAllowed = this.checkCircuitBreaker(
+        routingResult.agent,
+        circuitBreakerConfig,
+      );
       if (!isAllowed) {
         result.endTime = new Date();
         result.duration = result.endTime.getTime() - startTime.getTime();
@@ -177,7 +180,7 @@ export class AgentExecutor {
           code: 'CIRCUIT_BREAKER_OPEN',
         };
         result.metadata!.circuitBreakerState = 'OPEN';
-        
+
         effectiveOptions.onProgress?.(result);
         return result;
       }
@@ -198,7 +201,14 @@ export class AgentExecutor {
         async (signal: AbortSignal) => {
           // Pass abort signal to content generator if it supports it
           if ('generateContentWithSignal' in contentGenerator) {
-            return (contentGenerator as { generateContentWithSignal: (req: unknown, signal: AbortSignal) => Promise<GenerateContentResponse> }).generateContentWithSignal(request, signal);
+            return (
+              contentGenerator as {
+                generateContentWithSignal: (
+                  req: unknown,
+                  signal: AbortSignal,
+                ) => Promise<GenerateContentResponse>;
+              }
+            ).generateContentWithSignal(request, signal);
           } else {
             // Fallback: monitor signal and reject if aborted
             return new Promise<GenerateContentResponse>((resolve, reject) => {
@@ -212,7 +222,8 @@ export class AgentExecutor {
               };
               signal.addEventListener('abort', abortHandler);
 
-              contentGenerator.generateContent(request)
+              contentGenerator
+                .generateContent(request)
                 .then(resolve)
                 .catch(reject)
                 .finally(() => {
@@ -229,17 +240,23 @@ export class AgentExecutor {
       result.response = response;
       result.endTime = new Date();
       result.duration = result.endTime.getTime() - startTime.getTime();
-      
+
       // Record success for circuit breaker
       if (circuitBreakerConfig) {
         this.recordCircuitBreakerSuccess(routingResult.agent);
-        const cbState = this.circuitBreakers.get(routingResult.agent.config.name);
+        const cbState = this.circuitBreakers.get(
+          routingResult.agent.config.name,
+        );
         result.metadata!.circuitBreakerState = cbState?.state || 'CLOSED';
       }
 
       // Add performance metadata
-      const executionTime = (response as { executionTime?: number })?.executionTime || 0;
-      result.metadata!.overheadMs = Math.max(0, result.duration - executionTime);
+      const executionTime =
+        (response as { executionTime?: number })?.executionTime || 0;
+      result.metadata!.overheadMs = Math.max(
+        0,
+        result.duration - executionTime,
+      );
 
       // Report progress
       effectiveOptions.onProgress?.(result);
@@ -251,8 +268,13 @@ export class AgentExecutor {
 
       // Record failure for circuit breaker
       if (circuitBreakerConfig && !(_error instanceof CancellationError)) {
-        this.recordCircuitBreakerFailure(routingResult.agent, circuitBreakerConfig);
-        const cbState = this.circuitBreakers.get(routingResult.agent.config.name);
+        this.recordCircuitBreakerFailure(
+          routingResult.agent,
+          circuitBreakerConfig,
+        );
+        const cbState = this.circuitBreakers.get(
+          routingResult.agent.config.name,
+        );
         result.metadata!.circuitBreakerState = cbState?.state || 'CLOSED';
       }
 
@@ -590,7 +612,7 @@ export class AgentExecutor {
   ): boolean {
     const agentKey = agent.config.name;
     const state = this.circuitBreakers.get(agentKey);
-    
+
     if (!state) {
       this.circuitBreakers.set(agentKey, {
         failures: 0,
@@ -601,10 +623,7 @@ export class AgentExecutor {
     }
 
     const now = Date.now();
-    const { 
-      resetTimeout = 60000,
-      monitoringWindow = 300000
-    } = config;
+    const { resetTimeout = 60000, monitoringWindow = 300000 } = config;
 
     // Reset old failures outside monitoring window
     if (now - state.lastFailureTime > monitoringWindow) {
@@ -637,14 +656,14 @@ export class AgentExecutor {
   ): void {
     const agentKey = agent.config.name;
     const state = this.circuitBreakers.get(agentKey);
-    
+
     if (!state) return;
 
     const { failureThreshold: _failureThreshold = 5 } = config;
-    
+
     state.failures++;
     state.lastFailureTime = Date.now();
-    
+
     if (state.failures >= _failureThreshold) {
       state.state = 'OPEN';
     }
@@ -656,7 +675,7 @@ export class AgentExecutor {
   private recordCircuitBreakerSuccess(agent: ParsedAgent): void {
     const agentKey = agent.config.name;
     const state = this.circuitBreakers.get(agentKey);
-    
+
     if (!state) return;
 
     if (state.state === 'HALF_OPEN') {
@@ -674,19 +693,23 @@ export class AgentExecutor {
     externalSignal?: AbortSignal,
   ): Promise<T> {
     const validatedTimeout = this.validateTimeout(timeoutMs);
-    
+
     // Create a composite abort controller
     const abortController = new AbortController();
     const { signal } = abortController;
 
     // Set up timeout
     const timeoutId = setTimeout(() => {
-      abortController.abort(new TimeoutError(`Operation timed out after ${validatedTimeout}ms`));
+      abortController.abort(
+        new TimeoutError(`Operation timed out after ${validatedTimeout}ms`),
+      );
     }, validatedTimeout);
 
     // Handle external cancellation
     const externalAbortHandler = () => {
-      abortController.abort(new CancellationError('Operation was cancelled by external signal'));
+      abortController.abort(
+        new CancellationError('Operation was cancelled by external signal'),
+      );
     };
 
     if (externalSignal) {
@@ -703,16 +726,19 @@ export class AgentExecutor {
       return result;
     } catch (error) {
       clearTimeout(timeoutId);
-      
+
       // Handle abort signals with proper error types
       if (signal.aborted) {
         const abortReason = signal.reason;
-        if (abortReason instanceof TimeoutError || abortReason instanceof CancellationError) {
+        if (
+          abortReason instanceof TimeoutError ||
+          abortReason instanceof CancellationError
+        ) {
           throw abortReason;
         }
         throw new CancellationError('Operation was cancelled');
       }
-      
+
       throw error;
     } finally {
       if (externalSignal) {

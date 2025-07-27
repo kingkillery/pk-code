@@ -1,6 +1,7 @@
 # Code Agent Prompting Best Practices JSON Schema
 
 ## Overview
+
 This schema defines the structure for documenting best practices for prompting code generation agents.
 
 ## Schema Structure
@@ -39,6 +40,7 @@ This schema defines the structure for documenting best practices for prompting c
 ## Object Definitions
 
 ### Technique Object
+
 ```json
 {
   "technique_name": "string",
@@ -56,6 +58,7 @@ This schema defines the structure for documenting best practices for prompting c
 ```
 
 ### Agent Pattern Object
+
 ```json
 {
   "pattern_name": "string",
@@ -75,6 +78,7 @@ This schema defines the structure for documenting best practices for prompting c
 ```
 
 ### Prompt Technique Object
+
 ```json
 {
   "technique": "string",
@@ -93,6 +97,7 @@ This schema defines the structure for documenting best practices for prompting c
 ```
 
 ## Usage
+
 1. Use this schema when analyzing prompt engineering resources
 2. Ensure all techniques are code-specific
 3. Include measurable improvements where possible

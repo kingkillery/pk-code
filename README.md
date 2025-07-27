@@ -116,14 +116,18 @@ VISION_FALLBACK_TO_TEXT="true"                       # Fallback to text model if
 ### Routing Strategies
 
 #### Auto Mode (Recommended)
+
 Automatically detects when to use vision models based on:
+
 - Image content in requests
 - Browser/UI related keywords
 - Screenshot or snapshot operations
 - Visual analysis requests
 
 #### Explicit Mode
+
 Only uses vision models when requests contain explicit keywords like:
+
 - "analyze this image"
 - "describe the screenshot"
 - "what do you see"
@@ -131,7 +135,9 @@ Only uses vision models when requests contain explicit keywords like:
 - "describe the interface"
 
 #### Tool-Based Mode
+
 Activates vision models when using vision-related tools such as:
+
 - `browser_screenshot`
 - `browser_snapshot`
 - `screenshot`

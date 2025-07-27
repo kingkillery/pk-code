@@ -233,14 +233,10 @@ examples:
       // Mock readdir to return agents for both directories
       mockedFs.readdir.mockImplementation(async (path: PathLike) => {
         if (String(path).includes('project/.pk/agents')) {
-          return [
-            { name: 'same-name.md', isFile: () => true },
-          ] as any;
+          return [{ name: 'same-name.md', isFile: () => true }] as any;
         }
         if (String(path).includes('home/.pk/agents')) {
-          return [
-            { name: 'same-name.md', isFile: () => true },
-          ] as any;
+          return [{ name: 'same-name.md', isFile: () => true }] as any;
         }
         return [] as any;
       });

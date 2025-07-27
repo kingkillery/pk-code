@@ -5,7 +5,11 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { AgentExecutor, createAgentExecutor, type ExecutionOptions } from './agent-executor.js';
+import {
+  AgentExecutor,
+  createAgentExecutor,
+  type ExecutionOptions,
+} from './agent-executor.js';
 import type { ParsedAgent, AgentConfig } from './types.js';
 import type { RoutingResult, MultiAgentRoutingResult } from './agent-router.js';
 import type { ContentGenerator } from '../core/contentGenerator.js';
@@ -23,19 +27,23 @@ const createMockContentGenerator = (): ContentGenerator =>
         },
       ],
     } as GenerateContentResponse),
-    generateContentStream: vi.fn().mockResolvedValue((async function* () {
-      yield {
-        candidates: [
-          {
-            content: {
-              parts: [{ text: 'Mock streaming response' }],
+    generateContentStream: vi.fn().mockResolvedValue(
+      (async function* () {
+        yield {
+          candidates: [
+            {
+              content: {
+                parts: [{ text: 'Mock streaming response' }],
+              },
             },
-          },
-        ],
-      } as GenerateContentResponse;
-    })()),
+          ],
+        } as GenerateContentResponse;
+      })(),
+    ),
     countTokens: vi.fn().mockResolvedValue({ totalTokens: 100 }),
-    embedContent: vi.fn().mockResolvedValue({ embedding: { values: [0.1, 0.2, 0.3] } }),
+    embedContent: vi
+      .fn()
+      .mockResolvedValue({ embedding: { values: [0.1, 0.2, 0.3] } }),
   }) as unknown as ContentGenerator;
 
 // Mock agent
@@ -133,9 +141,13 @@ describe('AgentExecutor', () => {
         generateContent: vi
           .fn()
           .mockRejectedValue(new Error('Generation failed')),
-        generateContentStream: vi.fn().mockRejectedValue(new Error('Generation failed')),
+        generateContentStream: vi
+          .fn()
+          .mockRejectedValue(new Error('Generation failed')),
         countTokens: vi.fn().mockResolvedValue({ totalTokens: 100 }),
-        embedContent: vi.fn().mockResolvedValue({ embedding: { values: [0.1, 0.2, 0.3] } }),
+        embedContent: vi
+          .fn()
+          .mockResolvedValue({ embedding: { values: [0.1, 0.2, 0.3] } }),
       } as unknown as ContentGenerator;
 
       const options: ExecutionOptions = {
@@ -161,11 +173,15 @@ describe('AgentExecutor', () => {
           .mockImplementation(
             () => new Promise((resolve) => setTimeout(resolve, 2000)),
           ),
-        generateContentStream: vi.fn().mockImplementation(
-          () => new Promise((resolve) => setTimeout(resolve, 2000)),
-        ),
+        generateContentStream: vi
+          .fn()
+          .mockImplementation(
+            () => new Promise((resolve) => setTimeout(resolve, 2000)),
+          ),
         countTokens: vi.fn().mockResolvedValue({ totalTokens: 100 }),
-        embedContent: vi.fn().mockResolvedValue({ embedding: { values: [0.1, 0.2, 0.3] } }),
+        embedContent: vi
+          .fn()
+          .mockResolvedValue({ embedding: { values: [0.1, 0.2, 0.3] } }),
       } as unknown as ContentGenerator;
 
       const options: ExecutionOptions = {
@@ -228,11 +244,17 @@ describe('AgentExecutor', () => {
         generateContent: vi.fn().mockResolvedValue({
           candidates: [{ content: { parts: [{ text: 'Fast response' }] } }],
         }),
-        generateContentStream: vi.fn().mockResolvedValue((async function* () {
-          yield { candidates: [{ content: { parts: [{ text: 'Fast response' }] } }] };
-        })()),
+        generateContentStream: vi.fn().mockResolvedValue(
+          (async function* () {
+            yield {
+              candidates: [{ content: { parts: [{ text: 'Fast response' }] } }],
+            };
+          })(),
+        ),
         countTokens: vi.fn().mockResolvedValue({ totalTokens: 100 }),
-        embedContent: vi.fn().mockResolvedValue({ embedding: { values: [0.1, 0.2, 0.3] } }),
+        embedContent: vi
+          .fn()
+          .mockResolvedValue({ embedding: { values: [0.1, 0.2, 0.3] } }),
       } as unknown as ContentGenerator;
 
       const options: ExecutionOptions = {
@@ -345,9 +367,13 @@ describe('AgentExecutor', () => {
             generateContent: vi
               .fn()
               .mockRejectedValue(new Error('Agent 2 failed')),
-            generateContentStream: vi.fn().mockRejectedValue(new Error('Agent 2 failed')),
+            generateContentStream: vi
+              .fn()
+              .mockRejectedValue(new Error('Agent 2 failed')),
             countTokens: vi.fn().mockResolvedValue({ totalTokens: 100 }),
-            embedContent: vi.fn().mockResolvedValue({ embedding: { values: [0.1, 0.2, 0.3] } }),
+            embedContent: vi
+              .fn()
+              .mockResolvedValue({ embedding: { values: [0.1, 0.2, 0.3] } }),
           });
         }
         return Promise.resolve(createMockContentGenerator());
@@ -386,11 +412,17 @@ describe('AgentExecutor', () => {
               candidates: [{ content: { parts: [{ text: 'Response' }] } }],
             };
           }),
-          generateContentStream: vi.fn().mockResolvedValue((async function* () {
-            yield { candidates: [{ content: { parts: [{ text: 'Response' }] } }] };
-          })()),
+          generateContentStream: vi.fn().mockResolvedValue(
+            (async function* () {
+              yield {
+                candidates: [{ content: { parts: [{ text: 'Response' }] } }],
+              };
+            })(),
+          ),
           countTokens: vi.fn().mockResolvedValue({ totalTokens: 100 }),
-          embedContent: vi.fn().mockResolvedValue({ embedding: { values: [0.1, 0.2, 0.3] } }),
+          embedContent: vi
+            .fn()
+            .mockResolvedValue({ embedding: { values: [0.1, 0.2, 0.3] } }),
         });
       });
 
@@ -415,11 +447,17 @@ describe('AgentExecutor', () => {
           .mockImplementation(
             () => new Promise((resolve) => setTimeout(resolve, 2000)),
           ),
-        generateContentStream: vi.fn().mockResolvedValue((async function* () {
-          yield { candidates: [{ content: { parts: [{ text: 'Response' }] } }] };
-        })()),
+        generateContentStream: vi.fn().mockResolvedValue(
+          (async function* () {
+            yield {
+              candidates: [{ content: { parts: [{ text: 'Response' }] } }],
+            };
+          })(),
+        ),
         countTokens: vi.fn().mockResolvedValue({ totalTokens: 100 }),
-        embedContent: vi.fn().mockResolvedValue({ embedding: { values: [0.1, 0.2, 0.3] } }),
+        embedContent: vi
+          .fn()
+          .mockResolvedValue({ embedding: { values: [0.1, 0.2, 0.3] } }),
       } as unknown as ContentGenerator);
 
       const options: ExecutionOptions = {
@@ -572,11 +610,17 @@ describe('AgentExecutor', () => {
         generateContent: vi.fn().mockResolvedValue({
           candidates: [{ content: { parts: [{ text: 'Response' }] } }],
         }),
-        generateContentStream: vi.fn().mockResolvedValue((async function* () {
-          yield { candidates: [{ content: { parts: [{ text: 'Response' }] } }] };
-        })()),
+        generateContentStream: vi.fn().mockResolvedValue(
+          (async function* () {
+            yield {
+              candidates: [{ content: { parts: [{ text: 'Response' }] } }],
+            };
+          })(),
+        ),
         countTokens: vi.fn().mockResolvedValue({ totalTokens: 100 }),
-        embedContent: vi.fn().mockResolvedValue({ embedding: { values: [0.1, 0.2, 0.3] } }),
+        embedContent: vi
+          .fn()
+          .mockResolvedValue({ embedding: { values: [0.1, 0.2, 0.3] } }),
         cleanup: cleanupSpy,
       };
 
@@ -634,7 +678,9 @@ describe('AgentExecutor', () => {
         generateContent: vi.fn().mockRejectedValue(originalError),
         generateContentStream: vi.fn().mockRejectedValue(originalError),
         countTokens: vi.fn().mockResolvedValue({ totalTokens: 100 }),
-        embedContent: vi.fn().mockResolvedValue({ embedding: { values: [0.1, 0.2, 0.3] } }),
+        embedContent: vi
+          .fn()
+          .mockResolvedValue({ embedding: { values: [0.1, 0.2, 0.3] } }),
       };
 
       const options: ExecutionOptions = {
@@ -709,17 +755,29 @@ describe('AgentExecutor', () => {
     it('should support AbortSignal in content generators', async () => {
       const signalAwareGenerator: ContentGenerator = {
         generateContent: vi.fn().mockResolvedValue({
-          candidates: [{ content: { parts: [{ text: 'Signal aware response' }] } }],
+          candidates: [
+            { content: { parts: [{ text: 'Signal aware response' }] } },
+          ],
         }),
-        generateContentStream: vi.fn().mockResolvedValue((async function* () {
-          yield { candidates: [{ content: { parts: [{ text: 'Signal aware response' }] } }] };
-        })()),
+        generateContentStream: vi.fn().mockResolvedValue(
+          (async function* () {
+            yield {
+              candidates: [
+                { content: { parts: [{ text: 'Signal aware response' }] } },
+              ],
+            };
+          })(),
+        ),
         countTokens: vi.fn().mockResolvedValue({ totalTokens: 100 }),
-        embedContent: vi.fn().mockResolvedValue({ embedding: { values: [0.1, 0.2, 0.3] } }),
+        embedContent: vi
+          .fn()
+          .mockResolvedValue({ embedding: { values: [0.1, 0.2, 0.3] } }),
       };
 
       const options: ExecutionOptions = {
-        contentGeneratorFactory: vi.fn().mockResolvedValue(signalAwareGenerator),
+        contentGeneratorFactory: vi
+          .fn()
+          .mockResolvedValue(signalAwareGenerator),
       };
 
       const result = await executor.executeSingleAgent(
@@ -739,9 +797,13 @@ describe('AgentExecutor', () => {
         generateContent: vi
           .fn()
           .mockRejectedValue(new Error('Simulated failure')),
-        generateContentStream: vi.fn().mockRejectedValue(new Error('Simulated failure')),
+        generateContentStream: vi
+          .fn()
+          .mockRejectedValue(new Error('Simulated failure')),
         countTokens: vi.fn().mockResolvedValue({ totalTokens: 100 }),
-        embedContent: vi.fn().mockResolvedValue({ embedding: { values: [0.1, 0.2, 0.3] } }),
+        embedContent: vi
+          .fn()
+          .mockResolvedValue({ embedding: { values: [0.1, 0.2, 0.3] } }),
       } as unknown as ContentGenerator;
 
       const options: ExecutionOptions = {
@@ -790,11 +852,17 @@ describe('AgentExecutor', () => {
           .mockResolvedValue({
             candidates: [{ content: { parts: [{ text: 'Recovery' }] } }],
           }),
-        generateContentStream: vi.fn().mockResolvedValue((async function* () {
-          yield { candidates: [{ content: { parts: [{ text: 'Recovery' }] } }] };
-        })()),
+        generateContentStream: vi.fn().mockResolvedValue(
+          (async function* () {
+            yield {
+              candidates: [{ content: { parts: [{ text: 'Recovery' }] } }],
+            };
+          })(),
+        ),
         countTokens: vi.fn().mockResolvedValue({ totalTokens: 100 }),
-        embedContent: vi.fn().mockResolvedValue({ embedding: { values: [0.1, 0.2, 0.3] } }),
+        embedContent: vi
+          .fn()
+          .mockResolvedValue({ embedding: { values: [0.1, 0.2, 0.3] } }),
       } as unknown as ContentGenerator;
 
       const options: ExecutionOptions = {
@@ -835,11 +903,19 @@ describe('AgentExecutor', () => {
             executionTime: 100,
           };
         }),
-        generateContentStream: vi.fn().mockResolvedValue((async function* () {
-          yield { candidates: [{ content: { parts: [{ text: 'Timed response' }] } }] };
-        })()),
+        generateContentStream: vi.fn().mockResolvedValue(
+          (async function* () {
+            yield {
+              candidates: [
+                { content: { parts: [{ text: 'Timed response' }] } },
+              ],
+            };
+          })(),
+        ),
         countTokens: vi.fn().mockResolvedValue({ totalTokens: 100 }),
-        embedContent: vi.fn().mockResolvedValue({ embedding: { values: [0.1, 0.2, 0.3] } }),
+        embedContent: vi
+          .fn()
+          .mockResolvedValue({ embedding: { values: [0.1, 0.2, 0.3] } }),
       } as unknown as ContentGenerator;
 
       const options: ExecutionOptions = {
