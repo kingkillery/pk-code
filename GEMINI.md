@@ -421,6 +421,34 @@ These commands make AI calls and may take up to a minute:
 - Provides more informed task creation and updates
 - Recommended for complex technical tasks
 
+## Browser-Use Integration
+
+The `browser-use` library is integrated into the PK Code CLI, allowing agents to interact with live web applications. This integration is achieved through the Model Context Protocol (MCP), with `browser-use` running as a separate MCP server.
+
+### Enabling the Browser-Use Integration
+
+To enable the `browser-use` integration, you must first configure the path to your browser's user data directory. This can be done by running the following command:
+
+```bash
+pk config browser
+```
+
+This command will guide you through an interactive setup process to find and save the correct path.
+
+### Starting and Stopping the Browser-Use Agent
+
+Once the `browser-use` integration has been configured, you can start and stop the `browser-use` agent using the following commands:
+
+```bash
+# Start the browser-use agent
+pk agent start browser
+
+# Stop the browser-use agent
+pk agent stop browser
+```
+
+When the `browser-use` agent is running, a set of `browser.*` tools will be available to the PK Code agent, allowing it to interact with the web browser.
+
 ---
 
 _This guide ensures Claude Code has immediate access to Task Master's essential functionality for agentic development workflows._

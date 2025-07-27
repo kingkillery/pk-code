@@ -12,6 +12,7 @@ import { StringDecoder } from 'node:string_decoder';
 import { discoverMcpTools } from './mcp-client.js';
 import { DiscoveredMCPTool } from './mcp-tool.js';
 import { parse } from 'shell-quote';
+import { MultimodalContentGenerator } from '../core/contentGenerator.js';
 
 type ToolParams = Record<string, unknown>;
 
@@ -160,11 +161,21 @@ export class ToolRegistry {
     await this.discoverAndRegisterToolsFromCommand();
 
     // discover tools using MCP servers, if configured
+    const contentGenerator = this.config
+      .getGeminiClient()
+      .getContentGenerator();
+    // Check if the content generator has multimodal capabilities
+    const visionContentGenerator =
+      'generateContentWithVision' in contentGenerator
+        ? (contentGenerator as MultimodalContentGenerator)
+        : undefined;
+
     await discoverMcpTools(
       this.config.getMcpServers() ?? {},
       this.config.getMcpServerCommand(),
       this,
       this.config.getDebugMode(),
+      visionContentGenerator,
     );
   }
 

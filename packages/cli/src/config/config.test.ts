@@ -15,6 +15,22 @@ import {
   ConfigParameters,
   DEFAULT_TELEMETRY_TARGET,
 } from '@pk-code/core';
+import { handleConfigCommand } from '../commands/config.js';
+import * as readline from 'readline';
+import * as fs from 'fs/promises';
+
+vi.mock('readline', () => ({
+  createInterface: vi.fn(() => ({
+    question: vi.fn((_, cb) => cb('')),
+    close: vi.fn(),
+  })),
+}));
+
+vi.mock('fs/promises', () => ({
+  readFile: vi.fn(),
+  writeFile: vi.fn(),
+  mkdir: vi.fn(),
+}));
 
 vi.mock('os', async (importOriginal) => {
   const actualOs = await importOriginal<typeof os>();
@@ -1004,5 +1020,72 @@ describe('loadCliConfig ideMode', () => {
     expect(mcpServers['_ide_server'].httpUrl).toBe('http://localhost:3000/mcp');
     expect(mcpServers['_ide_server'].description).toBe('IDE connection');
     expect(mcpServers['_ide_server'].trust).toBe(false);
+  });
+});
+
+describe('handleConfigCommand browser', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('should save the default browser path', async () => {
+    vi.mocked(os.platform).mockReturnValue('win32');
+    vi.mocked(fs.readFile).mockResolvedValue('{}');
+    const rl = {
+      question: vi.fn((_, cb) => cb('')),
+      close: vi.fn(),
+    };
+    vi.mocked(readline.createInterface).mockReturnValue(
+      rl as unknown as readline.Interface,
+    );
+
+    await handleConfigCommand('browser');
+
+    expect(fs.writeFile).toHaveBeenCalledWith(
+      expect.stringContaining('settings.json'),
+      JSON.stringify(
+        {
+          'browser-use': {
+            userDataDir: path.join(
+              os.homedir(),
+              'AppData',
+              'Local',
+              'Google',
+              'Chrome',
+              'User Data',
+            ),
+          },
+        },
+        null,
+        2,
+      ),
+    );
+  });
+
+  it('should save a custom browser path', async () => {
+    vi.mocked(os.platform).mockReturnValue('win32');
+    vi.mocked(fs.readFile).mockResolvedValue('{}');
+    const rl = {
+      question: vi.fn((_, cb) => cb('/custom/path')),
+      close: vi.fn(),
+    };
+    vi.mocked(readline.createInterface).mockReturnValue(
+      rl as unknown as readline.Interface,
+    );
+
+    await handleConfigCommand('browser');
+
+    expect(fs.writeFile).toHaveBeenCalledWith(
+      expect.stringContaining('settings.json'),
+      JSON.stringify(
+        {
+          'browser-use': {
+            userDataDir: '/custom/path',
+          },
+        },
+        null,
+        2,
+      ),
+    );
   });
 });

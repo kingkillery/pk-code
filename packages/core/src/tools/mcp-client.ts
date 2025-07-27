@@ -146,6 +146,7 @@ export async function discoverMcpTools(
   mcpServerCommand: string | undefined,
   toolRegistry: ToolRegistry,
   debugMode: boolean,
+  visionContentGenerator?: MultimodalContentGenerator,
 ): Promise<void> {
   mcpDiscoveryState = MCPDiscoveryState.IN_PROGRESS;
   try {
@@ -158,6 +159,7 @@ export async function discoverMcpTools(
           mcpServerConfig,
           toolRegistry,
           debugMode,
+          visionContentGenerator,
         ),
     );
     await Promise.all(discoveryPromises);
@@ -201,6 +203,7 @@ export async function connectAndDiscover(
   mcpServerConfig: MCPServerConfig,
   toolRegistry: ToolRegistry,
   debugMode: boolean,
+  visionContentGenerator?: MultimodalContentGenerator,
 ): Promise<void> {
   updateMCPServerStatus(mcpServerName, MCPServerStatus.CONNECTING);
 
@@ -222,6 +225,7 @@ export async function connectAndDiscover(
         mcpServerName,
         mcpServerConfig,
         mcpClient,
+        visionContentGenerator,
       );
       for (const tool of tools) {
         toolRegistry.registerTool(tool);
@@ -251,7 +255,8 @@ export async function discoverTools(
   mcpServerName: string,
   mcpServerConfig: MCPServerConfig,
   mcpClient: Client,
-): Promise<DiscoveredMCPTool[]> {
+  visionContentGenerator?: MultimodalContentGenerator,
+): Promise<Array<DiscoveredMCPTool | VisionMCPTool>> {
   try {
     const mcpCallableTool = mcpToTool(mcpClient);
     const tool = await mcpCallableTool.tool();
@@ -270,8 +275,22 @@ export async function discoverTools(
 
       sanitizeParameters(funcDecl.parameters);
 
-      discoveredTools.push(
-        new DiscoveredMCPTool(
+      const discoveredTool = new DiscoveredMCPTool(
+        mcpCallableTool,
+        mcpServerName,
+        toolNameForModel,
+        funcDecl.description ?? '',
+        funcDecl.parameters ?? { type: Type.OBJECT, properties: {} },
+        funcDecl.name!,
+        mcpServerConfig.timeout ?? MCP_DEFAULT_TIMEOUT_MSEC,
+        mcpServerConfig.trust,
+      );
+
+      if (
+        visionContentGenerator &&
+        isVisionEnhanceableToolName(funcDecl.name!)
+      ) {
+        const visionTool = new VisionMCPTool(
           mcpCallableTool,
           mcpServerName,
           toolNameForModel,
@@ -280,9 +299,14 @@ export async function discoverTools(
           funcDecl.name!,
           mcpServerConfig.timeout ?? MCP_DEFAULT_TIMEOUT_MSEC,
           mcpServerConfig.trust,
-        ),
-      );
+          visionContentGenerator,
+        );
+        discoveredTools.push(visionTool);
+      } else {
+        discoveredTools.push(discoveredTool);
+      }
     }
+
     if (discoveredTools.length === 0) {
       throw Error('No enabled tools found');
     }
@@ -427,7 +451,11 @@ export function generateValidName(
   let validToolname = funcDecl.name!.replace(/[^a-zA-Z0-9_.-]/g, '_');
 
   // Prepend MCP server name to avoid conflicts with other tools
-  validToolname = mcpServerName + '__' + validToolname;
+  if (mcpServerName === 'browser-use') {
+    validToolname = 'browser.' + validToolname;
+  } else {
+    validToolname = mcpServerName + '__' + validToolname;
+  }
 
   // If longer than 63 characters, replace middle with '___'
   // (Gemini API says max length 64, but actual limit seems to be 63)

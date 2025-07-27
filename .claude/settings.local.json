@@ -17,7 +17,8 @@
       "Bash(npx vitest run:*)",
       "Bash(git add:*)",
       "Bash(npx eslint:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(rm:*)"
     ],
     "deny": []
   },

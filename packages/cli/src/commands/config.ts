@@ -5,6 +5,52 @@
  */
 
 import { setCredential, getCredential, deleteCredential } from '@pk-code/core';
+import * as readline from 'readline';
+import { promises as fs } from 'fs';
+import * as os from 'os';
+import * as path from 'path';
+
+const SETTINGS_FILE = path.join(os.homedir(), '.pk-code', 'settings.json');
+
+async function getBrowserPath(): Promise<string> {
+  const platform = os.platform();
+  switch (platform) {
+    case 'win32':
+      return path.join(
+        os.homedir(),
+        'AppData',
+        'Local',
+        'Google',
+        'Chrome',
+        'User Data',
+      );
+    case 'darwin':
+      return path.join(
+        os.homedir(),
+        'Library',
+        'Application Support',
+        'Google',
+        'Chrome',
+      );
+    case 'linux':
+      return path.join(os.homedir(), '.config', 'google-chrome');
+    default:
+      return '';
+  }
+}
+
+async function saveBrowserPath(browserPath: string) {
+  let settings: Record<string, unknown> = {};
+  try {
+    const data = await fs.readFile(SETTINGS_FILE, 'utf-8');
+    settings = JSON.parse(data);
+  } catch (_error) {
+    // File might not exist, which is fine
+  }
+  settings['browser-use'] = { userDataDir: browserPath };
+  await fs.mkdir(path.dirname(SETTINGS_FILE), { recursive: true });
+  await fs.writeFile(SETTINGS_FILE, JSON.stringify(settings, null, 2));
+}
 
 export async function handleConfigCommand(
   action: string,
@@ -46,6 +92,30 @@ export async function handleConfigCommand(
           console.log(`- ${p}`);
         }
       }
+      break;
+    }
+    case 'browser': {
+      const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout,
+      });
+
+      const defaultPath = await getBrowserPath();
+      console.log(`We need to find your browser's user data directory.`);
+      console.log(`The default path for your OS is: ${defaultPath}`);
+
+      await new Promise<void>((resolve) => {
+        rl.question(
+          `Press Enter to accept the default, or enter a custom path: `,
+          async (inputPath) => {
+            const browserPath = inputPath || defaultPath;
+            await saveBrowserPath(browserPath);
+            console.log(`Browser path saved to ${SETTINGS_FILE}`);
+            rl.close();
+            resolve();
+          },
+        );
+      });
       break;
     }
     default:

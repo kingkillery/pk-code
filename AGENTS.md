@@ -18,12 +18,30 @@ The PK Code CLI is built on a modular, provider-based architecture. This means t
 - **`packages/vscode-ide-companion`:** An integration with Visual Studio Code, allowing users to interact with PK Code directly from their editor.
 - **`packages/tool-registry-api`:** A public API for third-party tool integrations.
 
-## Development Workflow
+## Browser-Use Integration
 
-When working on the PK Code codebase, please adhere to the following workflow:
+The `browser-use` library is integrated into the PK Code CLI, allowing agents to interact with live web applications. This integration is achieved through the Model Context Protocol (MCP), with `browser-use` running as a separate MCP server.
 
-1.  **Understand the Task:** Carefully review the task description and any related documentation.
-2.  **Analyze the Codebase:** Before making any changes, analyze the existing codebase to understand the current implementation and identify the relevant files and packages.
-3.  **Implement the Changes:** Make the necessary changes to the codebase, following the existing coding style and conventions.
-4.  **Update the Documentation:** After implementing the changes, update any relevant documentation to reflect the new functionality.
-5.  **Submit a Pull Request:** Once the changes are complete and the documentation has been updated, submit a pull request for review.
+### Enabling the Browser-Use Integration
+
+To enable the `browser-use` integration, you must first configure the path to your browser's user data directory. This can be done by running the following command:
+
+```bash
+pk config browser
+```
+
+This command will guide you through an interactive setup process to find and save the correct path.
+
+### Starting and Stopping the Browser-Use Agent
+
+Once the `browser-use` integration has been configured, you can start and stop the `browser-use` agent using the following commands:
+
+```bash
+# Start the browser-use agent
+pk agent start browser
+
+# Stop the browser-use agent
+pk agent stop browser
+```
+
+When the `browser-use` agent is running, a set of `browser.*` tools will be available to the PK Code agent, allowing it to interact with the web browser.

@@ -172,8 +172,12 @@ export async function createContentGeneratorConfig(
     let openrouterModel = process.env.OPENROUTER_MODEL?.trim();
     // Set default model for OpenRouter if none is specified
     if (!openrouterModel) {
-      openrouterModel = 'qwen/qwen3-coder';
+      // Use the free tier model as default to avoid payment issues
+      openrouterModel = 'qwen/qwen3-coder:free';
       process.env.OPENROUTER_MODEL = openrouterModel;
+      console.debug(
+        '[ContentGenerator] Using default free OpenRouter model: qwen/qwen3-coder:free',
+      );
     }
 
     contentGeneratorConfig.apiKey = process.env.OPENROUTER_API_KEY;
@@ -281,6 +285,36 @@ export async function createContentGenerator(
     const { OpenRouterContentGenerator } = await import(
       './openrouterContentGenerator.js'
     );
+
+    // Validate the model before creating the generator
+    console.debug(
+      `[ContentGenerator] Validating OpenRouter model: ${config.model}`,
+    );
+    const isValidModel = await OpenRouterContentGenerator.validateModel(
+      config.model,
+    );
+    if (!isValidModel) {
+      const availableModels =
+        await OpenRouterContentGenerator.getAvailableModels();
+      const suggestedModels = availableModels
+        .filter((model) => model.includes('qwen') && model.includes('coder'))
+        .slice(0, 3);
+
+      let errorMessage = `OpenRouter model "${config.model}" is not available or accessible.\n\n`;
+      if (suggestedModels.length > 0) {
+        errorMessage += `Suggested alternatives:\n`;
+        suggestedModels.forEach((model) => {
+          errorMessage += `- ${model}\n`;
+        });
+        errorMessage += `\nTo switch models, set OPENROUTER_MODEL environment variable or use the /model command.`;
+      } else {
+        errorMessage += `Please check the model name or try a different model.\n`;
+        errorMessage += `Visit https://openrouter.ai/models to see available models.`;
+      }
+
+      console.warn(`[ContentGenerator] ${errorMessage}`);
+      // Don't throw here to allow graceful degradation - the actual API call will provide better error handling
+    }
 
     baseGenerator = new OpenRouterContentGenerator(
       config.apiKey,

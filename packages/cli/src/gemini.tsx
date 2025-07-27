@@ -94,6 +94,7 @@ import { handleInitCommand } from './commands/init.js';
 import { handleUseCommand, parseUseCommandSyntax } from './commands/use.js';
 
 import { handleCreateAgentCommand } from './commands/create-agent.js';
+import { agentCommand } from './commands/agent.js';
 
 export async function main() {
   const argv = await parseArguments();
@@ -107,9 +108,9 @@ export async function main() {
   }
   if (argv._[0] === 'config') {
     await handleConfigCommand(
-      argv.action || '',
-      argv.provider || '',
-      argv.apiKey || '',
+      argv._[1] as string,
+      argv._[2] as string,
+      argv._[3] as string,
     );
     process.exit(0);
   }
@@ -172,6 +173,10 @@ export async function main() {
 
     await handleUseCommand(agentName, query, config);
     process.exit(0);
+  }
+  if (argv._[0] === 'agent') {
+    agentCommand.parse(process.argv.slice(1));
+    return;
   }
   const workspaceRoot = process.cwd();
   const settings = loadSettings(workspaceRoot);

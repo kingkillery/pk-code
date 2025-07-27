@@ -144,6 +144,51 @@ pk "Why is the layout broken on mobile devices?"
 pk "Convert this design mockup into React components"
 ```
 
+## 🌐 Browser Automation
+
+PK Code can be extended with powerful browser automation capabilities, allowing the agent to interact with live websites and web applications. This is achieved by integrating with the `browser-use` Python library, which runs as a separate server that PK Code communicates with.
+
+### Features
+
+- **Stateful Browser Control**: Maintain login sessions and cookies across interactions.
+- **UI Interaction**: Click, type, and read content from web pages.
+- **Visual Analysis**: Combine with vision models to understand and navigate complex UIs.
+
+### Configuration
+
+Before using the browser automation features, you need to tell PK Code where your browser's user data is stored. Run the interactive setup command:
+
+```bash
+pk config browser
+```
+
+This command will help you find and save the correct path to your browser's profile, enabling persistent sessions.
+
+### Usage
+
+To start the browser automation agent, run:
+
+```bash
+pk agent start browser
+```
+
+Once the agent is running, a new set of `browser.*` tools (e.g., `browser.navigate`, `browser.get_state`, `browser.click`) will become available within the PK Code interactive session.
+
+To stop the agent when you're done, run:
+
+```bash
+pk agent stop browser
+```
+
+### Example
+
+```bash
+> pk
+> agent start browser
+Browser agent started...
+> Navigate to https://github.com/kingkillery/pk-code and tell me how many open issues there are.
+```
+
 ## 🔧 Advanced Configuration
 
 ### Provider-Specific Settings

@@ -6,6 +6,14 @@
       "env": {
         "OPENROUTER_API_KEY": "sk-or-v1-50e6b14d051c4fcfd698a1a8c01ac3d4a5e0742281684d9fff2387f30fa6d6d8s"
       }
+    },
+    "browser-use": {
+      "command": "cmd",
+      "args": ["/c", "uvx", "browser-use", "--mcp"],
+      "env": {
+        "BROWSER_USE_USER_DATA_DIR": "C:\\Users\\<YourUser>\\AppData\\Local\\Google\\Chrome\\User Data"
+      },
+      "description": "Browser automation tools. Requires 'browser-use' to be installed (`pipx install browser-use`). You must edit this config to set the BROWSER_USE_USER_DATA_DIR path."
     }
   }
 }
