@@ -10,6 +10,7 @@ import {
   type ParsedAgent,
   Config,
   createCodeAssistContentGenerator,
+  AuthType,
 } from '@pk-code/core';
 
 /**
@@ -100,8 +101,17 @@ async function executeAgent(
     }
 
     // Create content generator using the existing system
+    const version = process.env.CLI_VERSION || process.version;
+    const httpOptions = {
+      headers: {
+        'User-Agent': `PK-Code-CLI/${version} (${process.platform}; ${process.arch})`,
+      },
+    };
+    
     const contentGenerator = await createCodeAssistContentGenerator(
-      config.getContentGeneratorConfig(),
+      httpOptions,
+      AuthType.LOGIN_WITH_GOOGLE,
+      config,
     );
 
     // Build the system prompt with agent context
@@ -111,6 +121,7 @@ async function executeAgent(
 
     // Prepare the request with agent-specific parameters
     const request = {
+      model: 'gemini-pro',
       contents: [
         {
           role: 'user' as const,

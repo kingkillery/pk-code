@@ -7,6 +7,7 @@
 import fs from 'fs/promises';
 import { watch, FSWatcher } from 'fs';
 import path from 'path';
+import os from 'os';
 import type {
   AgentRegistry as IAgentRegistry,
   ParsedAgent,
@@ -254,7 +255,7 @@ export class AgentRegistry implements IAgentRegistry {
         await this.reloadAgent(filePath);
       }
     } catch (error) {
-      if (error.code === 'ENOENT') {
+      if (error && typeof error === 'object' && 'code' in error && error.code === 'ENOENT') {
         // The directory itself was deleted. Unregister all agents from it.
         const agentsFromDir = this.getAgents().filter(
           (agent) => path.dirname(agent.filePath) === dirPath,

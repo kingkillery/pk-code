@@ -21,14 +21,15 @@ import type { GenerateContentResponse } from '@google/genai';
 
 // Mock response generator
 const createMockResponse = (text: string): GenerateContentResponse => {
-  const response = new GenerateContentResponse();
-  response.candidates = [
-    {
-      content: {
-        parts: [{ text }],
+  const response = {
+    candidates: [
+      {
+        content: {
+          parts: [{ text }],
+        },
       },
-    },
-  ];
+    ],
+  } as GenerateContentResponse;
   return response;
 };
 
@@ -582,7 +583,7 @@ describe('ResultAggregator', () => {
       expect(result.conflictAnalysis.consensus.length).toBeGreaterThan(0);
       expect(
         result.conflictAnalysis.consensus.some((c) =>
-          c.topic.includes('function'),
+          c.aspect.includes('function'),
         ),
       ).toBe(true);
     });

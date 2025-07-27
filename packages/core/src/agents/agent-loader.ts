@@ -13,9 +13,10 @@ import { GEMINI_DIR } from '../utils/paths.js';
 import { isWithinRoot } from '../utils/fileUtils.js';
 import type {
   AgentConfig,
-  ParsedAgent,
-  AgentLoaderOptions,
   AgentDiscoveryResult,
+  AgentLoadError,
+  AgentLoaderOptions,
+  ParsedAgent,
 } from './types.js';
 import { fileURLToPath } from 'url';
 

@@ -238,7 +238,8 @@ export class AgentExecutor {
       }
 
       // Add performance metadata
-      result.metadata!.overheadMs = Math.max(0, result.duration - (response as { executionTime?: number })?.executionTime || 0);
+      const executionTime = (response as { executionTime?: number })?.executionTime || 0;
+      result.metadata!.overheadMs = Math.max(0, result.duration - executionTime);
 
       // Report progress
       effectiveOptions.onProgress?.(result);

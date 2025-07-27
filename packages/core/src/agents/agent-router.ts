@@ -189,11 +189,29 @@ export class AgentRouter {
     );
 
     // Select primary agents (high confidence, up to maxAgents)
-    const primaryAgents = highConfidence.slice(0, maxAgents);
+    const primaryAgents = highConfidence.slice(0, maxAgents).map(scored => ({
+      agent: scored.agent,
+      confidence: scored.confidence,
+      reason: scored.reason,
+      alternatives: [] as Array<{
+        agent: ParsedAgent;
+        confidence: RoutingConfidence;
+        reason: string;
+      }>
+    }));
 
     // Select secondary agents (medium confidence, fill remaining slots)
     const remainingSlots = maxAgents - primaryAgents.length;
-    const secondaryAgents = mediumConfidence.slice(0, remainingSlots);
+    const secondaryAgents = mediumConfidence.slice(0, remainingSlots).map(scored => ({
+      agent: scored.agent,
+      confidence: scored.confidence,
+      reason: scored.reason,
+      alternatives: [] as Array<{
+        agent: ParsedAgent;
+        confidence: RoutingConfidence;
+        reason: string;
+      }>
+    }));
 
     // Determine execution strategy
     let strategy: 'sequential' | 'parallel' | 'prioritized' = 'parallel';

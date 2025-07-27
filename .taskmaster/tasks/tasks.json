@@ -245,11 +245,50 @@
         ],
         "status": "pending",
         "subtasks": []
+      },
+      {
+        "id": 43,
+        "title": "Implement Slash Commands for Sub-Agent Management",
+        "description": "Create CLI slash commands to provide a user-friendly interface for managing sub-agents in the PK-Code system.",
+        "details": "Implement the following slash commands:\n1. `/create-agent` - Interactive command to create new sub-agents with prompts for:\n   - Agent name and description\n   - Tool permissions/whitelist\n   - Keywords for routing\n   - Configuration validation\n2. `/list-agents` or `/agents` - Display all available sub-agents with:\n   - Agent names and descriptions\n   - Tool permissions\n   - Keywords\n   - Status (active/inactive)\n3. `/edit-agent` - Modify existing agent configurations\n4. `/delete-agent` - Remove agents with confirmation\n\nIntegrate with existing CLI infrastructure and ensure proper error handling and validation.",
+        "testStrategy": "Create unit tests for each command, test interactive prompts, validate agent creation/modification, and ensure proper integration with the CLI system.",
+        "status": "done",
+        "dependencies": [
+          29
+        ],
+        "priority": "high",
+        "subtasks": []
+      },
+      {
+        "id": 44,
+        "title": "Migrate Agent File Format from JSON to Markdown with YAML Frontmatter",
+        "description": "Update the agent file format in .pk/agents directory from JSON to Markdown files with YAML frontmatter to enable better agent selection and follow Claude Code standards.",
+        "details": "Modify agentCommands.ts to create and read .md files instead of .json files. The new format should have YAML frontmatter containing agent metadata (name, description, keywords, tools, model, provider, temperature, maxTokens) and the system prompt content in the markdown body. Update file parsing logic to extract YAML frontmatter and markdown content. Ensure backward compatibility during migration.",
+        "testStrategy": "Create test agents in both old JSON and new Markdown formats. Verify that the system can read existing JSON files and create new Markdown files. Test YAML frontmatter parsing and markdown content extraction. Validate that agent selection works correctly with the new format.",
+        "priority": "high",
+        "dependencies": [
+          43
+        ],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 45,
+        "title": "Add System Prompt Support to Agent Configuration",
+        "description": "Implement system prompt support in agent configurations to enable more sophisticated agent behavior and better context setting.",
+        "details": "Update the agent configuration schema to include system prompt content stored in the markdown body of agent files. Modify the agent loading and execution logic to use the system prompt when initializing conversations with LLM providers. Add validation to ensure system prompts are properly formatted and not empty. Update agentCommands.ts to handle system prompt input during agent creation.",
+        "testStrategy": "Create agents with various system prompts and test that they behave differently based on their prompts. Verify that system prompts are correctly passed to LLM providers during agent execution. Test edge cases like empty prompts, very long prompts, and prompts with special characters.",
+        "priority": "high",
+        "dependencies": [
+          44
+        ],
+        "status": "pending",
+        "subtasks": []
       }
     ],
     "metadata": {
       "created": "2025-07-26T18:17:50.719Z",
-      "updated": "2025-07-27T04:53:32.559Z",
+      "updated": "2025-07-27T05:28:19.910Z",
       "description": "Tasks for master context"
     }
   }

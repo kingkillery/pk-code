@@ -218,7 +218,7 @@ export class AgentOrchestrator {
    */
   private async processSingleAgent(
     query: string,
-    options: OrchestrationOptions,
+    options: Partial<OrchestrationOptions>,
     startTime: number,
   ): Promise<OrchestrationResult> {
     const routingStart = Date.now();
@@ -287,7 +287,7 @@ export class AgentOrchestrator {
    */
   private async processMultiAgent(
     query: string,
-    options: OrchestrationOptions,
+    options: Partial<OrchestrationOptions>,
     startTime: number,
   ): Promise<OrchestrationResult> {
     const routingStart = Date.now();
@@ -384,11 +384,11 @@ export class AgentOrchestrator {
   }
 
   /**
-   * Process query using automatic mode selection
+   * Process query using auto mode
    */
   private async processAutoMode(
     query: string,
-    options: OrchestrationOptions,
+    options: Partial<OrchestrationOptions>,
     startTime: number,
   ): Promise<OrchestrationResult> {
     // Analyze query complexity to decide between single and multi-agent
@@ -506,7 +506,7 @@ export class AgentOrchestrator {
    */
   private determineOrchestrationMode(
     query: string,
-    options: OrchestrationOptions,
+    options: Partial<OrchestrationOptions>,
   ): OrchestrationMode {
     if (options.mode && options.mode !== OrchestrationMode.AUTO) {
       return options.mode;
@@ -567,7 +567,7 @@ export class AgentOrchestrator {
    */
   private validatePerformanceTargets(
     result: OrchestrationResult,
-    options: OrchestrationOptions,
+    options: Partial<OrchestrationOptions>,
   ): void {
     const targets = options.performance;
     if (!targets) return;

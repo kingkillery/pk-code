@@ -14,13 +14,18 @@ import { privacyCommand } from '../ui/commands/privacyCommand.js';
 import { aboutCommand } from '../ui/commands/aboutCommand.js';
 import { modelCommand } from '../ui/commands/model.js';
 import { inferenceProviderCommand } from '../ui/commands/inferenceProviderCommand.js';
+import { agentCommand, createAgentCommand, listAgentsCommand, deleteAgentCommand } from '../ui/commands/agentCommands.js';
 
 const loadBuiltInCommands = async (): Promise<Command[]> => [
   aboutCommand,
+  agentCommand,
   authCommand,
   clearCommand,
+  createAgentCommand,
+  deleteAgentCommand,
   helpCommand,
   inferenceProviderCommand,
+  listAgentsCommand,
   memoryCommand,
   modelCommand,
   privacyCommand,

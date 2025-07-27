@@ -4,8 +4,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import fs from 'fs/promises';
+import { Stats, PathLike } from 'fs';
 import os from 'os';
 import { AgentLoader, loadAgents, loadAgentFile } from './agent-loader.js';
 
@@ -86,11 +88,11 @@ This is a test agent.`;
       mockedFs.stat.mockResolvedValue({
         isDirectory: () => true,
         mtime: new Date(),
-      } as unknown as fs.Stats);
+      } as unknown as Stats);
 
       mockedFs.readdir.mockResolvedValue([
         { name: 'test-agent.md', isFile: () => true },
-      ] as unknown as fs.Dirent[]);
+      ] as any);
 
       mockedFs.readFile.mockResolvedValue(mockAgentContent);
 
@@ -114,11 +116,11 @@ invalid: yaml: content
       mockedFs.stat.mockResolvedValue({
         isDirectory: () => true,
         mtime: new Date(),
-      } as unknown as fs.Stats);
+      } as unknown as Stats);
 
       mockedFs.readdir.mockResolvedValue([
         { name: 'invalid-agent.md', isFile: () => true },
-      ] as unknown as fs.Dirent[]);
+      ] as any);
 
       mockedFs.readFile.mockResolvedValue(invalidYamlContent);
 
@@ -144,11 +146,11 @@ examples: []
       mockedFs.stat.mockResolvedValue({
         isDirectory: () => true,
         mtime: new Date(),
-      } as unknown as fs.Stats);
+      } as unknown as Stats);
 
       mockedFs.readdir.mockResolvedValue([
         { name: 'invalid-agent.md', isFile: () => true },
-      ] as unknown as fs.Dirent[]);
+      ] as any);
 
       mockedFs.readFile.mockResolvedValue(mockAgentContent);
 
@@ -173,11 +175,11 @@ This agent has no YAML front-matter.`;
       mockedFs.stat.mockResolvedValue({
         isDirectory: () => true,
         mtime: new Date(),
-      } as unknown as fs.Stats);
+      } as unknown as Stats);
 
       mockedFs.readdir.mockResolvedValue([
         { name: 'no-frontmatter.md', isFile: () => true },
-      ] as unknown as fs.Dirent[]);
+      ] as any);
 
       mockedFs.readFile.mockResolvedValue(noFrontMatterContent);
 
@@ -215,36 +217,36 @@ examples:
 ---`;
 
       // Mock stats for directories
-      mockedFs.stat.mockImplementation(async (path: fs.PathLike) => {
+      mockedFs.stat.mockImplementation(async (path: PathLike) => {
         if (String(path).includes('.pk/agents')) {
           return {
             isDirectory: () => true,
             mtime: new Date(),
-          } as unknown as fs.Stats;
+          } as unknown as Stats;
         }
         return {
           isDirectory: () => false,
           mtime: new Date(),
-        } as unknown as fs.Stats;
+        } as unknown as Stats;
       });
 
       // Mock readdir to return agents for both directories
-      mockedFs.readdir.mockImplementation(async (path: fs.PathLike) => {
+      mockedFs.readdir.mockImplementation(async (path: PathLike) => {
         if (String(path).includes('project/.pk/agents')) {
           return [
             { name: 'same-name.md', isFile: () => true },
-          ] as unknown as fs.Dirent[];
+          ] as any;
         }
         if (String(path).includes('home/.pk/agents')) {
           return [
             { name: 'same-name.md', isFile: () => true },
-          ] as unknown as fs.Dirent[];
+          ] as any;
         }
-        return [] as unknown as fs.Dirent[];
+        return [] as any;
       });
 
       // Mock readFile to return different content based on path
-      mockedFs.readFile.mockImplementation(async (path: fs.PathLike) => {
+      (mockedFs.readFile.mockImplementation as any)(async (path: PathLike) => {
         if (String(path).includes('project/.pk/agents')) {
           return projectAgentContent;
         }
@@ -286,7 +288,7 @@ examples:
 
       mockedFs.stat.mockResolvedValue({
         mtime: new Date(),
-      } as unknown as fs.Stats);
+      } as unknown as Stats);
 
       mockedFs.readFile.mockResolvedValue(mockAgentContent);
 
@@ -320,9 +322,9 @@ examples:
       mockedFs.stat.mockResolvedValue({
         isDirectory: () => false,
         mtime: new Date(),
-      } as unknown as fs.Stats);
+      } as unknown as Stats);
 
-      mockedFs.readdir.mockResolvedValue([] as unknown as fs.Dirent[]);
+      mockedFs.readdir.mockResolvedValue([] as any);
 
       const result = await loadAgents(mockProjectRoot);
       expect(result).toBeDefined();
