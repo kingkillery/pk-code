@@ -34,8 +34,9 @@ const mockResponse = (
   parts: Part[],
   finishReason: FinishReason = FinishReason.STOP,
   safetyRatings: SafetyRating[] = [],
-): GenerateContentResponse => ({
-  candidates: [
+): GenerateContentResponse => {
+  const response = new GenerateContentResponse();
+  response.candidates = [
     {
       content: {
         parts,
@@ -45,28 +46,21 @@ const mockResponse = (
       finishReason,
       safetyRatings,
     },
-  ],
-  promptFeedback: {
+  ];
+  response.promptFeedback = {
     safetyRatings: [],
-  },
-  text: undefined,
-  data: undefined,
-  functionCalls: undefined,
-  executableCode: undefined,
-  codeExecutionResult: undefined,
-});
+  };
+  return response;
+};
 
 const minimalMockResponse = (
   candidates: GenerateContentResponse['candidates'],
-): GenerateContentResponse => ({
-  candidates,
-  promptFeedback: { safetyRatings: [] },
-  text: undefined,
-  data: undefined,
-  functionCalls: undefined,
-  executableCode: undefined,
-  codeExecutionResult: undefined,
-});
+): GenerateContentResponse => {
+  const response = new GenerateContentResponse();
+  response.candidates = candidates;
+  response.promptFeedback = { safetyRatings: [] };
+  return response;
+};
 
 describe('generateContentResponseUtilities', () => {
   describe('getResponseText', () => {

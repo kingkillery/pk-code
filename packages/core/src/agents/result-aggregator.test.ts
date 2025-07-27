@@ -20,15 +20,17 @@ import type { RoutingResult } from './agent-router.js';
 import type { GenerateContentResponse } from '@google/genai';
 
 // Mock response generator
-const createMockResponse = (text: string): GenerateContentResponse => ({
-  candidates: [
+const createMockResponse = (text: string): GenerateContentResponse => {
+  const response = new GenerateContentResponse();
+  response.candidates = [
     {
       content: {
         parts: [{ text }],
       },
     },
-  ],
-});
+  ];
+  return response;
+};
 
 // Mock agent
 const createMockAgent = (

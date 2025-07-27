@@ -131,11 +131,13 @@ const createMcpServer = () => {
           };
         }
 
-        const { handleGenerateCommand } = await import('@pk-code/core');
-        const generatedCode = await handleGenerateCommand(
-          params.prompt,
-          params.provider,
-        );
+        // TODO: Implement handleGenerateCommand in @pk-code/core
+        // const { handleGenerateCommand } = await import('@pk-code/core');
+        // const generatedCode = await handleGenerateCommand(
+        //   params.prompt,
+        //   params.provider,
+        // );
+        const generatedCode = `// Generated code for: ${params.prompt}\n// Provider: ${params.provider}\n// TODO: Implement actual code generation`;
         if (generatedCode) {
           activeEditor.edit((editBuilder) => {
             editBuilder.insert(activeEditor.selection.active, generatedCode);

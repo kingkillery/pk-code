@@ -5,13 +5,13 @@
  */
 
 import { AIProvider } from '@pk-code/core';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenAI } from '@google/genai';
 
 export class GeminiProvider implements AIProvider {
-  private client!: GoogleGenerativeAI;
+  private client!: GoogleGenAI;
 
   async initialize(credentials: { apiKey: string }): Promise<void> {
-    this.client = new GoogleGenerativeAI(credentials.apiKey);
+    this.client = new GoogleGenAI({ apiKey: credentials.apiKey });
   }
 
   async generateCode(prompt: string): Promise<string> {
@@ -21,9 +21,10 @@ export class GeminiProvider implements AIProvider {
       );
     }
 
-    const model = this.client.getGenerativeModel({ model: 'gemini-pro' });
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    return response.text();
+    const response = await this.client.models.generateContent({
+      model: 'gemini-2.0-flash-001',
+      contents: prompt,
+    });
+    return response.text || '';
   }
 }

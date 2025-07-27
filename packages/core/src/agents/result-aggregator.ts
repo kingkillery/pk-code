@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { GenerateContentResponse } from '@google/generative-ai';
+import type { GenerateContentResponse } from '@google/genai';
 import type {
   AgentExecutionResult,
   MultiAgentExecutionResult,

@@ -559,13 +559,14 @@ export class AgentExecutor {
       `You are ${agent.config.name}: ${agent.config.description}`;
 
     return {
+      model: agent.config.model || 'gemini-2.0-flash',
       contents: [
         {
           role: 'user',
           parts: [{ text: `${systemPrompt}\n\nUser Query: ${query}` }],
         },
       ],
-      generationConfig: {
+      config: {
         temperature: agent.config.temperature || 0.7,
         maxOutputTokens: agent.config.maxTokens || 2048,
       },
@@ -638,12 +639,12 @@ export class AgentExecutor {
     
     if (!state) return;
 
-    const { failureThreshold = 5 } = config;
+    const { failureThreshold: _failureThreshold = 5 } = config;
     
     state.failures++;
     state.lastFailureTime = Date.now();
     
-    if (state.failures >= failureThreshold) {
+    if (state.failures >= _failureThreshold) {
       state.state = 'OPEN';
     }
   }
