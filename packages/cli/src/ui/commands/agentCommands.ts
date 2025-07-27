@@ -201,7 +201,7 @@ const listAgentsCommand: Command = {
   name: 'list-agents',
   altName: 'agents',
   description: 'List all available sub-agents',
-  action: async (context: CommandContext, args: string): Promise<MessageActionReturn> => {
+  action: async (context: CommandContext): Promise<MessageActionReturn> => {
     const { services } = context;
     
     if (!services.config?.getProjectRoot()) {
