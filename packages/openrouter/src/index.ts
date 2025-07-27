@@ -25,7 +25,7 @@ export class OpenRouterProvider implements AIProvider {
     }
 
     const response = await this.client.chat.completions.create({
-      model: 'google/gemini-flash-1.5', // Using a default model for OpenRouter
+      model: 'qwen/qwen3-235b-a22b', // Using Qwen model for OpenRouter
       messages: [{ role: 'user', content: prompt }],
     });
 

@@ -10,12 +10,14 @@ import TextInput from 'ink-text-input';
 import SelectInput from 'ink-select-input';
 import { writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
+import { createPromptGenerator, PromptGenerationRequest, GeneratedPrompt } from '@pk-code/core';
+import { getDefaultAgentProvider } from '../utils/providerUtils.js';
 
 const providers = [
+  { label: 'OpenRouter (Recommended)', value: 'openrouter' },
   { label: 'Gemini', value: 'gemini' },
   { label: 'OpenAI', value: 'openai' },
   { label: 'Anthropic', value: 'anthropic' },
-  { label: 'OpenRouter', value: 'openrouter' },
   { label: 'Cohere', value: 'cohere' },
 ];
 
@@ -36,6 +38,7 @@ const models = {
     { label: 'Claude 3 Opus', value: 'claude-3-opus-20240229' },
   ],
   openrouter: [
+    { label: 'Qwen 3 235B (Recommended)', value: 'qwen/qwen3-235b-a22b' },
     { label: 'Qwen 3 32B', value: 'qwen/qwen3-32b' },
     { label: 'Claude 3.5 Sonnet', value: 'anthropic/claude-3.5-sonnet' },
     { label: 'GPT-4o', value: 'openai/gpt-4o' },
@@ -45,6 +48,16 @@ const models = {
     { label: 'Command R', value: 'command-r' },
   ],
 };
+
+const domains = [
+  { label: 'Coding & Development', value: 'coding' },
+  { label: 'Code Analysis & Review', value: 'analysis' },
+  { label: 'Debugging & Troubleshooting', value: 'debugging' },
+  { label: 'Quality Assurance & Testing', value: 'testing' },
+  { label: 'Code Review & Evaluation', value: 'review' },
+  { label: 'Creative & Content', value: 'creative' },
+  { label: 'General Purpose', value: 'general' },
+];
 
 const availableTools = [
   { label: 'File System', value: 'file-system' },
@@ -70,6 +83,8 @@ interface AgentConfig {
   }>;
   instructions: string;
   reviewAreas?: string[];
+  color?: string;
+  enhancedDescription?: string;
 }
 
 const CreateAgent = () => {
@@ -77,12 +92,14 @@ const CreateAgent = () => {
     | 'name'
     | 'description'
     | 'keywords'
+    | 'domain'
+    | 'generate-prompt'
+    | 'review-prompt'
     | 'provider'
     | 'model'
     | 'tools'
     | 'temperature'
     | 'maxTokens'
-    | 'instructions'
     | 'examples'
     | 'review'
     | 'save'
@@ -93,12 +110,14 @@ const CreateAgent = () => {
     description: '',
     keywords: [],
     tools: [],
-    model: '',
-    provider: '',
+    model: 'qwen/qwen3-235b-a22b',
+    provider: 'openrouter',
     temperature: 0.3,
     maxTokens: 4000,
     examples: [],
     instructions: '',
+    color: 'blue',
+    enhancedDescription: '',
   });
 
   const [currentInput, setCurrentInput] = useState('');
@@ -108,6 +127,10 @@ const CreateAgent = () => {
   const [exampleField, setExampleField] = useState<
     'input' | 'output' | 'description'
   >('input');
+  const [selectedDomain, setSelectedDomain] = useState('');
+  const [generatedPrompt, setGeneratedPrompt] = useState<GeneratedPrompt | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [useGeneratedPrompt, setUseGeneratedPrompt] = useState(true);
 
   const handleNext = () => {
     switch (step) {
@@ -133,6 +156,26 @@ const CreateAgent = () => {
           .filter((k) => k);
         setConfig((prev) => ({ ...prev, keywords }));
         setCurrentInput('');
+        setStep('domain');
+        break;
+      }
+      case 'domain': {
+        setStep('generate-prompt');
+        break;
+      }
+      case 'generate-prompt': {
+        // Will be handled by generatePrompt function
+        break;
+      }
+      case 'review-prompt': {
+        if (useGeneratedPrompt && generatedPrompt) {
+          setConfig((prev) => ({
+            ...prev,
+            instructions: generatedPrompt.systemPrompt,
+            enhancedDescription: generatedPrompt.enhancedDescription,
+            color: generatedPrompt.suggestedColor,
+          }));
+        }
         setStep('provider');
         break;
       }
@@ -162,13 +205,6 @@ const CreateAgent = () => {
         if (isNaN(tokens) || tokens < 100 || tokens > 10000) return;
         setConfig((prev) => ({ ...prev, maxTokens: tokens }));
         setCurrentInput('');
-        setStep('instructions');
-        break;
-      }
-      case 'instructions': {
-        if (!currentInput.trim()) return;
-        setConfig((prev) => ({ ...prev, instructions: currentInput.trim() }));
-        setCurrentInput('');
         setStep('examples');
         break;
       }
@@ -196,6 +232,89 @@ const CreateAgent = () => {
   const handleModelSelect = (item: { label: string; value: string }) => {
     setConfig((prev) => ({ ...prev, model: item.value }));
     handleNext();
+  };
+
+  const handleDomainSelect = (item: { label: string; value: string }) => {
+    setSelectedDomain(item.value);
+    handleNext();
+  };
+
+  const generatePrompt = async () => {
+    setIsGenerating(true);
+    try {
+      // Get a real AI provider for prompt generation
+      const aiProvider = await getDefaultAgentProvider();
+      
+      if (!aiProvider) {
+        console.error('No AI provider available for prompt generation. Please configure your API keys.');
+        // Fall back to template-based generation
+        generateFallbackPrompt();
+        return;
+      }
+
+      const promptGenerator = createPromptGenerator(aiProvider);
+      const request: PromptGenerationRequest = {
+        name: config.name,
+        description: config.description,
+        keywords: config.keywords,
+        tools: config.tools.map(t => ({ name: t })),
+        domain: selectedDomain as 'coding' | 'review' | 'debugging' | 'creative' | 'testing' | 'analysis',
+      };
+
+      const result = await promptGenerator.generateSystemPrompt(request);
+      setGeneratedPrompt(result);
+      setStep('review-prompt');
+    } catch (error) {
+      console.error('Failed to generate prompt with AI:', error);
+      // Fall back to template-based generation
+      generateFallbackPrompt();
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const generateFallbackPrompt = () => {
+    // Template-based fallback when AI generation fails
+    const systemPrompt = `You are a ${config.name.replace(/-/g, ' ')} specialist, an expert in ${config.keywords.join(', ')}. Your mission is to ${config.description.toLowerCase()}.
+
+When working on tasks, you will:
+
+**Phase 1: Analysis**
+- Understand the requirements thoroughly
+- Identify key challenges and constraints
+- Plan your approach systematically
+
+**Phase 2: Implementation**
+- Execute your plan with precision
+- Follow best practices and conventions
+- Maintain high quality standards
+
+**Phase 3: Verification**
+- Review your work for completeness
+- Validate against requirements
+- Ensure reliability and correctness
+
+**Quality Standards:**
+- Provide clear, actionable guidance
+- Use available tools effectively
+- Maintain professional expertise
+- Focus on practical solutions
+
+Your expertise in ${config.keywords.join(', ')} makes you uniquely qualified to deliver exceptional results in this domain.`;
+
+    const enhancedDescription = `Use this agent when you need specialized assistance with ${config.description.toLowerCase()}. Examples: <example>Context: User needs help with ${config.keywords[0]} tasks. user: "Can you help me with ${config.keywords[0]}?" assistant: "I'll use the ${config.name} agent to provide specialized guidance on ${config.keywords[0]} tasks."</example> <example>Context: User has a specific ${config.keywords[1] || config.keywords[0]} challenge. user: "I'm working on ${config.keywords[1] || config.keywords[0]} and need expert advice" assistant: "Let me engage the ${config.name} agent to provide expert assistance with your ${config.keywords[1] || config.keywords[0]} challenge."</example>`;
+
+    const suggestedColor = selectedDomain === 'review' ? 'pink' : selectedDomain === 'debugging' ? 'red' : selectedDomain === 'creative' ? 'green' : 'blue';
+
+    const result: GeneratedPrompt = {
+      systemPrompt,
+      enhancedDescription,
+      suggestedColor,
+      confidence: 0.7, // Lower confidence for template-based generation
+    };
+
+    setGeneratedPrompt(result);
+    setStep('review-prompt');
   };
 
   const handleToolSelect = (item: { label: string; value: string }) => {
@@ -250,29 +369,11 @@ const CreateAgent = () => {
     const filename = `${config.name}.md`;
     const filepath = join(agentsDir, filename);
 
+    const description = config.enhancedDescription || config.description;
     const yamlFrontMatter = `---
 name: ${config.name}
-description: ${config.description}
-keywords:
-${config.keywords.map((k) => `  - ${k}`).join('\n')}
-tools:
-${config.tools.map((t) => `  - name: ${t}`).join('\n')}
-model: ${config.model}
-provider: ${config.provider}
-temperature: ${config.temperature}
-maxTokens: ${config.maxTokens}
-${
-  config.examples.length > 0
-    ? `examples:
-${config.examples
-  .map(
-    (ex) => `  - input: "${ex.input}"
-    output: "${ex.output}"
-    description: "${ex.description}"`,
-  )
-  .join('\n')}`
-    : ''
-}
+description: ${description}
+color: ${config.color || 'blue'}
 ---`;
 
     const markdownContent = `
@@ -373,6 +474,73 @@ ${config.examples
           </Box>
         );
 
+      case 'domain':
+        return (
+          <Box flexDirection="column">
+            <Text color="green">Agent: {config.name}</Text>
+            <Text>Keywords: {config.keywords.join(', ')}</Text>
+            <Text>{'\n'}Select the domain for this agent:</Text>
+            <SelectInput items={domains} onSelect={handleDomainSelect} />
+          </Box>
+        );
+
+      case 'generate-prompt':
+        return (
+          <Box flexDirection="column">
+            <Text color="cyan">🤖 AI-Powered Prompt Generation</Text>
+            <Text>{'\n'}I can generate a high-quality system prompt based on proven patterns from successful agents.</Text>
+            <Text color="gray">This will create a professional prompt tailored to your agent&apos;s purpose.</Text>
+            <Text>{'\n'}Generate AI-powered prompt? (y/n):</Text>
+            <TextInput
+              value={currentInput}
+              onChange={setCurrentInput}
+              onSubmit={(value) => {
+                if (value.toLowerCase() === 'y' || value.toLowerCase() === 'yes') {
+                  generatePrompt();
+                } else {
+                  setStep('provider');
+                }
+              }}
+            />
+          </Box>
+        );
+
+      case 'review-prompt':
+        if (isGenerating) {
+          return (
+            <Box flexDirection="column">
+              <Text color="yellow">🔄 Generating your agent prompt...</Text>
+              <Text color="gray">Using Qwen AI to create a professional, high-quality system prompt.</Text>
+            </Box>
+          );
+        }
+
+        return (
+          <Box flexDirection="column">
+            <Text color="cyan">📝 Generated Prompt Review</Text>
+            {generatedPrompt && (
+              <Box flexDirection="column">
+                <Text>{'\n'}Generation Method: {generatedPrompt.confidence >= 0.8 ? '🤖 AI-Powered' : '📋 Template-Based'}</Text>
+                <Text>Color: {generatedPrompt.suggestedColor}</Text>
+                <Text>Quality Score: {Math.round(generatedPrompt.confidence * 100)}%</Text>
+                <Text color="gray">{'\n'}Description:</Text>
+                <Text>{generatedPrompt.enhancedDescription.substring(0, 200)}...</Text>
+                <Text color="gray">{'\n'}System Prompt Preview:</Text>
+                <Text>{generatedPrompt.systemPrompt.substring(0, 300)}...</Text>
+              </Box>
+            )}
+            <Text>{'\n'}Use this generated prompt? (y/n):</Text>
+            <TextInput
+              value={currentInput}
+              onChange={setCurrentInput}
+              onSubmit={(value) => {
+                setUseGeneratedPrompt(value.toLowerCase() === 'y' || value.toLowerCase() === 'yes');
+                handleNext();
+              }}
+            />
+          </Box>
+        );
+
       case 'provider':
         return (
           <Box flexDirection="column">
@@ -442,19 +610,6 @@ ${config.examples
           </Box>
         );
 
-      case 'instructions':
-        return (
-          <Box flexDirection="column">
-            <Text color="green">Agent: {config.name}</Text>
-            <Text>Max Tokens: {config.maxTokens}</Text>
-            <Text>{'\n'}Enter detailed instructions for the agent:</Text>
-            <TextInput
-              value={currentInput}
-              onChange={setCurrentInput}
-              onSubmit={handleNext}
-            />
-          </Box>
-        );
 
       case 'examples':
         return (

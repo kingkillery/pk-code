@@ -5,10 +5,11 @@
  */
 
 import { Command, CommandContext, MessageActionReturn } from './types.js';
-import { AgentConfig } from '@pk-code/core';
+import { AgentConfig, createPromptGenerator, PromptGenerationRequest } from '@pk-code/core';
 import fs from 'fs/promises';
 import path from 'path';
-import { load as yamlLoad, dump as yamlDump } from 'js-yaml';
+import { load as yamlLoad } from 'js-yaml';
+import { getDefaultAgentProvider } from '../../utils/providerUtils.js';
 
 /**
  * Get the agents directory path
@@ -72,7 +73,7 @@ const parseAgentFromFile = async (
 const createAgentCommand: Command = {
   name: 'create-agent',
   description:
-    'Create a new sub-agent. Usage: /create-agent <name> "<description>" "<keywords>" [tools] [model] [provider]',
+    'Create a new sub-agent. Usage: /create-agent <name> "<description>" "<keywords>" [domain] [--generate-prompt] [tools] [model] [provider]',
   action: async (
     context: CommandContext,
     args: string,
@@ -95,7 +96,7 @@ const createAgentCommand: Command = {
         type: 'message',
         messageType: 'error',
         content:
-          'Usage: /agent create <name> "<description>" "<keywords>" [tools] [model] [provider]\n\nExample: /agent create "code-reviewer" "Reviews code for best practices" "review,code,quality" "file-system,web-search" "gemini-2.0-flash-exp" "gemini"',
+          'Usage: /agent create <name> "<description>" "<keywords>" [domain] [--generate-prompt] [tools] [model] [provider]\n\nExample: /agent create "code-reviewer" "Reviews code for best practices" "review,code,quality" "review" --generate-prompt "file-system,web-search" "qwen/qwen3-235b-a22b" "openrouter"',
       };
     }
 
@@ -132,16 +133,25 @@ const createAgentCommand: Command = {
           type: 'message',
           messageType: 'error',
           content:
-            'Missing required arguments. Usage: /agent create <name> "<description>" "<keywords>" [tools] [model] [provider]',
+            'Missing required arguments. Usage: /agent create <name> "<description>" "<keywords>" [domain] [--generate-prompt] [tools] [model] [provider]',
         };
       }
 
       const name = argParts[0];
       const description = argParts[1];
       const keywordsInput = argParts[2];
-      const toolsInput = argParts[3] || 'all';
-      const model = argParts[4] || 'gemini-2.0-flash-exp';
-      const provider = argParts[5] || 'gemini';
+      
+      // Check for --generate-prompt flag
+      const generatePromptIndex = argParts.indexOf('--generate-prompt');
+      const shouldGeneratePrompt = generatePromptIndex !== -1;
+      
+      // Remove the flag from args for easier parsing
+      const filteredArgs = argParts.filter(arg => arg !== '--generate-prompt');
+      
+      const domain = filteredArgs[3] || 'general';
+      const toolsInput = filteredArgs[4] || 'all';
+      const model = filteredArgs[5] || 'qwen/qwen3-235b-a22b';
+      const provider = filteredArgs[6] || 'openrouter';
 
       const keywords = keywordsInput
         .split(',')
@@ -163,10 +173,89 @@ const createAgentCommand: Command = {
               .map((t) => ({ name: t.trim() }))
               .filter((t) => t.name);
 
+      let finalDescription = description;
+      let systemPrompt = '';
+      let agentColor = 'blue';
+      
+      // Generate enhanced prompt if requested
+      if (shouldGeneratePrompt) {
+        try {
+          // Try to get a real AI provider for prompt generation
+          const aiProvider = await getDefaultAgentProvider();
+          
+          if (aiProvider) {
+            // Use real AI generation
+            const promptGenerator = createPromptGenerator(aiProvider);
+            const request: PromptGenerationRequest = {
+              name,
+              description,
+              keywords,
+              tools: tools.map(t => ({ name: t.name })),
+              domain: domain as 'coding' | 'review' | 'debugging' | 'creative' | 'testing' | 'analysis',
+            };
+
+            const result = await promptGenerator.generateSystemPrompt(request);
+            systemPrompt = result.systemPrompt;
+            finalDescription = result.enhancedDescription;
+            agentColor = result.suggestedColor;
+          } else {
+            // Fallback to template-based generation
+            console.warn('No AI provider available, using template-based generation');
+            generateTemplatePrompt();
+          }
+        } catch (error) {
+          console.warn('Failed to generate AI prompt, using template fallback:', error);
+          generateTemplatePrompt();
+        }
+      }
+
+      function generateTemplatePrompt() {
+        const domainColorMap: Record<string, string> = {
+          review: 'pink',
+          debugging: 'red',
+          testing: 'pink',
+          creative: 'green',
+          analysis: 'purple',
+          coding: 'blue',
+          general: 'blue',
+        };
+        
+        agentColor = domainColorMap[domain] || 'blue';
+        
+        finalDescription = `Use this agent when you need specialized assistance with ${description.toLowerCase()}. Examples: <example>Context: User needs help with ${keywords[0]} tasks. user: "Can you help me with ${keywords[0]}?" assistant: "I'll use the ${name} agent to provide specialized guidance on ${keywords[0]} tasks."</example> <example>Context: User has a specific ${keywords[1] || keywords[0]} challenge. user: "I'm working on ${keywords[1] || keywords[0]} and need expert advice" assistant: "Let me engage the ${name} agent to provide expert assistance with your ${keywords[1] || keywords[0]} challenge."</example>`;
+        
+        systemPrompt = `You are a ${name.replace(/-/g, ' ')} specialist, an expert in ${keywords.join(', ')}. Your mission is to ${description.toLowerCase()}.
+
+When working on tasks, you will:
+
+**Phase 1: Analysis**
+- Understand the requirements thoroughly
+- Identify key challenges and constraints
+- Plan your approach systematically
+
+**Phase 2: Implementation**
+- Execute your plan with precision
+- Follow best practices and conventions
+- Maintain high quality standards
+
+**Phase 3: Verification**
+- Review your work for completeness
+- Validate against requirements
+- Ensure reliability and correctness
+
+**Quality Standards:**
+- Provide clear, actionable guidance
+- Use available tools effectively
+- Maintain professional expertise
+- Focus on practical solutions
+
+Your expertise in ${keywords.join(', ')} makes you uniquely qualified to deliver exceptional results in this domain.`;
+      }
+      
       // Create agent configuration for YAML frontmatter
-      const agentConfig: AgentConfig = {
+      const _agentConfig: AgentConfig = {
         name,
-        description,
+        description: finalDescription,
         keywords,
         tools,
         model,
@@ -194,8 +283,11 @@ const createAgentCommand: Command = {
       }
 
       // Create Markdown content with YAML frontmatter
-      const yamlFrontmatter = yamlDump(agentConfig, { indent: 2 });
-      const markdownContent = `---\n${yamlFrontmatter}---\n\n# ${name}\n\n${description}\n\nYou are a specialized AI assistant focused on ${keywords.join(', ')}. Your role is to help users with tasks related to these areas.\n\n## Instructions\n\n- Always stay focused on your area of expertise\n- Provide clear, actionable guidance\n- Ask clarifying questions when needed\n- Use the available tools effectively\n\n## Examples\n\n*Add example interactions here to demonstrate your capabilities*\n`;
+      const yamlFrontmatter = `---\nname: ${name}\ndescription: ${finalDescription}\ncolor: ${agentColor}\n---`;
+      
+      const markdownContent = systemPrompt 
+        ? `${yamlFrontmatter}\n\n${systemPrompt}`
+        : `${yamlFrontmatter}\n\n# ${name}\n\n${description}\n\nYou are a specialized AI assistant focused on ${keywords.join(', ')}. Your role is to help users with tasks related to these areas.\n\n## Instructions\n\n- Always stay focused on your area of expertise\n- Provide clear, actionable guidance\n- Ask clarifying questions when needed\n- Use the available tools effectively\n\n## Examples\n\n*Add example interactions here to demonstrate your capabilities*\n`;
 
       // Write agent configuration to file
       await fs.writeFile(filePath, markdownContent);
@@ -203,7 +295,7 @@ const createAgentCommand: Command = {
       return {
         type: 'message',
         messageType: 'info',
-        content: `✅ Agent "${name}" created successfully at ${filePath}\n\nConfiguration:\n- Description: ${description}\n- Keywords: ${keywords.join(', ')}\n- Tools: ${tools.length === 0 ? 'all' : tools.map((t) => t.name).join(', ')}\n- Model: ${model} (${provider})`,
+        content: `✅ Agent "${name}" created successfully at ${filePath}\n\nConfiguration:\n- Description: ${finalDescription.length > 100 ? finalDescription.substring(0, 100) + '...' : finalDescription}\n- Keywords: ${keywords.join(', ')}\n- Domain: ${domain}\n- Color: ${agentColor}\n- Enhanced Prompt: ${shouldGeneratePrompt ? 'Yes' : 'No'}\n- Tools: ${tools.length === 0 ? 'all' : tools.map((t) => t.name).join(', ')}\n- Model: ${model} (${provider})`,
       };
     } catch (error) {
       return {

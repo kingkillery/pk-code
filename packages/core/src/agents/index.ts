@@ -72,3 +72,13 @@ export {
   OrchestrationMode,
   createAgentOrchestrator,
 } from './agent-orchestrator.js';
+
+// Export prompt generation system
+export type {
+  PromptGenerationRequest,
+  GeneratedPrompt,
+} from './prompt-generator.js';
+export {
+  AgentPromptGenerator,
+  createPromptGenerator,
+} from './prompt-generator.js';
