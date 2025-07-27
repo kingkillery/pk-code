@@ -8,7 +8,7 @@ import { AIProvider } from '@qwen-code/core';
 import OpenAI from 'openai';
 
 export class OpenAIProvider implements AIProvider {
-  private client: OpenAI;
+  private client!: OpenAI;
 
   async initialize(credentials: { apiKey: string }): Promise<void> {
     this.client = new OpenAI({ apiKey: credentials.apiKey });
@@ -24,6 +24,6 @@ export class OpenAIProvider implements AIProvider {
       messages: [{ role: 'user', content: prompt }],
     });
 
-    return response.choices[0].message.content;
+    return response.choices[0].message.content || '';
   }
 }

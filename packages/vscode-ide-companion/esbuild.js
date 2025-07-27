@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-const esbuild = require('esbuild');
+import esbuild from 'esbuild';
 
 const production = process.argv.includes('--production');
 const watch = process.argv.includes('--watch');
@@ -41,7 +41,12 @@ async function main() {
     sourcesContent: false,
     platform: 'node',
     outfile: 'dist/extension.js',
-    external: ['vscode'],
+    external: [
+      'vscode',
+      'keytar',
+      // Add other problematic native dependencies
+      '@qwen-code/qwen-code',
+    ],
     logLevel: 'silent',
     plugins: [
       /* add to the end of plugins array */

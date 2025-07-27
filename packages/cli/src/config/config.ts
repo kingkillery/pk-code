@@ -36,6 +36,7 @@ const logger = {
 };
 
 export interface CliArgs {
+  _: Array<string | number>; // positional arguments
   model: string | undefined;
   sandbox: boolean | string | undefined;
   sandboxImage: string | undefined;
@@ -59,6 +60,10 @@ export interface CliArgs {
   openaiLogging: boolean | undefined;
   openaiApiKey: string | undefined;
   openaiBaseUrl: string | undefined;
+  // Command-specific properties
+  provider?: string;
+  action?: string;
+  apiKey?: string;
 }
 
 export async function parseArguments(): Promise<CliArgs> {
@@ -195,6 +200,10 @@ export async function parseArguments(): Promise<CliArgs> {
     .option('openai-api-key', {
       type: 'string',
       description: 'OpenAI API key to use for authentication',
+    })
+    .option('openai-base-url', {
+      type: 'string',
+      description: 'OpenAI API base URL',
     })
     .command('init', 'Initialize the CLI', () => {})
     .command('generate <prompt>', 'Generate code from a prompt', (yargs) => yargs.positional('prompt', {

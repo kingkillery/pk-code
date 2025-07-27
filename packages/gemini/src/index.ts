@@ -8,7 +8,7 @@ import { AIProvider } from '@qwen-code/core';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export class GeminiProvider implements AIProvider {
-  private client: GoogleGenerativeAI;
+  private client!: GoogleGenerativeAI;
 
   async initialize(credentials: { apiKey: string }): Promise<void> {
     this.client = new GoogleGenerativeAI(credentials.apiKey);

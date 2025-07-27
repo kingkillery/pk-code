@@ -8,7 +8,7 @@ import { AIProvider } from '@qwen-code/core';
 import { CohereClient } from 'cohere-ai';
 
 export class CohereProvider implements AIProvider {
-  private client: CohereClient;
+  private client!: CohereClient;
 
   async initialize(credentials: { apiKey: string }): Promise<void> {
     this.client = new CohereClient({ token: credentials.apiKey });

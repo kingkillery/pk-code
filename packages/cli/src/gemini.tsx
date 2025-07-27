@@ -97,14 +97,12 @@ export async function main() {
     handleInitCommand();
     return;
   }
-  const argv = await parseArguments();
   if (argv._[0] === 'generate') {
-    await handleGenerateCommand(argv.prompt, argv.provider);
+    await handleGenerateCommand(argv.prompt || '', argv.provider || 'openai');
     process.exit(0);
   }
-  const argv = await parseArguments();
   if (argv._[0] === 'config') {
-    await handleConfigCommand(argv.action, argv.provider, argv.apiKey);
+    await handleConfigCommand(argv.action || '', argv.provider || '', argv.apiKey || '');
     process.exit(0);
   }
   const workspaceRoot = process.cwd();
@@ -123,7 +121,6 @@ export async function main() {
     process.exit(1);
   }
 
-  const argv = await parseArguments();
   const extensions = loadExtensions(workspaceRoot);
   const config = await loadCliConfig(
     settings.merged,

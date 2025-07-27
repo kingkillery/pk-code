@@ -11,7 +11,7 @@ import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-grpc';
 import { CompressionAlgorithm } from '@opentelemetry/otlp-exporter-base';
 import { NodeSDK } from '@opentelemetry/sdk-node';
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions';
-import { Resource } from '@opentelemetry/resources';
+import * as OtelResources from '@opentelemetry/resources';
 import {
   BatchSpanProcessor,
   ConsoleSpanExporter,
@@ -65,7 +65,8 @@ export function initializeTelemetry(config: Config): void {
     return;
   }
 
-  const resource = new Resource({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const resource = new (OtelResources as any).Resource({
     [SemanticResourceAttributes.SERVICE_NAME]: SERVICE_NAME,
     [SemanticResourceAttributes.SERVICE_VERSION]: process.version,
     'session.id': config.getSessionId(),

@@ -7,7 +7,8 @@
 import { Schema } from '@google/genai';
 import * as ajv from 'ajv';
 
-const ajValidator = new ajv.Ajv();
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const ajValidator = new (ajv.default as any)();
 
 /**
  * Simple utility to validate objects against JSON Schemas

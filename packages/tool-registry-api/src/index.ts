@@ -12,7 +12,8 @@ const port = 3001;
 app.use(express.json());
 
 // In-memory store for tools for now
-const tools = [];
+type Tool = Record<string, unknown>;
+const tools: Tool[] = [];
 
 app.get('/tools', (req, res) => {
   res.json(tools);

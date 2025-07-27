@@ -8,6 +8,7 @@ import * as vscode from 'vscode';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import express, { Request, Response } from 'express';
+import { z } from 'zod';
 
 export async function startIDEServer(_context: vscode.ExtensionContext) {
   const app = express();
@@ -58,8 +59,6 @@ export async function startIDEServer(_context: vscode.ExtensionContext) {
     console.log(`MCP Streamable HTTP Server listening on port ${PORT}`);
   });
 }
-
-import { handleGenerateCommand } from '@qwen-code/qwen-code';
 
 const createMcpServer = () => {
   const server = new McpServer({
@@ -113,12 +112,8 @@ const createMcpServer = () => {
     {
       description: '(IDE Tool) Generate code and insert it into the active editor.',
       inputSchema: {
-        type: 'object',
-        properties: {
-          prompt: { type: 'string' },
-          provider: { type: 'string' },
-        },
-        required: ['prompt', 'provider'],
+        prompt: z.string(),
+        provider: z.string(),
       },
     },
     async (params: { prompt: string; provider: string }) => {
@@ -135,6 +130,7 @@ const createMcpServer = () => {
           };
         }
 
+        const { handleGenerateCommand } = await import('@qwen-code/qwen-code');
         const generatedCode = await handleGenerateCommand(params.prompt, params.provider);
         if (generatedCode) {
           activeEditor.edit((editBuilder) => {

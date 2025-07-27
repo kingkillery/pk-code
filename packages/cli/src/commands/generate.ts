@@ -7,21 +7,18 @@
 import { getCredential } from '@qwen-code/core';
 import { OpenAIProvider } from '@qwen-code/openai';
 import { GeminiProvider } from '@qwen-code/gemini';
+import { OpenRouterProvider } from '@qwen-code/openrouter';
+import { AnthropicProvider } from '@qwen-code/anthropic';
+import { CohereProvider } from '@qwen-code/cohere';
 
-export async function handleGenerateCommand(prompt: string, providerName: string) {
+export async function handleGenerateCommand(prompt: string, providerName: string): Promise<string | null> {
   const apiKey = await getCredential(providerName);
   if (!apiKey) {
     console.error(`API key for ${providerName} not found. Please configure it using the "config" command.`);
-    return;
+    return null;
   }
 
   const createProvider = (name: string) => {
-    import { OpenRouterProvider } from '@qwen-code/openrouter';
-
-    import { AnthropicProvider } from '@qwen-code/anthropic';
-
-    import { CohereProvider } from '@qwen-code/cohere';
-
     switch (name) {
       case 'openai':
         return new OpenAIProvider();
@@ -41,36 +38,41 @@ export async function handleGenerateCommand(prompt: string, providerName: string
   const provider = createProvider(providerName);
   if (!provider) {
     console.error(`Unknown provider: ${providerName}`);
-    return;
+    return null;
   }
 
   try {
     await provider.initialize({ apiKey });
     const generatedCode = await provider.generateCode(prompt);
     console.log(generatedCode);
+    return generatedCode;
   } catch (error) {
-    console.error(`Error with ${providerName}:`, error.message);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error(`Error with ${providerName}:`, errorMessage);
     const fallbackProviderName = providerName === 'openai' ? 'gemini' : 'openai';
     console.log(`Attempting to fallback to ${fallbackProviderName}...`);
 
     const fallbackApiKey = await getCredential(fallbackProviderName);
     if (!fallbackApiKey) {
       console.error(`API key for fallback provider ${fallbackProviderName} not found.`);
-      return;
+      return null;
     }
 
     const fallbackProvider = createProvider(fallbackProviderName);
     if (!fallbackProvider) {
       console.error(`Unknown fallback provider: ${fallbackProviderName}`);
-      return;
+      return null;
     }
 
     try {
       await fallbackProvider.initialize({ apiKey: fallbackApiKey });
       const generatedCode = await fallbackProvider.generateCode(prompt);
       console.log(generatedCode);
+      return generatedCode;
     } catch (fallbackError) {
-      console.error(`Error with fallback provider ${fallbackProviderName}:`, fallbackError.message);
+      const fallbackErrorMessage = fallbackError instanceof Error ? fallbackError.message : String(fallbackError);
+      console.error(`Error with fallback provider ${fallbackProviderName}:`, fallbackErrorMessage);
+      return null;
     }
   }
 }

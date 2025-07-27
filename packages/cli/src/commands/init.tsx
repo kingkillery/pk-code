@@ -19,10 +19,10 @@ const providers = [
 ];
 
 const Init = () => {
-  const [selectedProvider, setSelectedProvider] = useState(null);
+  const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
   const [apiKey, setApiKey] = useState('');
 
-  const handleSelect = (item) => {
+  const handleSelect = (item: { label: string; value: string }) => {
     setSelectedProvider(item.value);
   };
 

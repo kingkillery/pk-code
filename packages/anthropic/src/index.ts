@@ -8,7 +8,7 @@ import { AIProvider } from '@qwen-code/core';
 import Anthropic from '@anthropic-ai/sdk';
 
 export class AnthropicProvider implements AIProvider {
-  private client: Anthropic;
+  private client!: Anthropic;
 
   async initialize(credentials: { apiKey: string }): Promise<void> {
     this.client = new Anthropic({ apiKey: credentials.apiKey });
