@@ -17,6 +17,7 @@ import { ShadesOfPurple } from './shades-of-purple.js';
 import { XCode } from './xcode.js';
 import { QwenLight } from './pk-light.js';
 import { QwenDark } from './pk-dark.js';
+import { PkRoyalty } from './pk-royalty.js';
 import { Theme, ThemeType } from './theme.js';
 import { ANSI } from './ansi.js';
 import { ANSILight } from './ansi-light.js';
@@ -47,6 +48,7 @@ class ThemeManager {
       GoogleCode,
       QwenLight,
       QwenDark,
+      PkRoyalty,
       ShadesOfPurple,
       XCode,
       ANSI,
@@ -59,12 +61,12 @@ class ThemeManager {
    * Returns a list of available theme names.
    */
   getAvailableThemes(): ThemeDisplay[] {
-    // Separate Qwen themes
-    const qwenThemes = this.availableThemes.filter(
-      (theme) => theme.name === QwenLight.name || theme.name === QwenDark.name,
+    // Separate PK themes
+    const pkThemes = this.availableThemes.filter(
+      (theme) => theme.name === QwenLight.name || theme.name === QwenDark.name || theme.name === PkRoyalty.name,
     );
     const otherThemes = this.availableThemes.filter(
-      (theme) => theme.name !== QwenLight.name && theme.name !== QwenDark.name,
+      (theme) => theme.name !== QwenLight.name && theme.name !== QwenDark.name && theme.name !== PkRoyalty.name,
     );
 
     // Sort other themes by type and then name
@@ -87,8 +89,8 @@ class ThemeManager {
       return a.name.localeCompare(b.name);
     });
 
-    // Combine Qwen themes first, then sorted others
-    const sortedThemes = [...qwenThemes, ...sortedOtherThemes];
+    // Combine PK themes first, then sorted others
+    const sortedThemes = [...pkThemes, ...sortedOtherThemes];
 
     return sortedThemes.map((theme) => ({
       name: theme.name,

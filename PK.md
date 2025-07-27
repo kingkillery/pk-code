@@ -156,7 +156,7 @@ Optimize to reduce network waterfalls - Use parallel data fetching wherever poss
 
 Rely on React Compiler - useMemo, useCallback, and React.memo can be omitted if React Compiler is enabled. Avoid premature optimization with manual memoization. Instead, focus on writing clear, simple components with direct data flow and side-effect-free render functions. Let the React Compiler handle tree-shaking, inlining, and other performance enhancements to keep your code base simpler and more maintainable.
 
-Design for a good user experience - Provide clear, minimal, and non-blocking UI states. When data is loading, show lightweight placeholders (e.g., skeleton screens) rather than intrusive spinners everywhere. Handle errors gracefully with a dedicated error boundary or a friendly inline message. Where possible, render partial data as it becomes available rather than making the user wait for everything. Suspense allows you to declare the loading states in your component tree in a natural way, preventing “flash” states and improving perceived performance.
+Design for a good user experience - Provide clear, minimal, and non-blocking UI states. When data is loading, show lightweight placeholders (e.g., skeleton screens) rather than intrusive spinners everywhere. Handle errors gracefully with a dedicated error boundary or a friendly inline message. Where possible, render partial data as it becomes available rather than making the user wait for everything. Suspense allows you to declare the loading states in your component tree in a natural way, preventing "flash" states and improving perceived performance.
 
 ### Process
 
@@ -210,7 +210,7 @@ pk-code/
 
 - `src/core/contentGenerator.ts` - Content generator factory and `AuthType` enum
 - `src/config/config.ts` - Central `Config` class for system configuration
-- `src/config/models.ts` - Default model constants (`DEFAULT_GEMINI_MODEL`)
+- `src/config/models.ts` - Default model constants (`DEFAULT_PK_MODEL`)
 - `src/code_assist/oauth2.ts` - Google OAuth2 implementation
 
 **AI Provider Integrations:**
