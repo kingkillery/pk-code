@@ -15,7 +15,14 @@ export interface PromptGenerationRequest {
   description: string;
   keywords: string[];
   tools: AgentTool[];
-  domain?: 'coding' | 'analysis' | 'creative' | 'debugging' | 'review' | 'testing' | 'general';
+  domain?:
+    | 'coding'
+    | 'analysis'
+    | 'creative'
+    | 'debugging'
+    | 'review'
+    | 'testing'
+    | 'general';
   examples?: Array<{
     context: string;
     userInput: string;
@@ -92,7 +99,10 @@ Always output your response in this exact JSON format:
    */
   private buildMetaPrompt(request: PromptGenerationRequest): string {
     const toolsList = request.tools
-      .map((tool) => `- ${tool.name}${tool.description ? `: ${tool.description}` : ''}`)
+      .map(
+        (tool) =>
+          `- ${tool.name}${tool.description ? `: ${tool.description}` : ''}`,
+      )
       .join('\n');
 
     const examplesSection = request.examples
@@ -152,7 +162,7 @@ Generate a professional system prompt that would create an effective, reliable A
       }
 
       const parsed = JSON.parse(jsonMatch[0]);
-      
+
       // Validate required fields
       if (!parsed.systemPrompt || !parsed.enhancedDescription) {
         throw new Error('Missing required fields in generated response');
@@ -188,7 +198,10 @@ Generate a professional system prompt that would create an effective, reliable A
       .replace(/".*$/s, '')
       .trim();
 
-    return cleaned || 'You are a specialized AI assistant. Provide helpful and accurate responses.';
+    return (
+      cleaned ||
+      'You are a specialized AI assistant. Provide helpful and accurate responses.'
+    );
   }
 
   /**
@@ -202,6 +215,8 @@ Generate a professional system prompt that would create an effective, reliable A
 /**
  * Create a prompt generator instance with the provided AI provider
  */
-export function createPromptGenerator(aiProvider: AIProvider): AgentPromptGenerator {
+export function createPromptGenerator(
+  aiProvider: AIProvider,
+): AgentPromptGenerator {
   return new AgentPromptGenerator(aiProvider);
 }

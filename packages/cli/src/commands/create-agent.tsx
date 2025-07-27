@@ -10,7 +10,11 @@ import TextInput from 'ink-text-input';
 import SelectInput from 'ink-select-input';
 import { writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
-import { createPromptGenerator, PromptGenerationRequest, GeneratedPrompt } from '@pk-code/core';
+import {
+  createPromptGenerator,
+  PromptGenerationRequest,
+  GeneratedPrompt,
+} from '@pk-code/core';
 import { getDefaultAgentProvider } from '../utils/providerUtils.js';
 
 const providers = [
@@ -128,7 +132,8 @@ const CreateAgent = () => {
     'input' | 'output' | 'description'
   >('input');
   const [selectedDomain, setSelectedDomain] = useState('');
-  const [generatedPrompt, setGeneratedPrompt] = useState<GeneratedPrompt | null>(null);
+  const [generatedPrompt, setGeneratedPrompt] =
+    useState<GeneratedPrompt | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [useGeneratedPrompt, setUseGeneratedPrompt] = useState(true);
 
@@ -244,9 +249,11 @@ const CreateAgent = () => {
     try {
       // Get a real AI provider for prompt generation
       const aiProvider = await getDefaultAgentProvider();
-      
+
       if (!aiProvider) {
-        console.error('No AI provider available for prompt generation. Please configure your API keys.');
+        console.error(
+          'No AI provider available for prompt generation. Please configure your API keys.',
+        );
         // Fall back to template-based generation
         generateFallbackPrompt();
         return;
@@ -257,8 +264,14 @@ const CreateAgent = () => {
         name: config.name,
         description: config.description,
         keywords: config.keywords,
-        tools: config.tools.map(t => ({ name: t })),
-        domain: selectedDomain as 'coding' | 'review' | 'debugging' | 'creative' | 'testing' | 'analysis',
+        tools: config.tools.map((t) => ({ name: t })),
+        domain: selectedDomain as
+          | 'coding'
+          | 'review'
+          | 'debugging'
+          | 'creative'
+          | 'testing'
+          | 'analysis',
       };
 
       const result = await promptGenerator.generateSystemPrompt(request);
@@ -304,7 +317,14 @@ Your expertise in ${config.keywords.join(', ')} makes you uniquely qualified to 
 
     const enhancedDescription = `Use this agent when you need specialized assistance with ${config.description.toLowerCase()}. Examples: <example>Context: User needs help with ${config.keywords[0]} tasks. user: "Can you help me with ${config.keywords[0]}?" assistant: "I'll use the ${config.name} agent to provide specialized guidance on ${config.keywords[0]} tasks."</example> <example>Context: User has a specific ${config.keywords[1] || config.keywords[0]} challenge. user: "I'm working on ${config.keywords[1] || config.keywords[0]} and need expert advice" assistant: "Let me engage the ${config.name} agent to provide expert assistance with your ${config.keywords[1] || config.keywords[0]} challenge."</example>`;
 
-    const suggestedColor = selectedDomain === 'review' ? 'pink' : selectedDomain === 'debugging' ? 'red' : selectedDomain === 'creative' ? 'green' : 'blue';
+    const suggestedColor =
+      selectedDomain === 'review'
+        ? 'pink'
+        : selectedDomain === 'debugging'
+          ? 'red'
+          : selectedDomain === 'creative'
+            ? 'green'
+            : 'blue';
 
     const result: GeneratedPrompt = {
       systemPrompt,
@@ -488,14 +508,23 @@ ${config.examples
         return (
           <Box flexDirection="column">
             <Text color="cyan">🤖 AI-Powered Prompt Generation</Text>
-            <Text>{'\n'}I can generate a high-quality system prompt based on proven patterns from successful agents.</Text>
-            <Text color="gray">This will create a professional prompt tailored to your agent&apos;s purpose.</Text>
+            <Text>
+              {'\n'}I can generate a high-quality system prompt based on proven
+              patterns from successful agents.
+            </Text>
+            <Text color="gray">
+              This will create a professional prompt tailored to your
+              agent&apos;s purpose.
+            </Text>
             <Text>{'\n'}Generate AI-powered prompt? (y/n):</Text>
             <TextInput
               value={currentInput}
               onChange={setCurrentInput}
               onSubmit={(value) => {
-                if (value.toLowerCase() === 'y' || value.toLowerCase() === 'yes') {
+                if (
+                  value.toLowerCase() === 'y' ||
+                  value.toLowerCase() === 'yes'
+                ) {
                   generatePrompt();
                 } else {
                   setStep('provider');
@@ -510,7 +539,10 @@ ${config.examples
           return (
             <Box flexDirection="column">
               <Text color="yellow">🔄 Generating your agent prompt...</Text>
-              <Text color="gray">Using Qwen AI to create a professional, high-quality system prompt.</Text>
+              <Text color="gray">
+                Using Qwen AI to create a professional, high-quality system
+                prompt.
+              </Text>
             </Box>
           );
         }
@@ -520,11 +552,20 @@ ${config.examples
             <Text color="cyan">📝 Generated Prompt Review</Text>
             {generatedPrompt && (
               <Box flexDirection="column">
-                <Text>{'\n'}Generation Method: {generatedPrompt.confidence >= 0.8 ? '🤖 AI-Powered' : '📋 Template-Based'}</Text>
+                <Text>
+                  {'\n'}Generation Method:{' '}
+                  {generatedPrompt.confidence >= 0.8
+                    ? '🤖 AI-Powered'
+                    : '📋 Template-Based'}
+                </Text>
                 <Text>Color: {generatedPrompt.suggestedColor}</Text>
-                <Text>Quality Score: {Math.round(generatedPrompt.confidence * 100)}%</Text>
+                <Text>
+                  Quality Score: {Math.round(generatedPrompt.confidence * 100)}%
+                </Text>
                 <Text color="gray">{'\n'}Description:</Text>
-                <Text>{generatedPrompt.enhancedDescription.substring(0, 200)}...</Text>
+                <Text>
+                  {generatedPrompt.enhancedDescription.substring(0, 200)}...
+                </Text>
                 <Text color="gray">{'\n'}System Prompt Preview:</Text>
                 <Text>{generatedPrompt.systemPrompt.substring(0, 300)}...</Text>
               </Box>
@@ -534,7 +575,9 @@ ${config.examples
               value={currentInput}
               onChange={setCurrentInput}
               onSubmit={(value) => {
-                setUseGeneratedPrompt(value.toLowerCase() === 'y' || value.toLowerCase() === 'yes');
+                setUseGeneratedPrompt(
+                  value.toLowerCase() === 'y' || value.toLowerCase() === 'yes',
+                );
                 handleNext();
               }}
             />
@@ -609,7 +652,6 @@ ${config.examples
             />
           </Box>
         );
-
 
       case 'examples':
         return (

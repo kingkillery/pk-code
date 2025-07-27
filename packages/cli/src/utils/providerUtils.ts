@@ -37,13 +37,45 @@ function createProvider(name: string): AIProvider | null {
 export async function getConfiguredProvider(
   preferredProvider: string = 'openrouter',
 ): Promise<AIProvider | null> {
-  // Try the preferred provider first
-  const apiKey = await getCredential(preferredProvider);
+  // First, try environment variables directly for the preferred provider
+  let apiKey: string | null = null;
+
+  // Use environment variables directly to avoid credential resolution issues
+  if (preferredProvider === 'openrouter' && process.env.OPENROUTER_API_KEY) {
+    apiKey = process.env.OPENROUTER_API_KEY;
+  } else if (preferredProvider === 'openai' && process.env.OPENAI_API_KEY) {
+    apiKey = process.env.OPENAI_API_KEY;
+  } else if (preferredProvider === 'gemini' && process.env.GEMINI_API_KEY) {
+    apiKey = process.env.GEMINI_API_KEY;
+  } else if (
+    preferredProvider === 'anthropic' &&
+    process.env.ANTHROPIC_API_KEY
+  ) {
+    apiKey = process.env.ANTHROPIC_API_KEY;
+  } else if (preferredProvider === 'cohere' && process.env.COHERE_API_KEY) {
+    apiKey = process.env.COHERE_API_KEY;
+  }
+
+  // Fallback to getCredential if environment variable not found
+  if (!apiKey) {
+    try {
+      apiKey = await getCredential(preferredProvider);
+    } catch (error) {
+      console.debug(
+        `Could not get credentials for ${preferredProvider}:`,
+        error,
+      );
+    }
+  }
+
   if (apiKey) {
     const provider = createProvider(preferredProvider);
     if (provider) {
       try {
         await provider.initialize({ apiKey });
+        console.debug(
+          `Successfully initialized ${preferredProvider} provider for agent operations`,
+        );
         return provider;
       } catch (error) {
         console.warn(`Failed to initialize ${preferredProvider}:`, error);
@@ -51,25 +83,74 @@ export async function getConfiguredProvider(
     }
   }
 
-  // Fallback providers in order of preference (OpenRouter first for Qwen access)
-  const fallbackProviders = ['openrouter', 'gemini', 'openai', 'anthropic', 'cohere']
-    .filter(p => p !== preferredProvider);
+  // Only try fallback providers if the user doesn't have the preferred provider configured
+  // This prevents authentication conflicts when user is properly set up with OpenRouter
+  if (!apiKey) {
+    console.debug(
+      `No API key found for ${preferredProvider}, trying fallback providers...`,
+    );
 
-  for (const providerName of fallbackProviders) {
-    const fallbackApiKey = await getCredential(providerName);
-    if (fallbackApiKey) {
-      const provider = createProvider(providerName);
-      if (provider) {
+    // Fallback providers in order of preference (OpenRouter first for Qwen access)
+    const fallbackProviders = [
+      'openrouter',
+      'gemini',
+      'openai',
+      'anthropic',
+      'cohere',
+    ].filter((p) => p !== preferredProvider);
+
+    for (const providerName of fallbackProviders) {
+      let fallbackApiKey: string | null = null;
+
+      // Try environment variables first for fallback providers too
+      if (providerName === 'openrouter' && process.env.OPENROUTER_API_KEY) {
+        fallbackApiKey = process.env.OPENROUTER_API_KEY;
+      } else if (providerName === 'openai' && process.env.OPENAI_API_KEY) {
+        fallbackApiKey = process.env.OPENAI_API_KEY;
+      } else if (providerName === 'gemini' && process.env.GEMINI_API_KEY) {
+        fallbackApiKey = process.env.GEMINI_API_KEY;
+      } else if (
+        providerName === 'anthropic' &&
+        process.env.ANTHROPIC_API_KEY
+      ) {
+        fallbackApiKey = process.env.ANTHROPIC_API_KEY;
+      } else if (providerName === 'cohere' && process.env.COHERE_API_KEY) {
+        fallbackApiKey = process.env.COHERE_API_KEY;
+      }
+
+      if (!fallbackApiKey) {
         try {
-          await provider.initialize({ apiKey: fallbackApiKey });
-          return provider;
+          fallbackApiKey = await getCredential(providerName);
         } catch (error) {
-          console.warn(`Failed to initialize fallback ${providerName}:`, error);
+          console.debug(
+            `Could not get credentials for fallback provider ${providerName}:`,
+            error,
+          );
+          continue;
+        }
+      }
+
+      if (fallbackApiKey) {
+        const provider = createProvider(providerName);
+        if (provider) {
+          try {
+            await provider.initialize({ apiKey: fallbackApiKey });
+            console.debug(
+              `Successfully initialized fallback ${providerName} provider for agent operations`,
+            );
+            return provider;
+          } catch (error) {
+            console.warn(
+              `Failed to initialize fallback ${providerName}:`,
+              error,
+            );
+          }
         }
       }
     }
   }
 
+  console.debug('No AI provider could be initialized for agent operations');
   return null;
 }
 

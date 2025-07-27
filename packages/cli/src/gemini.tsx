@@ -189,6 +189,40 @@ export async function main() {
     process.exit(1);
   }
 
+  // Set a default auth type if one isn't set, using environment-based auto-detection
+  // Only auto-detect if no auth type is explicitly configured
+  if (!settings.merged.selectedAuthType) {
+    let autoDetectedAuthType: AuthType;
+
+    // Prioritize based on available API keys in environment
+    if (process.env.CLOUD_SHELL === 'true') {
+      autoDetectedAuthType = AuthType.CLOUD_SHELL;
+    } else if (process.env.OPENROUTER_API_KEY) {
+      autoDetectedAuthType = AuthType.USE_OPENROUTER;
+    } else if (process.env.OPENAI_API_KEY) {
+      autoDetectedAuthType = AuthType.USE_OPENAI;
+    } else if (process.env.GEMINI_API_KEY) {
+      autoDetectedAuthType = AuthType.USE_GEMINI;
+    } else {
+      // Default to OpenRouter if no API keys are present
+      autoDetectedAuthType = AuthType.USE_OPENROUTER;
+    }
+
+    console.debug(
+      `Auto-detected auth type: ${autoDetectedAuthType} based on available environment variables`,
+    );
+
+    settings.setValue(
+      SettingScope.User,
+      'selectedAuthType',
+      autoDetectedAuthType,
+    );
+  } else {
+    console.debug(
+      `Using configured auth type: ${settings.merged.selectedAuthType}`,
+    );
+  }
+
   const extensions = loadExtensions(workspaceRoot);
   const config = await loadCliConfig(
     settings.merged,
@@ -210,24 +244,6 @@ export async function main() {
       console.log(`- ${extension.config.name}`);
     }
     process.exit(0);
-  }
-
-  // Set a default auth type if one isn't set.
-  if (!settings.merged.selectedAuthType) {
-    if (process.env.CLOUD_SHELL === 'true') {
-      settings.setValue(
-        SettingScope.User,
-        'selectedAuthType',
-        AuthType.CLOUD_SHELL,
-      );
-    } else {
-      // Default to OpenRouter for all users
-      settings.setValue(
-        SettingScope.User,
-        'selectedAuthType',
-        AuthType.USE_OPENROUTER,
-      );
-    }
   }
 
   setMaxSizedBoxDebugging(config.getDebugMode());
@@ -430,15 +446,33 @@ async function validateNonInterActiveAuth(
     process.exit(1);
   }
 
-  // Auto-select auth type based on available credentials
+  // Auto-select auth type based on available credentials only if not already configured
   if (!selectedAuthType) {
     if (process.env.OPENROUTER_API_KEY) {
       selectedAuthType = AuthType.USE_OPENROUTER;
+      console.debug(
+        'Auto-selected OpenRouter for non-interactive mode based on OPENROUTER_API_KEY',
+      );
     } else if (process.env.OPENAI_API_KEY) {
       selectedAuthType = AuthType.USE_OPENAI;
+      console.debug(
+        'Auto-selected OpenAI for non-interactive mode based on OPENAI_API_KEY',
+      );
+    } else if (process.env.GEMINI_API_KEY) {
+      selectedAuthType = AuthType.USE_GEMINI;
+      console.debug(
+        'Auto-selected Gemini for non-interactive mode based on GEMINI_API_KEY',
+      );
     } else {
       selectedAuthType = AuthType.USE_GEMINI;
+      console.debug(
+        'Defaulting to Gemini for non-interactive mode (no API keys found)',
+      );
     }
+  } else {
+    console.debug(
+      `Using configured auth type for non-interactive mode: ${selectedAuthType}`,
+    );
   }
   const err = validateAuthMethod(selectedAuthType);
   if (err != null) {

@@ -44,7 +44,10 @@ vi.mock('../ui/commands/model.js', () => ({
   modelCommand: { name: 'model', description: 'Mock Model' },
 }));
 vi.mock('../ui/commands/inferenceProviderCommand.js', () => ({
-  inferenceProviderCommand: { name: 'inference-provider', description: 'Mock Inference Provider' },
+  inferenceProviderCommand: {
+    name: 'inference-provider',
+    description: 'Mock Inference Provider',
+  },
 }));
 vi.mock('../ui/commands/agentCommands.js', () => ({
   agentCommand: { name: 'agent', description: 'Mock Agent' },

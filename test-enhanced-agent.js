@@ -12,7 +12,7 @@ const __dirname = path.dirname(__filename);
 async function testEnhancedAgentCreation() {
   try {
     console.log('🧪 Testing Enhanced Agent Creation');
-    
+
     // Create an agent using the CLI format (without actual AI since no API keys in test)
     const agentConfig = {
       name: 'test-enhanced-agent',
@@ -78,19 +78,23 @@ ${systemPrompt}`;
     console.log(`✅ Enhanced agent created: ${fileName}`);
     console.log(`📁 Location: ${filePath}`);
     console.log(`🎨 Color: ${agentColor}`);
-    console.log(`🤖 Enhanced Prompt: ${agentConfig.shouldGeneratePrompt ? 'Yes' : 'No'}`);
+    console.log(
+      `🤖 Enhanced Prompt: ${agentConfig.shouldGeneratePrompt ? 'Yes' : 'No'}`,
+    );
     console.log(`📄 Content preview:`);
     console.log(fileContent.substring(0, 400) + '...');
 
     // Verify the format matches existing agents
     const content = await fs.readFile(filePath, 'utf-8');
-    const hasCorrectFormat = content.includes('---\nname:') && 
-                            content.includes('description:') && 
-                            content.includes('color:') &&
-                            content.includes('<example>');
+    const hasCorrectFormat =
+      content.includes('---\nname:') &&
+      content.includes('description:') &&
+      content.includes('color:') &&
+      content.includes('<example>');
 
-    console.log(`✅ Format validation: ${hasCorrectFormat ? 'PASSED' : 'FAILED'}`);
-
+    console.log(
+      `✅ Format validation: ${hasCorrectFormat ? 'PASSED' : 'FAILED'}`,
+    );
   } catch (error) {
     console.error('❌ Failed to test enhanced agent creation:', error.message);
   }

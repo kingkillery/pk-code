@@ -18,7 +18,7 @@ PK Code is a powerful AI-driven command-line interface that transforms how devel
 
 ### Prerequisites
 
-- [Node.js 20+](https://nodejs.org/en/download) 
+- [Node.js 20+](https://nodejs.org/en/download)
 - Your preferred AI provider API key
 
 ### Installation
@@ -102,13 +102,13 @@ pk docs "Generate JSDoc comments for all functions in src/utils"
 
 ## 🔌 Supported AI Providers
 
-| Provider | Models | Features |
-|----------|--------|----------|
-| **OpenAI** | GPT-4, GPT-3.5 | Chat, Code, Vision |
-| **Anthropic** | Claude 3.5 Sonnet, Claude 3 | Advanced reasoning, Code |
-| **Google** | Gemini 1.5 Pro, Gemini 1.0 Pro | Multimodal, Long context |
-| **OpenRouter** | Multiple models | Model variety, Cost optimization |
-| **Cohere** | Command R+, Command | Multilingual, RAG |
+| Provider       | Models                         | Features                         |
+| -------------- | ------------------------------ | -------------------------------- |
+| **OpenAI**     | GPT-4, GPT-3.5                 | Chat, Code, Vision               |
+| **Anthropic**  | Claude 3.5 Sonnet, Claude 3    | Advanced reasoning, Code         |
+| **Google**     | Gemini 1.5 Pro, Gemini 1.0 Pro | Multimodal, Long context         |
+| **OpenRouter** | Multiple models                | Model variety, Cost optimization |
+| **Cohere**     | Command R+, Command            | Multilingual, RAG                |
 
 ## 🎨 Vision & Multimodal Support
 
@@ -193,10 +193,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-      
+
       - name: Install PK Code
         run: npm install -g pk-code-cli
-      
+
       - name: Analyze Code Changes
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
@@ -247,12 +247,12 @@ pk "Suggest the best design pattern for this use case"
 
 ## 📊 Performance & Benchmarks
 
-| Task Type | Response Time | Accuracy | Token Efficiency |
-|-----------|---------------|----------|------------------|
-| Code Analysis | 2-5s | 95% | ⭐⭐⭐⭐⭐ |
-| Code Generation | 3-8s | 92% | ⭐⭐⭐⭐ |
-| Debugging Help | 1-3s | 96% | ⭐⭐⭐⭐⭐ |
-| Documentation | 2-6s | 94% | ⭐⭐⭐⭐ |
+| Task Type       | Response Time | Accuracy | Token Efficiency |
+| --------------- | ------------- | -------- | ---------------- |
+| Code Analysis   | 2-5s          | 95%      | ⭐⭐⭐⭐⭐       |
+| Code Generation | 3-8s          | 92%      | ⭐⭐⭐⭐         |
+| Debugging Help  | 1-3s          | 96%      | ⭐⭐⭐⭐⭐       |
+| Documentation   | 2-6s          | 94%      | ⭐⭐⭐⭐         |
 
 ## 🏗️ Architecture
 
@@ -318,6 +318,7 @@ npm run test:e2e
 ### Common Issues
 
 **API Key Issues**
+
 ```bash
 # Verify your API key is set
 echo $OPENAI_API_KEY
@@ -327,6 +328,7 @@ pk config test
 ```
 
 **Performance Issues**
+
 ```bash
 # Enable debug mode
 export DEBUG=pk:*
@@ -334,6 +336,7 @@ pk your-command
 ```
 
 **Memory Issues**
+
 ```bash
 # Reduce context size
 export PK_MAX_CONTEXT_SIZE=16000

@@ -1093,6 +1093,16 @@ export const useSlashCommandProcessor = (
                   case 'privacy':
                     openPrivacyNotice();
                     return { type: 'handled' };
+                  case 'agent-creation':
+                    // TODO: Implement agent creation dialog
+                    addItem(
+                      {
+                        type: MessageType.INFO,
+                        text: 'Interactive agent creation is not yet fully implemented. Please use the command-line version with arguments.',
+                      },
+                      Date.now(),
+                    );
+                    return { type: 'handled' };
                   default: {
                     const unhandled: never = result.dialog;
                     throw new Error(

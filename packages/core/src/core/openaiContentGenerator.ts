@@ -490,7 +490,21 @@ export class OpenAIContentGenerator implements ContentGenerator {
         );
       }
 
-      throw new Error(`OpenAI API error: ${errorMessage}`);
+      // Provide more specific error context based on the error content
+      let contextualError = errorMessage;
+      if (
+        errorMessage.includes('400') &&
+        errorMessage.toLowerCase().includes('provider')
+      ) {
+        contextualError +=
+          '\n\nTroubleshooting 400 Provider Error:\n' +
+          '- Verify your API key is correct and has proper permissions\n' +
+          '- Check if the selected model is available for your account\n' +
+          '- Ensure the model name format is correct (e.g., "qwen/qwen3-coder")\n' +
+          '- Try switching to a different model or provider using /auth';
+      }
+
+      throw new Error(`OpenAI API error: ${contextualError}`);
     }
   }
 

@@ -15,12 +15,12 @@
       "mcp__task-master-ai__next_task",
       "mcp__task-master-ai__get_task",
       "Bash(npx vitest run:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(npx eslint:*)",
+      "Bash(node:*)"
     ],
     "deny": []
   },
   "enableAllProjectMcpServers": true,
-  "enabledMcpjsonServers": [
-    "task-master-ai"
-  ]
+  "enabledMcpjsonServers": ["task-master-ai"]
 }
