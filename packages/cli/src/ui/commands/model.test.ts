@@ -7,7 +7,7 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { modelCommand } from './model.js';
 import { CommandContext } from './types.js';
-import { AuthType, Config } from '@qwen-code/qwen-code-core';
+import { AuthType, Config } from '@pk-code/core';
 import {
   setOpenAIModel,
   setOpenRouterModel,

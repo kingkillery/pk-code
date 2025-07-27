@@ -11,7 +11,7 @@ import { useCompletion } from './useCompletion.js';
 import * as fs from 'fs/promises';
 import { glob } from 'glob';
 import { CommandContext } from '../commands/types.js';
-import { Config, FileDiscoveryService } from '@qwen-code/qwen-code-core';
+import { Config, FileDiscoveryService } from '@pk-code/core';
 
 interface MockConfig {
   getFileFilteringRespectGitIgnore: () => boolean;
@@ -21,8 +21,8 @@ interface MockConfig {
 
 // Mock dependencies
 vi.mock('fs/promises');
-vi.mock('@qwen-code/qwen-code-core', async () => {
-  const actual = await vi.importActual('@qwen-code/qwen-code-core');
+vi.mock('@pk-code/core', async () => {
+  const actual = await vi.importActual('@pk-code/core');
   return {
     ...actual,
     FileDiscoveryService: vi.fn(),

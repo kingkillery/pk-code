@@ -7,7 +7,7 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { inferenceProviderCommand } from './inferenceProviderCommand.js';
 import { CommandContext } from './types.js';
-import { Config } from '@qwen-code/qwen-code-core';
+import { Config } from '@pk-code/core';
 import {
   setOpenRouterProvider,
   getOpenRouterProvider,

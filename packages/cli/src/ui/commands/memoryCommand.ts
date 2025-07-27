@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { getErrorMessage } from '@qwen-code/qwen-code-core';
+import { getErrorMessage } from '@pk-code/core';
 import { MessageType } from '../types.js';
 import { Command, SlashCommandActionReturn, CommandContext } from './types.js';
 

@@ -8,7 +8,7 @@ import React from 'react';
 import { Box } from 'ink';
 import { MarkdownDisplay } from '../../utils/MarkdownDisplay.js';
 
-interface QwenMessageContentProps {
+interface PkMessageContentProps {
   text: string;
   isPending: boolean;
   availableTerminalHeight?: number;
@@ -16,12 +16,12 @@ interface QwenMessageContentProps {
 }
 
 /*
- * Qwen message content is a semi-hacked component. The intention is to represent a partial
- * of QwenMessage and is only used when a response gets too long. In that instance messages
- * are split into multiple QwenMessageContent's to enable the root <Static> component in
+ * PK message content is a semi-hacked component. The intention is to represent a partial
+ * of PkMessage and is only used when a response gets too long. In that instance messages
+ * are split into multiple PkMessageContent's to enable the root <Static> component in
  * App.tsx to be as performant as humanly possible.
  */
-export const QwenMessageContent: React.FC<QwenMessageContentProps> = ({
+export const PkMessageContent: React.FC<PkMessageContentProps> = ({
   text,
   isPending,
   availableTerminalHeight,

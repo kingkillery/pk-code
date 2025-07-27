@@ -130,7 +130,7 @@ const createMcpServer = () => {
           };
         }
 
-        const { handleGenerateCommand } = await import('@qwen-code/qwen-code');
+        const { handleGenerateCommand } = await import('@pk-code/core');
         const generatedCode = await handleGenerateCommand(params.prompt, params.provider);
         if (generatedCode) {
           activeEditor.edit((editBuilder) => {

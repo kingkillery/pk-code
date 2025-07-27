@@ -4,12 +4,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { getCredential } from '@qwen-code/core';
-import { OpenAIProvider } from '@qwen-code/openai';
-import { GeminiProvider } from '@qwen-code/gemini';
-import { OpenRouterProvider } from '@qwen-code/openrouter';
-import { AnthropicProvider } from '@qwen-code/anthropic';
-import { CohereProvider } from '@qwen-code/cohere';
+import { getCredential } from '@pk-code/core';
+import { OpenAIProvider } from '@pk-code/openai';
+import { GeminiProvider } from '@pk-code/gemini';
+import { OpenRouterProvider } from '@pk-code/openrouter';
+import { AnthropicProvider } from '@pk-code/anthropic';
+import { CohereProvider } from '@pk-code/cohere';
 
 export async function handleGenerateCommand(prompt: string, providerName: string): Promise<string | null> {
   const apiKey = await getCredential(providerName);

@@ -6,7 +6,7 @@
 
 import { type ColorsTheme, Theme } from './theme.js';
 
-const qwenLightColors: ColorsTheme = {
+const pkLightColors: ColorsTheme = {
   type: 'light',
   Background: '#f8f9fa',
   Foreground: '#5c6166',
@@ -23,91 +23,91 @@ const qwenLightColors: ColorsTheme = {
 };
 
 export const QwenLight: Theme = new Theme(
-  'Qwen Light',
+  'PK Light',
   'light',
   {
     hljs: {
       display: 'block',
       overflowX: 'auto',
       padding: '0.5em',
-      background: qwenLightColors.Background,
-      color: qwenLightColors.Foreground,
+      background: pkLightColors.Background,
+      color: pkLightColors.Foreground,
     },
     'hljs-comment': {
-      color: qwenLightColors.Comment,
+      color: pkLightColors.Comment,
       fontStyle: 'italic',
     },
     'hljs-quote': {
-      color: qwenLightColors.AccentCyan,
+      color: pkLightColors.AccentCyan,
       fontStyle: 'italic',
     },
     'hljs-string': {
-      color: qwenLightColors.AccentGreen,
+      color: pkLightColors.AccentGreen,
     },
     'hljs-constant': {
-      color: qwenLightColors.AccentCyan,
+      color: pkLightColors.AccentCyan,
     },
     'hljs-number': {
-      color: qwenLightColors.AccentPurple,
+      color: pkLightColors.AccentPurple,
     },
     'hljs-keyword': {
-      color: qwenLightColors.AccentYellow,
+      color: pkLightColors.AccentYellow,
     },
     'hljs-selector-tag': {
-      color: qwenLightColors.AccentYellow,
+      color: pkLightColors.AccentYellow,
     },
     'hljs-attribute': {
-      color: qwenLightColors.AccentYellow,
+      color: pkLightColors.AccentYellow,
     },
     'hljs-variable': {
-      color: qwenLightColors.Foreground,
+      color: pkLightColors.Foreground,
     },
     'hljs-variable.language': {
-      color: qwenLightColors.LightBlue,
+      color: pkLightColors.LightBlue,
       fontStyle: 'italic',
     },
     'hljs-title': {
-      color: qwenLightColors.AccentBlue,
+      color: pkLightColors.AccentBlue,
     },
     'hljs-section': {
-      color: qwenLightColors.AccentGreen,
+      color: pkLightColors.AccentGreen,
       fontWeight: 'bold',
     },
     'hljs-type': {
-      color: qwenLightColors.LightBlue,
+      color: pkLightColors.LightBlue,
     },
     'hljs-class .hljs-title': {
-      color: qwenLightColors.AccentBlue,
+      color: pkLightColors.AccentBlue,
     },
     'hljs-tag': {
-      color: qwenLightColors.LightBlue,
+      color: pkLightColors.LightBlue,
     },
     'hljs-name': {
-      color: qwenLightColors.AccentBlue,
+      color: pkLightColors.AccentBlue,
     },
     'hljs-builtin-name': {
-      color: qwenLightColors.AccentYellow,
+      color: pkLightColors.AccentYellow,
     },
     'hljs-meta': {
-      color: qwenLightColors.AccentYellow,
+      color: pkLightColors.AccentYellow,
     },
     'hljs-symbol': {
-      color: qwenLightColors.AccentRed,
+      color: pkLightColors.AccentRed,
     },
     'hljs-bullet': {
-      color: qwenLightColors.AccentYellow,
+      color: pkLightColors.AccentYellow,
     },
     'hljs-regexp': {
-      color: qwenLightColors.AccentCyan,
+      color: pkLightColors.AccentCyan,
     },
     'hljs-link': {
-      color: qwenLightColors.LightBlue,
+      color: pkLightColors.LightBlue,
     },
     'hljs-deletion': {
-      color: qwenLightColors.AccentRed,
+      color: pkLightColors.AccentRed,
     },
     'hljs-addition': {
-      color: qwenLightColors.AccentGreen,
+      color: pkLightColors.AccentGreen,
     },
     'hljs-emphasis': {
       fontStyle: 'italic',
@@ -116,20 +116,20 @@ export const QwenLight: Theme = new Theme(
       fontWeight: 'bold',
     },
     'hljs-literal': {
-      color: qwenLightColors.AccentCyan,
+      color: pkLightColors.AccentCyan,
     },
     'hljs-built_in': {
-      color: qwenLightColors.AccentRed,
+      color: pkLightColors.AccentRed,
     },
     'hljs-doctag': {
-      color: qwenLightColors.AccentRed,
+      color: pkLightColors.AccentRed,
     },
     'hljs-template-variable': {
-      color: qwenLightColors.AccentCyan,
+      color: pkLightColors.AccentCyan,
     },
     'hljs-selector-id': {
-      color: qwenLightColors.AccentRed,
+      color: pkLightColors.AccentRed,
     },
   },
-  qwenLightColors,
+  pkLightColors,
 );

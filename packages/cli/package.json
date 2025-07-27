@@ -1,15 +1,15 @@
 {
-  "name": "@qwen-code/qwen-code",
+  "name": "@pk-code/pk-code",
   "version": "0.0.1-alpha.8",
-  "description": "Gemini CLI",
+  "description": "PK Code CLI",
   "repository": {
     "type": "git",
-    "url": "git+http://gitlab.alibaba-inc.com/Qwen-Coder/qwen-code.git"
+    "url": "git+https://github.com/kingkillery/pk-code.git"
   },
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "qwen": "dist/index.js"
+    "pk": "dist/index.js"
   },
   "scripts": {
     "build": "node ../../scripts/build_package.js",
@@ -26,10 +26,10 @@
     "dist"
   ],
   "config": {
-    "sandboxImageUri": "us-docker.pkg.dev/gemini-code-dev/gemini-cli/sandbox:0.0.1-alpha.8"
+    "sandboxImageUri": "us-docker.pkg.dev/pk-code-dev/pk-cli/sandbox:0.0.1-alpha.8"
   },
   "dependencies": {
-    "@qwen-code/qwen-code-core": "file:../core",
+    "@pk-code/core": "file:../core",
     "@types/update-notifier": "^6.0.8",
     "command-exists": "^1.2.9",
     "diff": "^7.0.0",

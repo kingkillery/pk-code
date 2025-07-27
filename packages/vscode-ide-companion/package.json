@@ -1,6 +1,6 @@
 {
-  "name": "@qwen-code/qwen-code-vscode-ide-companion",
-  "displayName": "Qwen Code VSCode IDE Companion",
+  "name": "@pk-code/pk-code-vscode-ide-companion",
+  "displayName": "PK Code VSCode IDE Companion",
   "description": "",
   "version": "0.0.1-alpha.8",
   "engines": {
@@ -39,7 +39,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.15.1",
-    "@qwen-code/qwen-code": "*",
+    "@pk-code/pk-code": "*",
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "zod": "^3.25.76"

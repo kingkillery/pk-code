@@ -187,10 +187,10 @@ Use hyphens instead of underscores in flag names (e.g. `my-flag` instead of `my_
 
 ### Project Structure Overview
 
-Qwen Code is a monorepo with the following architecture:
+PK Code is a monorepo with the following architecture:
 
 ```
-qwen-code/
+pk-code/
 ├── packages/
 │   ├── core/           # Core business logic and AI integrations
 │   ├── cli/            # Terminal UI and command processing
@@ -211,7 +211,7 @@ qwen-code/
 
 #### Key Modules:
 
-**Authentication & Configuration:**
+**Authentication  Configuration:**
 
 - `src/provider.ts` - `AIProvider` interface
 - `src/credentials.ts` - Secure credential management
@@ -239,9 +239,9 @@ qwen-code/
 
 **Credential Management:**
 
-- Credentials are managed via the `qwen-code config` command.
-- Secure storage is handled by the `@qwen-code/core` package using `keytar`.
+- Credentials are managed via the `pk config` command.
+- Secure storage is handled by the `@pk-code/core` package using `keytar`.
 
 **Interactive Onboarding:**
 
-- The `qwen-code init` command provides an interactive setup process for new users.
+- The `pk init` command provides an interactive setup process for new users.

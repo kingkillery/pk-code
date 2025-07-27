@@ -1,5 +1,5 @@
 {
-  "name": "@qwen-code/qwen-code",
+  "name": "@pk-code/pk-code",
   "version": "0.0.1-alpha.8",
   "engines": {
     "node": ">=20"
@@ -10,10 +10,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+http://gitlab.alibaba-inc.com/Qwen-Coder/qwen-code.git"
+    "url": "git+https://github.com/kingkillery/pk-code.git"
   },
   "config": {
-    "sandboxImageUri": "us-docker.pkg.dev/qwen-code-dev/qwen-cli/sandbox:0.0.1-alpha.8"
+    "sandboxImageUri": "us-docker.pkg.dev/pk-code-dev/pk-cli/sandbox:0.0.1-alpha.8"
   },
   "scripts": {
     "start": "node scripts/start.js",
@@ -32,9 +32,9 @@
     "test:scripts": "vitest run --config ./scripts/tests/vitest.config.ts",
     "test:e2e": "npm run test:integration:sandbox:none -- --verbose --keep-output",
     "test:integration:all": "npm run test:integration:sandbox:none && npm run test:integration:sandbox:docker && npm run test:integration:sandbox:podman",
-    "test:integration:sandbox:none": "QWEN_SANDBOX=false node integration-tests/run-tests.js",
-    "test:integration:sandbox:docker": "QWEN_SANDBOX=docker node integration-tests/run-tests.js",
-    "test:integration:sandbox:podman": "QWEN_SANDBOX=podman node integration-tests/run-tests.js",
+    "test:integration:sandbox:none": "PK_SANDBOX=false node integration-tests/run-tests.js",
+    "test:integration:sandbox:docker": "PK_SANDBOX=docker node integration-tests/run-tests.js",
+    "test:integration:sandbox:podman": "PK_SANDBOX=podman node integration-tests/run-tests.js",
     "lint": "eslint . --ext .ts,.tsx && eslint integration-tests",
     "lint:fix": "eslint . --fix && eslint integration-tests --fix",
     "lint:ci": "eslint . --ext .ts,.tsx --max-warnings 0 && eslint integration-tests --max-warnings 0",
@@ -48,7 +48,7 @@
     "clean": "node scripts/clean.js"
   },
   "bin": {
-    "qwen": "bundle/qwen.js"
+    "pk": "bundle/pk.js"
   },
   "files": [
     "bundle/",
@@ -99,7 +99,7 @@
     "@opentelemetry/sdk-node": "^0.203.0",
     "@opentelemetry/sdk-trace-node": "^2.0.1",
     "@opentelemetry/semantic-conventions": "^1.36.0",
-    "@qwen-code/qwen-code": "^0.0.1-alpha.8",
+    "@pk-code/pk-code": "^0.0.1-alpha.8",
     "@rollup/rollup-win32-x64-msvc": "^4.45.1",
     "@types/html-to-text": "^9.0.4",
     "ajv": "^8.17.1",

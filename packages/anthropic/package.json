@@ -1,5 +1,5 @@
 {
-  "name": "@qwen-code/anthropic",
+  "name": "@pk-code/anthropic",
   "version": "0.0.1",
   "type": "module",
   "main": "dist/index.js",
@@ -9,7 +9,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@qwen-code/core": "0.0.1",
+    "@pk-code/core": "0.0.1",
     "@anthropic-ai/sdk": "^0.20.2"
   },
   "devDependencies": {

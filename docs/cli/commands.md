@@ -1,27 +1,27 @@
 # CLI Commands
 
-Gemini CLI supports several built-in commands to help you manage your session, customize the interface, and control its behavior. These commands are prefixed with a forward slash (`/`), an at symbol (`@`), or an exclamation mark (`!`).
+PK CLI supports several built-in commands to help you manage your session, customize the interface, and control its behavior. These commands are prefixed with a forward slash (`/`), an at symbol (`@`), or an exclamation mark (`!`).
 
-## qwen-code commands
+## pk commands
 
 These commands are run directly from your terminal.
 
-- **`qwen-code config`**
+- **`pk config`**
   - **Description:** Manage your AI provider credentials.
   - **Sub-commands:**
     - **`add <provider> <apiKey>`**
       - **Description:** Adds a new credential for a specified provider.
-      - **Usage:** `qwen-code config add openai YOUR_API_KEY`
+      - **Usage:** `pk config add openai YOUR_API_KEY`
     - **`remove <provider>`**
       - **Description:** Removes the credential for a specified provider.
-      - **Usage:** `qwen-code config remove openai`
+      - **Usage:** `pk config remove openai`
     - **`list`**
       - **Description:** Lists all configured providers.
-      - **Usage:** `qwen-code config list`
+      - **Usage:** `pk config list`
 
-- **`qwen-code generate <prompt>`**
+- **`pk generate <prompt>`**
   - **Description:** Generates code from a prompt using the configured provider.
-  - **Usage:** `qwen-code generate "create a react component that displays a button"`
+  - **Usage:** `pk generate "create a react component that displays a button"`
 
 
 

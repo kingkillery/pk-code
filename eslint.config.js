@@ -30,10 +30,7 @@ export default tseslint.config(
     ignores: [
       'node_modules/*',
       'eslint.config.js',
-      'packages/cli/dist/**',
-      'packages/core/dist/**',
-      'packages/server/dist/**',
-      'packages/vscode-ide-companion/dist/**',
+      'packages/*/dist/**',
       'eslint-rules/*',
       'bundle/**',
     ],

@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { setCredential, getCredential, deleteCredential } from '@qwen-code/core';
+import { setCredential, getCredential, deleteCredential } from '@pk-code/core';
 
 export async function handleConfigCommand(action: string, provider?: string, apiKey?: string) {
   switch (action) {

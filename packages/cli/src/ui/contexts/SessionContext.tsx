@@ -17,7 +17,7 @@ import {
   uiTelemetryService,
   SessionMetrics,
   ModelMetrics,
-} from '@qwen-code/qwen-code-core';
+} from '@pk-code/core';
 
 // TTY detection helper
 const isTTY = (): boolean => process.stdout.isTTY === true;

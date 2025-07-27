@@ -18,7 +18,7 @@ esbuild
   .build({
     entryPoints: ['packages/cli/index.ts'],
     bundle: true,
-    outfile: 'bundle/qwen.js',
+    outfile: 'bundle/pk.js',
     platform: 'node',
     format: 'esm',
     define: {
@@ -32,7 +32,8 @@ esbuild
       'highlight.js',
       'lowlight',
       'hast',
-      '@types/hast'
+      '@types/hast',
+      'keytar'
     ],
     plugins: [
       {

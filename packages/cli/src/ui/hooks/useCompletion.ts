@@ -15,7 +15,7 @@ import {
   getErrorMessage,
   Config,
   FileDiscoveryService,
-} from '@qwen-code/qwen-code-core';
+} from '@pk-code/core';
 import {
   MAX_SUGGESTIONS_TO_SHOW,
   Suggestion,

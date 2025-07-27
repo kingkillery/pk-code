@@ -18,7 +18,7 @@ import { useCompletion } from '../hooks/useCompletion.js';
 import { useKeypress, Key } from '../hooks/useKeypress.js';
 import { isAtCommand, isCommand } from '../utils/commandUtils.js';
 import { CommandContext, SlashCommand, Command } from '../commands/types.js';
-import { Config } from '@qwen-code/qwen-code-core';
+import { Config } from '@pk-code/core';
 import {
   clipboardHasImage,
   saveClipboardImage,

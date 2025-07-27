@@ -9,14 +9,14 @@ import { Text, Box } from 'ink';
 import { MarkdownDisplay } from '../../utils/MarkdownDisplay.js';
 import { Colors } from '../../colors.js';
 
-interface QwenMessageProps {
+interface PkMessageProps {
   text: string;
   isPending: boolean;
   availableTerminalHeight?: number;
   terminalWidth: number;
 }
 
-export const QwenMessage: React.FC<QwenMessageProps> = ({
+export const PkMessage: React.FC<PkMessageProps> = ({
   text,
   isPending,
   availableTerminalHeight,

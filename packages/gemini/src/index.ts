@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { AIProvider } from '@qwen-code/core';
+import { AIProvider } from '@pk-code/core';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export class GeminiProvider implements AIProvider {

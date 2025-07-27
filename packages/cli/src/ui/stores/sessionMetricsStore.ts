@@ -8,7 +8,7 @@ import { create } from 'zustand';
 import {
   uiTelemetryService,
   SessionMetrics,
-} from '@qwen-code/qwen-code-core';
+} from '@pk-code/core';
 
 interface SessionMetaData {
   sessionStartTime: Date;

@@ -18,7 +18,7 @@ import {
   initializeTelemetryListener,
   cleanupTelemetryListener,
 } from '../stores/sessionMetricsStore.js';
-import { SessionMetrics, ModelMetrics } from '@qwen-code/qwen-code-core';
+import { SessionMetrics, ModelMetrics } from '@pk-code/core';
 
 // Re-export types for backward compatibility
 export type { SessionMetrics, ModelMetrics };

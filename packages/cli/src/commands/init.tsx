@@ -8,7 +8,7 @@ import { useState } from 'react';
 import { render, Box, Text } from 'ink';
 import SelectInput from 'ink-select-input';
 import TextInput from 'ink-text-input';
-import { setCredential } from '@qwen-code/core';
+import { setCredential } from '@pk-code/core';
 
 const providers = [
   { label: 'OpenAI', value: 'openai' },

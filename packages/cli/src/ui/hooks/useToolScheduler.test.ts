@@ -24,7 +24,7 @@ import {
   ToolCall, // Import from core
   Status as ToolCallStatusType,
   ApprovalMode, // Import from core
-} from '@qwen-code/qwen-code-core';
+} from '@pk-code/core';
 import {
   HistoryItemWithoutId,
   ToolCallStatus,
@@ -32,8 +32,8 @@ import {
 } from '../types.js';
 
 // Mocks
-vi.mock('@qwen-code/qwen-code-core', async () => {
-  const actual = await vi.importActual('@qwen-code/qwen-code-core');
+vi.mock('@pk-code/core', async () => {
+  const actual = await vi.importActual('@pk-code/core');
   return {
     ...actual,
     ToolRegistry: vi.fn(),

@@ -16,7 +16,7 @@ import {
   USER_AGREEMENT_RATE_MEDIUM,
 } from '../utils/displayUtils.js';
 import { useSessionMetrics } from '../contexts/OptimizedSessionContext.js';
-import { ToolCallStats } from '@qwen-code/qwen-code-core';
+import { ToolCallStats } from '@pk-code/core';
 
 const TOOL_NAME_COL_WIDTH = 25;
 const CALLS_COL_WIDTH = 8;

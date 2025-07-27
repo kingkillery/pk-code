@@ -1,5 +1,5 @@
 {
-  "name": "@qwen-code/cohere",
+  "name": "@pk-code/cohere",
   "version": "0.0.1",
   "type": "module",
   "main": "dist/index.js",
@@ -9,7 +9,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@qwen-code/core": "0.0.1",
+    "@pk-code/core": "0.0.1",
     "cohere-ai": "^7.0.0"
   },
   "devDependencies": {
