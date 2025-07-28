@@ -14,15 +14,20 @@ export class GeminiProvider implements AIProvider {
     this.client = new GoogleGenAI({ apiKey: credentials.apiKey });
   }
 
-  async generateCode(prompt: string): Promise<string> {
+  async generateCode(
+    prompt: string,
+    options?: { model?: string }
+  ): Promise<string> {
     if (!this.client) {
       throw new Error(
         'Provider not initialized. Please call initialize first.',
       );
     }
 
+    const model = options?.model || 'gemini-2.0-flash-001';
+
     const response = await this.client.models.generateContent({
-      model: 'gemini-2.0-flash-001',
+      model,
       contents: prompt,
     });
     return response.text || '';

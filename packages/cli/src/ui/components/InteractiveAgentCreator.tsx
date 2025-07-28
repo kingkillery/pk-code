@@ -7,8 +7,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Box, Text } from 'ink';
 import { Colors } from '../colors.js';
-import { useTextBuffer } from './shared/text-buffer.js';
+import { DEFAULT_OPENROUTER_MODEL } from '../../utils/providerUtils.js';
 import { useKeypress } from '../hooks/useKeypress.js';
+import { useTextBuffer } from './shared/text-buffer.js';
 import chalk from 'chalk';
 
 export interface AgentCreationData {
@@ -79,7 +80,7 @@ const STEP_PROMPTS: Record<Step, string> = {
 const DEFAULT_VALUES: Partial<Record<Step, string>> = {
   domain: 'general',
   tools: 'all',
-  model: 'qwen/qwen3-235b-a22b',
+  model: DEFAULT_OPENROUTER_MODEL,
   provider: 'openrouter',
 };
 
@@ -119,7 +120,7 @@ export const InteractiveAgentCreator: React.FC<
           keywords: data.keywords || [],
           domain: data.domain || 'general',
           tools: data.tools || 'all',
-          model: data.model || 'qwen/qwen3-235b-a22b',
+          model: data.model || DEFAULT_OPENROUTER_MODEL,
           provider: data.provider || 'openrouter',
           generatePrompt: data.generatePrompt || false,
         };

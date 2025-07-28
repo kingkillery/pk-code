@@ -15,7 +15,7 @@ import {
   PromptGenerationRequest,
   GeneratedPrompt,
 } from '@pk-code/core';
-import { getDefaultAgentProvider } from '../utils/providerUtils.js';
+import { getDefaultAgentProvider, DEFAULT_OPENROUTER_MODEL } from '../utils/providerUtils.js';
 
 const providers = [
   { label: 'OpenRouter (Recommended)', value: 'openrouter' },
@@ -42,7 +42,7 @@ const models = {
     { label: 'Claude 3 Opus', value: 'claude-3-opus-20240229' },
   ],
   openrouter: [
-    { label: 'Qwen 3 235B (Recommended)', value: 'qwen/qwen3-235b-a22b' },
+    { label: 'Qwen 3 Coder (Free)', value: DEFAULT_OPENROUTER_MODEL },
     { label: 'Qwen 3 32B', value: 'qwen/qwen3-32b' },
     { label: 'Claude 3.5 Sonnet', value: 'anthropic/claude-3.5-sonnet' },
     { label: 'GPT-4o', value: 'openai/gpt-4o' },
@@ -114,7 +114,7 @@ const CreateAgent = () => {
     description: '',
     keywords: [],
     tools: [],
-    model: 'qwen/qwen3-235b-a22b',
+    model: DEFAULT_OPENROUTER_MODEL,
     provider: 'openrouter',
     temperature: 0.3,
     maxTokens: 4000,

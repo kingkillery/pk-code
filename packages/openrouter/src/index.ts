@@ -7,6 +7,8 @@
 import { AIProvider } from '@pk-code/core';
 import OpenAI from 'openai';
 
+const DEFAULT_MODEL = 'qwen/qwen3-coder:free';
+
 export class OpenRouterProvider implements AIProvider {
   private client!: OpenAI;
 
@@ -17,15 +19,20 @@ export class OpenRouterProvider implements AIProvider {
     });
   }
 
-  async generateCode(prompt: string): Promise<string> {
+  async generateCode(
+    prompt: string,
+    options?: { model?: string }
+  ): Promise<string> {
     if (!this.client) {
       throw new Error(
         'Provider not initialized. Please call initialize first.',
       );
     }
 
+    const model = options?.model || DEFAULT_MODEL;
+
     const response = await this.client.chat.completions.create({
-      model: 'qwen/qwen3-235b-a22b', // Using Qwen model for OpenRouter
+      model,
       messages: [{ role: 'user', content: prompt }],
     });
 

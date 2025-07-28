@@ -18,7 +18,7 @@ import {
 import fs from 'fs/promises';
 import path from 'path';
 import { load as yamlLoad } from 'js-yaml';
-import { getDefaultAgentProvider } from '../../utils/providerUtils.js';
+import { getDefaultAgentProvider, DEFAULT_OPENROUTER_MODEL } from '../../utils/providerUtils.js';
 
 export interface AgentCreationData {
   name: string;
@@ -315,7 +315,7 @@ const createAgentCommand: Command = {
 
       const domain = filteredArgs[3] || 'general';
       const toolsInput = filteredArgs[4] || 'all';
-      const model = filteredArgs[5] || 'qwen/qwen3-235b-a22b';
+      const model = filteredArgs[5] || DEFAULT_OPENROUTER_MODEL;
       const provider = filteredArgs[6] || 'openrouter';
 
       const keywords = keywordsInput

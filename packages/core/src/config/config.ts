@@ -649,8 +649,27 @@ export class Config {
     registerCoreTool(MemoryTool);
     // registerCoreTool(WebSearchTool, this); // Temporarily disabled
 
-    await registry.discoverTools();
+    // Note: Tool discovery moved to initializeTools() to decouple from creation
     return registry;
+  }
+
+  async initializeTools(): Promise<void> {
+    if (this.getDebugMode()) {
+      console.debug('[MCP] Tool discovery started');
+    }
+    const startTime = Date.now();
+    
+    try {
+      await this.toolRegistry.discoverTools();
+      
+      if (this.getDebugMode()) {
+        const duration = Date.now() - startTime;
+        console.debug(`[MCP] Tool discovery completed in ${duration}ms`);
+      }
+    } catch (error) {
+      console.error('[MCP] Tool discovery failed:', error);
+      // Don't throw - allow CLI to continue without discovered tools
+    }
   }
 }
 // Export model constants for use in CLI

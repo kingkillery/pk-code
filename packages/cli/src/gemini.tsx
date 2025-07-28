@@ -169,7 +169,24 @@ export async function main() {
       argv,
     );
 
+    // Initialize config first to create tool registry, then authenticate for use command
     await config.initialize();
+    
+    if (settings.merged.selectedAuthType) {
+      try {
+        const err = validateAuthMethod(settings.merged.selectedAuthType);
+        if (err) {
+          throw new Error(err);
+        }
+        await config.refreshAuth(settings.merged.selectedAuthType);
+      } catch (err) {
+        console.error('Error authenticating:', err);
+        process.exit(1);
+      }
+    }
+
+    // Initialize tools after authentication
+    await config.initializeTools();
 
     await handleUseCommand(agentName, query, config);
     process.exit(0);
@@ -253,7 +270,24 @@ export async function main() {
 
   setMaxSizedBoxDebugging(config.getDebugMode());
 
+  // Initialize config first to create tool registry, then authenticate, then initialize tools
   await config.initialize();
+  
+  if (settings.merged.selectedAuthType) {
+    try {
+      const err = validateAuthMethod(settings.merged.selectedAuthType);
+      if (err) {
+        throw new Error(err);
+      }
+      await config.refreshAuth(settings.merged.selectedAuthType);
+    } catch (err) {
+      console.error('Error authenticating:', err);
+      process.exit(1);
+    }
+  }
+
+  // Initialize tools after authentication to ensure MCP discovery works
+  await config.initializeTools();
 
   if (settings.merged.theme) {
     if (!themeManager.setActiveTheme(settings.merged.theme)) {
@@ -270,19 +304,7 @@ export async function main() {
       : [];
     const sandboxConfig = config.getSandbox();
     if (sandboxConfig) {
-      if (settings.merged.selectedAuthType) {
-        // Validate authentication here because the sandbox will interfere with the Oauth2 web redirect.
-        try {
-          const err = validateAuthMethod(settings.merged.selectedAuthType);
-          if (err) {
-            throw new Error(err);
-          }
-          await config.refreshAuth(settings.merged.selectedAuthType);
-        } catch (err) {
-          console.error('Error authenticating:', err);
-          process.exit(1);
-        }
-      }
+      // Authentication was already handled above
       await start_sandbox(sandboxConfig, memoryArgs);
       process.exit(0);
     } else {

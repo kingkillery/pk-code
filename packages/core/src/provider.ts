@@ -16,5 +16,5 @@ export interface AIProvider {
    * @param prompt - The natural language prompt to generate code from.
    * @returns A promise that resolves with the generated code as a string.
    */
-  generateCode(prompt: string): Promise<string>;
+  generateCode(prompt: string, options?: { model?: string }): Promise<string>;
 }

@@ -11,6 +11,8 @@ import { OpenRouterProvider } from '@pk-code/openrouter';
 import { AnthropicProvider } from '@pk-code/anthropic';
 import { CohereProvider } from '@pk-code/cohere';
 
+export const DEFAULT_OPENROUTER_MODEL = 'qwen/qwen3-coder:free';
+
 /**
  * Creates an AI provider instance based on the provider name
  */

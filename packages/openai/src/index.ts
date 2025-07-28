@@ -14,15 +14,20 @@ export class OpenAIProvider implements AIProvider {
     this.client = new OpenAI({ apiKey: credentials.apiKey });
   }
 
-  async generateCode(prompt: string): Promise<string> {
+  async generateCode(
+    prompt: string,
+    options?: { model?: string }
+  ): Promise<string> {
     if (!this.client) {
       throw new Error(
         'Provider not initialized. Please call initialize first.',
       );
     }
 
+    const model = options?.model || 'gpt-3.5-turbo';
+
     const response = await this.client.chat.completions.create({
-      model: 'gpt-3.5-turbo',
+      model,
       messages: [{ role: 'user', content: prompt }],
     });
 

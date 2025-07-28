@@ -217,7 +217,7 @@ export class GeminiClient {
   private async startChat(extraHistory?: Content[]): Promise<GeminiChat> {
     const envParts = await this.getEnvironment();
     const toolRegistry = await this.config.getToolRegistry();
-    const toolDeclarations = toolRegistry.getFunctionDeclarations();
+    const toolDeclarations = toolRegistry?.getFunctionDeclarations() ?? [];
     const tools: Tool[] = [{ functionDeclarations: toolDeclarations }];
     const history: Content[] = [
       {

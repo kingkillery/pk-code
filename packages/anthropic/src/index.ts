@@ -14,15 +14,20 @@ export class AnthropicProvider implements AIProvider {
     this.client = new Anthropic({ apiKey: credentials.apiKey });
   }
 
-  async generateCode(prompt: string): Promise<string> {
+  async generateCode(
+    prompt: string,
+    options?: { model?: string }
+  ): Promise<string> {
     if (!this.client) {
       throw new Error(
         'Provider not initialized. Please call initialize first.',
       );
     }
 
+    const model = options?.model || 'claude-3-opus-20240229';
+
     const response = await this.client.messages.create({
-      model: 'claude-3-opus-20240229',
+      model,
       max_tokens: 1024,
       messages: [{ role: 'user', content: prompt }],
     });
