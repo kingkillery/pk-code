@@ -18,13 +18,17 @@
       "Bash(git add:*)",
       "Bash(npx eslint:*)",
       "Bash(node:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "mcp__task-master-ai__parse_prd",
+      "Bash(npx tsc:*)",
+      "Bash(task-master list:*)",
+      "Bash(task-master show:*)",
+      "Bash(task-master update-subtask:*)",
+      "Bash(npm start:*)",
+      "Bash(task-master:*)"
     ],
     "deny": []
   },
   "enableAllProjectMcpServers": true,
-  "enabledMcpjsonServers": [
-    "task-master-ai",
-    "browser-use"
-  ]
+  "enabledMcpjsonServers": ["browser-use"]
 }

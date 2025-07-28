@@ -8,8 +8,6 @@
   The PK-Code sub-agent system is a sophisticated multi-agent architecture designed to intelligently route queries to specialized AI agents, execute them in parallel or sequentially, and aggregate results for optimal user experience. The system achieves ≥80% routing accuracy with ≤400ms overhead compared to single-agent execution.
   ```
 
-  
-
   The architecture includes an `Agent Router` for selecting agents, an `Agent Executor` for running them concurrently, a `Result Aggregator`, and an `Agent Orchestrator` coordinating the flow.
 
   The CLI exposes commands like `/agent create`, `/agent list`, and `/agent delete` to manage sub‑agents. Example snippet:
@@ -19,8 +17,6 @@
   altName: 'agents',
   description: 'List all available sub-agents',
   ```
-
-  
 
   Parallel execution is handled by `executeParallel()` in the executor:
 
@@ -38,8 +34,6 @@
   }
   ```
 
-  
-
   ### Current Functionality and Limitations
 
   While routing, concurrent execution, and aggregation are coded, the implementation is not fully integrated. For example, `createContentGenerator()` simply throws an error unless a factory is passed in:
@@ -50,20 +44,17 @@
   );
   ```
 
-  
-
   The project’s task list shows many required pieces still marked “pending,” such as documentation, tool sandboxing, audit logging, provider fallback, and a comprehensive test suite.
 
   The PRD highlights that future work includes agent collaboration (inter-agent communication protocols):
 
   ### Question Responses
-
   1. **Simultaneous execution**: Yes. `AgentExecutor` supports parallel spawning through `Promise.allSettled` with configurable concurrency, enabling multiple agents to run at once.
   2. **Inter-agent communication**: No built-in mechanism currently exists. Communication is listed as a future enhancement (“Agent Collaboration: Inter-agent communication protocols”). Potential approaches could leverage PK Code’s existing Model Context Protocol (MCP) infrastructure or use an internal message bus to share state or requests between running agents.
 
   Overall, the core sub‑agent framework (routing, concurrent execution, and aggregation) is coded but not fully wired into the rest of the CLI, and additional features such as provider fallback, auditing, and inter-agent communication remain incomplete.
 
-  ---
+  ***
 
   # Codebase Review #2
 
@@ -74,8 +65,6 @@ The repository has a dedicated “sub‑agent system” in `packages/core/src/ag
 …
 The PK-Code sub-agent system is a sophisticated multi-agent architecture designed to intelligently route queries to specialized AI agents, execute them in parallel or sequentially, and aggregate results for optimal user experience. The system achieves ≥80% routing accuracy with ≤400ms overhead compared to single-agent execution.
 ```
-
-
 
 Key features include a router, an executor that supports `Promise.allSettled` for concurrent execution, and a result aggregator:
 
@@ -88,8 +77,6 @@ Key features include a router, an executor that supports `Promise.allSettled` fo
 - Timeout handling and resource management
 - Multiple execution strategies (parallel, sequential, prioritized)
 ```
-
-
 
 The architecture diagram shows the multi-agent execution flow where agent selection leads to parallel execution and result aggregation:
 
@@ -127,8 +114,6 @@ The architecture diagram shows the multi-agent execution flow where agent select
   └─────────────────┘
 ```
 
-
-
 ### Implementation state
 
 The repository contains implementations for the loader, registry, router, executor, aggregator, and orchestrator. Example test code demonstrates parallel execution:
@@ -159,8 +144,6 @@ it('should execute multiple agents in parallel', async () => {
   expect(totalTime).toBeLessThan(3000); // Much less than sum of individual times
 });
 ```
-
-
 
 The executor’s parallel implementation uses concurrency control with `Promise.allSettled`:
 
@@ -203,8 +186,6 @@ private async executeParallel(
 }
 ```
 
-
-
 ### Not yet fully integrated
 
 The project’s task tracker indicates that while core pieces are implemented, some key tasks (such as tool sandboxing and audit logging) remain **pending**:
@@ -224,8 +205,6 @@ The project’s task tracker indicates that while core pieces are implemented, s
 }
 ```
 
-
-
 The “Future Enhancements” section of the sub‑agent PRD lists “Agent Collaboration: Inter-agent communication protocols” as a post-MVP feature, showing that inter-agent communication has not yet been built:
 
 ```
@@ -237,8 +216,6 @@ The “Future Enhancements” section of the sub‑agent PRD lists “Agent Coll
 - **Performance Analytics**: Detailed metrics and optimization suggestions
 ```
 
-
-
 ### Model Context Protocol
 
 PK Code already integrates a “browser-use” agent using the Model Context Protocol (MCP):
@@ -246,8 +223,6 @@ PK Code already integrates a “browser-use” agent using the Model Context Pro
 ```
 The `browser-use` library is integrated into the PK Code CLI, allowing agents to interact with live web applications. This integration is achieved through the Model Context Protocol (MCP), with `browser-use` running as a separate MCP server.
 ```
-
-
 
 ### Summary
 

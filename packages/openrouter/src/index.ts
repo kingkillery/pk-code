@@ -21,7 +21,7 @@ export class OpenRouterProvider implements AIProvider {
 
   async generateCode(
     prompt: string,
-    options?: { model?: string }
+    options?: { model?: string },
   ): Promise<string> {
     if (!this.client) {
       throw new Error(

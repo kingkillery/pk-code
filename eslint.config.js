@@ -33,6 +33,7 @@ export default tseslint.config(
       'packages/*/dist/**',
       'eslint-rules/*',
       'bundle/**',
+      'test-agent-creation.js',
     ],
   },
   eslint.configs.recommended,

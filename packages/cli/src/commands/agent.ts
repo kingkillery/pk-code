@@ -1,60 +1,95 @@
-import { Command } from 'commander';
-import { spawn } from 'child_process';
+import { spawn, exec } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
+import { promisify } from 'util';
+
+const execAsync = promisify(exec);
 
 const BROWSER_AGENT_PID_FILE = path.join('.taskmaster', 'browser-agent.pid');
 
-export const agentCommand = new Command('agent')
-  .description('Manage background agent processes')
-  .addCommand(
-    new Command('start')
-      .description('Start a background agent')
-      .argument('<agentName>', 'The name of the agent to start (e.g., browser)')
-      .action(async (agentName) => {
-        if (agentName === 'browser') {
-          await startBrowserAgent();
-        } else {
-          console.error(`Unknown agent: ${agentName}`);
-        }
-      }),
-  )
-  .addCommand(
-    new Command('stop')
-      .description('Stop a background agent')
-      .argument('<agentName>', 'The name of the agent to stop (e.g., browser)')
-      .action(async (agentName) => {
-        if (agentName === 'browser') {
-          await stopBrowserAgent();
-        } else {
-          console.error(`Unknown agent: ${agentName}`);
-        }
-      }),
-  );
-
-async function startBrowserAgent() {
-  if (fs.existsSync(BROWSER_AGENT_PID_FILE)) {
-    console.log('Browser agent is already running.');
+export async function handleAgentCommand(
+  command: string,
+  agentName: string,
+): Promise<void> {
+  if (!command || !agentName) {
+    console.error('Usage: pk agent <command> <agentName>');
+    console.error('Commands: start, stop');
+    console.error('Agents: browser');
     return;
   }
 
-  const scriptPath = path.resolve('scripts', 'start-browser-agent.sh');
-  if (!fs.existsSync(scriptPath)) {
+  if (agentName !== 'browser') {
+    console.error(`Unknown agent: ${agentName}`);
+    return;
+  }
+
+  switch (command) {
+    case 'start':
+      await startBrowserAgent();
+      break;
+    case 'stop':
+      await stopBrowserAgent();
+      break;
+    default:
+      console.error(`Unknown command: ${command}`);
+      console.error('Available commands: start, stop');
+  }
+}
+
+async function startBrowserAgent() {
+  if (fs.existsSync(BROWSER_AGENT_PID_FILE)) {
+    const pid = parseInt(fs.readFileSync(BROWSER_AGENT_PID_FILE, 'utf8'), 10);
+    try {
+      process.kill(pid, 0);
+      console.log(`Browser agent is already running with PID: ${pid}.`);
+      return;
+    } catch (_error) {
+      console.log('Found stale PID file, removing it.');
+      fs.unlinkSync(BROWSER_AGENT_PID_FILE);
+    }
+  }
+
+  const mcpConfigFile = path.resolve('.mcp.json');
+  if (!fs.existsSync(mcpConfigFile)) {
     console.error(
-      `Error: start-browser-agent.sh script not found at ${scriptPath}`,
+      'Error: .mcp.json not found. Please run "pk config browser" to set up browser configuration.',
     );
     return;
   }
 
-  const child = spawn('bash', [scriptPath], {
+  const taskmasterDir = path.dirname(BROWSER_AGENT_PID_FILE);
+  if (!fs.existsSync(taskmasterDir)) {
+    fs.mkdirSync(taskmasterDir, { recursive: true });
+  }
+
+  const isWindows = process.platform === 'win32';
+  const scriptName = isWindows
+    ? 'start-browser-agent.bat'
+    : 'start-browser-agent.sh';
+  const scriptPath = path.resolve('scripts', scriptName);
+
+  if (!fs.existsSync(scriptPath)) {
+    console.error(`Error: ${scriptName} script not found at ${scriptPath}`);
+    return;
+  }
+
+  const spawnOptions: import('child_process').SpawnOptions = {
     detached: true,
     stdio: 'ignore',
-  });
+  };
+
+  const child = isWindows
+    ? spawn('cmd.exe', ['/c', scriptPath], spawnOptions)
+    : spawn('bash', [scriptPath], spawnOptions);
 
   child.unref();
 
-  fs.writeFileSync(BROWSER_AGENT_PID_FILE, String(child.pid));
-  console.log(`Browser agent started with PID: ${child.pid}`);
+  if (child.pid) {
+    fs.writeFileSync(BROWSER_AGENT_PID_FILE, String(child.pid));
+    console.log(`Browser agent started with PID: ${child.pid}`);
+  } else {
+    console.error('Failed to start browser agent.');
+  }
 }
 
 async function stopBrowserAgent() {
@@ -64,12 +99,30 @@ async function stopBrowserAgent() {
   }
 
   const pid = parseInt(fs.readFileSync(BROWSER_AGENT_PID_FILE, 'utf8'), 10);
+
   try {
-    process.kill(pid, 'SIGTERM');
-    console.log(`Browser agent with PID ${pid} stopped.`);
+    if (process.platform === 'win32') {
+      await execAsync(`taskkill /PID ${pid} /F`);
+      console.log(`Terminated browser agent with PID ${pid}.`);
+    } else {
+      process.kill(pid, 'SIGTERM');
+      console.log(`Sent SIGTERM to browser agent with PID ${pid}.`);
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      process.kill(pid, 'SIGKILL');
+      console.log(`Sent SIGKILL to browser agent with PID ${pid}.`);
+    }
   } catch (error) {
-    console.error(`Error stopping browser agent with PID ${pid}:`, error);
+    if (error instanceof Error) {
+      // On Windows, taskkill might fail if the process is already gone.
+      // On other platforms, process.kill will throw an error.
+      if (!/not found/i.test(error.message)) {
+        console.error(`Error stopping browser agent: ${error.message}`);
+      }
+    }
   } finally {
-    fs.unlinkSync(BROWSER_AGENT_PID_FILE);
+    if (fs.existsSync(BROWSER_AGENT_PID_FILE)) {
+      fs.unlinkSync(BROWSER_AGENT_PID_FILE);
+    }
+    console.log('Browser agent stopped.');
   }
 }

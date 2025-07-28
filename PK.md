@@ -373,3 +373,66 @@ Environment Loading → Auth Type Selection → Content Generator Creation → A
 4. `pk` command executes `bundle/pk.js`
 
 This architecture supports both development (monorepo with hot reloading) and distribution (single executable) workflows.
+
+---
+
+# Codebase Investigation: Interactive Agent Creation Functionality
+
+**Date**: 2025-10-01
+**Investigator**: Codebase Investigator
+**Scope**: Open questions from implementation plan including model detection, revision iterations, and agent reuse strategies.
+
+## Initial Assessment
+
+- **Architecture Overview**: Building on CLI structure in packages/cli, integrating new command for agent creation with modes for manual and AI-assisted generation.
+- **Current Type Safety Level**: Strong in core, but ensure new features maintain strict typing for agent configs.
+- **Key Patterns Identified**: Command processing via yargs, UI components in React/Ink, consistent use of configs and env vars.
+
+## Critical Findings
+
+1. **[Model Detection]**: Dynamic labeling of "Generate with [model]".
+   - **Risk Level**: Low
+   - **Recommended Action**: Use environment variables or config files to detect current model, falling back to defaults.
+   - **Prevention Strategy**: Implement type-safe config reader to avoid runtime errors in model detection.
+
+2. **[Revision Iterations]**: Optimal number in generation mode.
+   - **Risk Level**: Medium
+   - **Recommended Action**: Limit to 2-3 iterations based on best practices for prompt refinement.
+   - **Prevention Strategy**: Add loop detection to prevent excessive revisions.
+
+3. **[Agent Reuse]**: When to use existing vs new agents.
+   - **Risk Level**: Medium
+   - **Recommended Action**: Prefer existing agents for modularity unless task requires specialized capabilities.
+   - **Prevention Strategy**: Type-check agent compatibility before reuse.
+
+## Type Safety Improvements
+
+- **Missing Types**: Add interfaces for agent creation params and responses.
+- **Weak Boundaries**: Strengthen typing in command handlers for user inputs.
+- **Recommended Strict Rules**: Enable @typescript-eslint/no-unsafe-assignment for config handling.
+
+## ESLint Recommendations
+
+- **Additional Rules to Enable**: @typescript-eslint/consistent-type-definitions for interfaces.
+- **Rules to Configure**: Increase max-lines-per-function for complex generators.
+- **Auto-fixable Issues**: Enforce consistent naming for agent files.
+
+## Bug Prevention Strategies
+
+- **Defensive Patterns to Implement**: Validate YAML frontmatter in generated agent files.
+- **Validation Improvements**: Add schema checks for agent descriptions.
+- **Testing Gaps**: Add unit tests for generation modes and model detection.
+
+## Long-term Health
+
+- **Technical Debt Areas**: Potential duplication in config handling across packages.
+- **Scalability Concerns**: Ensure agent registry scales with many custom agents.
+- **Maintenance Recommendations**: Document agent creation patterns in docs/.
+
+## Action Items
+
+- [ ] Implement model detection using config priorities.
+- [ ] Add revision limit to generation mode.
+- [ ] Update agent selection logic to prefer reuse.
+
+---

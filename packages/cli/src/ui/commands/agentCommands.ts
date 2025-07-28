@@ -18,7 +18,10 @@ import {
 import fs from 'fs/promises';
 import path from 'path';
 import { load as yamlLoad } from 'js-yaml';
-import { getDefaultAgentProvider, DEFAULT_OPENROUTER_MODEL } from '../../utils/providerUtils.js';
+import {
+  getDefaultAgentProvider,
+  DEFAULT_OPENROUTER_MODEL,
+} from '../../utils/providerUtils.js';
 
 export interface AgentCreationData {
   name: string;

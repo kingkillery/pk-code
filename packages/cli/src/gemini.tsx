@@ -94,7 +94,7 @@ import { handleInitCommand } from './commands/init.js';
 import { handleUseCommand, parseUseCommandSyntax } from './commands/use.js';
 
 import { handleCreateAgentCommand } from './commands/create-agent.js';
-import { agentCommand } from './commands/agent.js';
+import { handleAgentCommand } from './commands/agent.js';
 
 export async function main() {
   const argv = await parseArguments();
@@ -108,15 +108,19 @@ export async function main() {
   }
   if (argv._[0] === 'config') {
     await handleConfigCommand(
-      argv._[1] as string,
-      argv._[2] as string,
-      argv._[3] as string,
+      (argv as unknown as { action?: string }).action || (argv._[1] as string),
+      (argv as unknown as { provider?: string }).provider || (argv._[2] as string),
+      (argv as unknown as { apiKey?: string }).apiKey || (argv._[3] as string),
     );
     process.exit(0);
   }
   if (argv._[0] === 'create-agent') {
     handleCreateAgentCommand();
     return;
+  }
+  if (argv._[0] === 'agent') {
+    await handleAgentCommand(argv._[1] as string, argv._[2] as string);
+    process.exit(0);
   }
   if (argv._[0] === 'use') {
     // Handle both "pk use agent query" and "pk use agent: query" syntaxes
@@ -171,7 +175,7 @@ export async function main() {
 
     // Initialize config first to create tool registry, then authenticate for use command
     await config.initialize();
-    
+
     if (settings.merged.selectedAuthType) {
       try {
         const err = validateAuthMethod(settings.merged.selectedAuthType);
@@ -190,10 +194,6 @@ export async function main() {
 
     await handleUseCommand(agentName, query, config);
     process.exit(0);
-  }
-  if (argv._[0] === 'agent') {
-    agentCommand.parse(process.argv.slice(1));
-    return;
   }
   const workspaceRoot = process.cwd();
   const settings = loadSettings(workspaceRoot);
@@ -272,7 +272,7 @@ export async function main() {
 
   // Initialize config first to create tool registry, then authenticate, then initialize tools
   await config.initialize();
-  
+
   if (settings.merged.selectedAuthType) {
     try {
       const err = validateAuthMethod(settings.merged.selectedAuthType);

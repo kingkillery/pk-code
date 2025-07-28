@@ -15,7 +15,10 @@ import {
   PromptGenerationRequest,
   GeneratedPrompt,
 } from '@pk-code/core';
-import { getDefaultAgentProvider, DEFAULT_OPENROUTER_MODEL } from '../utils/providerUtils.js';
+import {
+  getDefaultAgentProvider,
+  DEFAULT_OPENROUTER_MODEL,
+} from '../utils/providerUtils.js';
 
 const providers = [
   { label: 'OpenRouter (Recommended)', value: 'openrouter' },

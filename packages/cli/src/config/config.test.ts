@@ -15,9 +15,14 @@ import {
   ConfigParameters,
   DEFAULT_TELEMETRY_TARGET,
 } from '@pk-code/core';
-import { handleConfigCommand } from '../commands/config.js';
+import {
+  handleConfigCommand,
+  detectChromeUserDataPath,
+} from '../commands/config.js';
 import * as readline from 'readline';
 import * as fs from 'fs/promises';
+import { Stats } from 'fs';
+import * as path from 'path';
 
 vi.mock('readline', () => ({
   createInterface: vi.fn(() => ({
@@ -30,6 +35,11 @@ vi.mock('fs/promises', () => ({
   readFile: vi.fn(),
   writeFile: vi.fn(),
   mkdir: vi.fn(),
+  stat: vi.fn(),
+  access: vi.fn(),
+  constants: {
+    F_OK: 0,
+  },
 }));
 
 vi.mock('os', async (importOriginal) => {
@@ -37,6 +47,7 @@ vi.mock('os', async (importOriginal) => {
   return {
     ...actualOs,
     homedir: vi.fn(() => '/mock/home/user'),
+    platform: vi.fn(() => 'linux'),
   };
 });
 
@@ -1029,7 +1040,7 @@ describe('handleConfigCommand browser', () => {
   });
 
   it('should save the default browser path', async () => {
-    vi.mocked(os.platform).mockReturnValue('win32');
+(os.platform as unknown as jest.Mock).mockReturnValue('win32');
     vi.mocked(fs.readFile).mockResolvedValue('{}');
     const rl = {
       question: vi.fn((_, cb) => cb('')),
@@ -1063,7 +1074,7 @@ describe('handleConfigCommand browser', () => {
   });
 
   it('should save a custom browser path', async () => {
-    vi.mocked(os.platform).mockReturnValue('win32');
+    (os.platform as unknown as jest.Mock).mockReturnValue('win32');
     vi.mocked(fs.readFile).mockResolvedValue('{}');
     const rl = {
       question: vi.fn((_, cb) => cb('/custom/path')),
@@ -1086,6 +1097,188 @@ describe('handleConfigCommand browser', () => {
         null,
         2,
       ),
+    );
+  });
+});
+
+describe('detectChromeUserDataPath', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('should detect Windows Chrome path correctly when directory exists', async () => {
+    (os.platform as unknown as jest.Mock).mockReturnValue('win32');
+    (os.homedir as unknown as jest.Mock).mockReturnValue('C:\\Users\\TestUser');
+    process.env.LOCALAPPDATA = 'C:\\Users\\TestUser\\AppData\\Local';
+
+    // Mock successful directory access
+    vi.mocked(fs.stat).mockResolvedValue({
+      isDirectory: () => true,
+    } as unknown as Stats);
+    vi.mocked(fs.access).mockResolvedValue(undefined);
+
+    const result = await detectChromeUserDataPath();
+
+    expect(result.path).toBe(
+      'C:\\Users\\TestUser\\AppData\\Local\\Google\\Chrome\\User Data',
+    );
+    expect(result.exists).toBe(true);
+    expect(result.verified).toBe(true);
+    expect(result.error).toBeUndefined();
+  });
+
+  it('should detect macOS Chrome path correctly when directory exists', async () => {
+(os.platform as unknown as jest.Mock).mockReturnValue('darwin');
+    (os.homedir as unknown as jest.Mock).mockReturnValue('/Users/testuser');
+
+    vi.mocked(fs.stat).mockResolvedValue({
+      isDirectory: () => true,
+    } as unknown as Stats);
+    vi.mocked(fs.access).mockResolvedValue(undefined);
+
+    const result = await detectChromeUserDataPath();
+
+    expect(result.path).toBe(
+      '/Users/testuser/Library/Application Support/Google/Chrome',
+    );
+    expect(result.exists).toBe(true);
+    expect(result.verified).toBe(true);
+    expect(result.error).toBeUndefined();
+  });
+
+  it('should detect Linux Chrome path correctly when directory exists', async () => {
+(os.platform as unknown as jest.Mock).mockReturnValue('linux');
+    (os.homedir as unknown as jest.Mock).mockReturnValue('/home/testuser');
+
+    vi.mocked(fs.stat).mockResolvedValue({
+      isDirectory: () => true,
+    } as unknown as Stats);
+    vi.mocked(fs.access).mockResolvedValue(undefined);
+
+    const result = await detectChromeUserDataPath();
+
+    expect(result.path).toBe('/home/testuser/.config/google-chrome');
+    expect(result.exists).toBe(true);
+    expect(result.verified).toBe(true);
+    expect(result.error).toBeUndefined();
+  });
+
+  it('should handle Windows path when LOCALAPPDATA is not set', async () => {
+    (os.platform as unknown as jest.Mock).mockReturnValue('win32');
+    (os.homedir as unknown as jest.Mock).mockReturnValue('C:\\Users\\TestUser');
+    delete process.env.LOCALAPPDATA;
+
+    vi.mocked(fs.stat).mockResolvedValue({
+      isDirectory: () => true,
+    } as unknown as Stats);
+    vi.mocked(fs.access).mockResolvedValue(undefined);
+
+    const result = await detectChromeUserDataPath();
+
+    expect(result.path).toBe(
+      'C:\\Users\\TestUser\\AppData\\Local\\Google\\Chrome\\User Data',
+    );
+    expect(result.exists).toBe(true);
+    expect(result.verified).toBe(true);
+  });
+
+  it('should handle directory not found (ENOENT)', async () => {
+    (os.platform as unknown as jest.Mock).mockReturnValue('win32');
+    (os.homedir as unknown as jest.Mock).mockReturnValue('C:\\Users\\TestUser');
+
+    const error = new Error(
+      'ENOENT: no such file or directory',
+    ) as NodeJS.ErrnoException;
+    error.code = 'ENOENT';
+    vi.mocked(fs.stat).mockRejectedValue(error);
+
+    const result = await detectChromeUserDataPath();
+
+    expect(result.exists).toBe(false);
+    expect(result.verified).toBe(false);
+    expect(result.error).toContain('Chrome user data directory not found at:');
+  });
+
+  it('should handle permission denied (EACCES)', async () => {
+    (os.platform as unknown as jest.Mock).mockReturnValue('darwin');
+    (os.homedir as unknown as jest.Mock).mockReturnValue('/Users/testuser');
+
+    const error = new Error(
+      'EACCES: permission denied',
+    ) as NodeJS.ErrnoException;
+    error.code = 'EACCES';
+    vi.mocked(fs.stat).mockRejectedValue(error);
+
+    const result = await detectChromeUserDataPath();
+
+    expect(result.exists).toBe(false);
+    expect(result.verified).toBe(false);
+    expect(result.error).toContain('Permission denied accessing:');
+  });
+
+  it('should handle unsupported platform', async () => {
+(os.platform as unknown as jest.Mock).mockReturnValue('freebsd');
+
+    const result = await detectChromeUserDataPath();
+
+    expect(result.path).toBe('');
+    expect(result.exists).toBe(false);
+    expect(result.verified).toBe(false);
+    expect(result.error).toBe('Unsupported platform: freebsd');
+  });
+
+  it('should verify directory exists but is not a directory', async () => {
+    (os.platform as unknown as jest.Mock).mockReturnValue('linux');
+    (os.homedir as unknown as jest.Mock).mockReturnValue('/home/testuser');
+
+    vi.mocked(fs.stat).mockResolvedValue({
+      isDirectory: () => false,
+    } as unknown as Stats);
+
+    const result = await detectChromeUserDataPath();
+
+    expect(result.exists).toBe(true);
+    expect(result.verified).toBe(false); // Not a directory
+    expect(result.error).toBeUndefined();
+  });
+
+  it('should still verify as valid when Local State file is missing', async () => {
+(os.platform as unknown as jest.Mock).mockReturnValue('win32');
+    (os.homedir as unknown as jest.Mock).mockReturnValue('C:\\Users\\TestUser');
+
+    vi.mocked(fs.stat).mockResolvedValue({
+      isDirectory: () => true,
+    } as unknown as Stats);
+
+    // Local State file doesn't exist
+    vi.mocked(fs.access).mockRejectedValue(new Error('File not found'));
+
+    const result = await detectChromeUserDataPath();
+
+    expect(result.path).toBe(
+      'C:\\Users\\TestUser\\AppData\\Local\\Google\\Chrome\\User Data',
+    );
+    expect(result.exists).toBe(true);
+    expect(result.verified).toBe(true); // Still verified even without Local State
+    expect(result.error).toBeUndefined();
+  });
+
+  it('should handle generic file system errors', async () => {
+    (os.platform as unknown as jest.Mock).mockReturnValue('linux');
+    (os.homedir as unknown as jest.Mock).mockReturnValue('/home/testuser');
+
+    const error = new Error(
+      'Some other filesystem error',
+    ) as NodeJS.ErrnoException;
+    error.code = 'EIO';
+    vi.mocked(fs.stat).mockRejectedValue(error);
+
+    const result = await detectChromeUserDataPath();
+
+    expect(result.exists).toBe(false);
+    expect(result.verified).toBe(false);
+    expect(result.error).toContain(
+      'Error accessing Chrome directory: Some other filesystem error',
     );
   });
 });

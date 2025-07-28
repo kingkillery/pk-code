@@ -19,8 +19,9 @@ The configuration for the browser-use MCP server is found in the .mcp.json file 
   }
 }
 ```
+
 - This configuration specifies how the browser-use MCP server is launched, including the persistent Chrome user data directory for session continuity.
 - Additional integration details, setup instructions, and phased rollout plans are documented in pk-code-browser-use-mcp-setup.md and PK.md .
 - The CLI provides commands like pk config browser , pk agent start browser , and pk agent stop browser to manage and configure the browser-use integration.
 - The MCP client logic in the codebase (see packages/core/src/tools/mcp-client.ts and config.ts ) loads this configuration to establish connections to the browser-use server.
-For further details on advanced configuration and troubleshooting, refer to docs/tools/mcp-server.md .
+  For further details on advanced configuration and troubleshooting, refer to docs/tools/mcp-server.md .

@@ -163,14 +163,16 @@ export class ToolRegistry {
     // discover tools using MCP servers, if configured
     const mcpServers = this.config.getMcpServers() ?? {};
     const mcpServerCommand = this.config.getMcpServerCommand();
-    
+
     // Only proceed with MCP discovery if there are servers configured AND client is initialized
     if (Object.keys(mcpServers).length > 0 || mcpServerCommand) {
       try {
         const geminiClient = this.config.getGeminiClient();
         if (!geminiClient?.isInitialized()) {
           if (this.config.getDebugMode()) {
-            console.debug('[lazy] MCP discovery deferred - client not initialized');
+            console.debug(
+              '[lazy] MCP discovery deferred - client not initialized',
+            );
           }
           return; // Defer discovery until client is ready
         }
@@ -191,7 +193,10 @@ export class ToolRegistry {
         );
       } catch (error) {
         if (this.config.getDebugMode()) {
-          console.debug('[lazy] MCP discovery deferred - client not available:', error);
+          console.debug(
+            '[lazy] MCP discovery deferred - client not available:',
+            error,
+          );
         }
         // Silently defer - will be retried later
       }

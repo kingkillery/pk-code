@@ -12,6 +12,37 @@ This is the default engineering mode for the Qwen-Code codebase. It combines rig
 4. **commit-template.md** - Standardized commit message format
 5. **code-agent-prompting-schema.md** - Schema documentation for code agent best practices
 
+## Agent System
+
+### Existing Agents
+
+The `agents/` directory contains specialized AI agents for different development tasks:
+
+- **qwen-code-engineer.md** - Primary engineering agent for the Qwen-Code codebase
+- **Additional agents** - Created as needed for specific project requirements
+
+### Agent Creation Templates
+
+The `prompts/` directory contains templates for creating new agents:
+
+- **agent-creation-template.md** - General-purpose agent creation guide
+- **code-review-agent-template.md** - Template for code review specialists
+- **debugging-agent-template.md** - Template for debugging specialists
+- **documentation-agent-template.md** - Template for documentation specialists
+- **testing-agent-template.md** - Template for testing specialists
+
+### Creating New Agents
+
+Use the PK CLI with interactive prompts to create new agents:
+
+```bash
+# Basic agent creation
+pk -p "Help me create a new AI agent for [your specific need]. Use the agent creation template and save to .pk/agents/[agent-name].md"
+
+# Using specialized templates
+pk -p "Using the debugging agent template, create a React debugging specialist that focuses on hooks, state management, and performance issues."
+```
+
 ## Usage Instructions
 
 ### For Claude Code CLI

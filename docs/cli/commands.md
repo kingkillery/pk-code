@@ -95,6 +95,74 @@ Slash commands provide meta-level control over the CLI itself.
 - **`/about`**
   - **Description:** Show version info. Please share this information when filing issues.
 
+## Agent Creation
+
+PK CLI supports creating custom AI agents using interactive prompts. This leverages the existing `pk -p` command with specialized templates.
+
+### Basic Agent Creation
+
+To create a new agent, use the interactive mode with an agent creation template:
+
+```bash
+pk -p "You are an expert agent designer. Help me create a new AI agent for [describe your needs]. Please create an agent file following the standard format and save it to .pk/agents/[agent-name].md"
+```
+
+### Using Specialized Templates
+
+For common agent types, you can reference specific templates located in `.claude/prompts/`:
+
+- **General Agent**: Use `.claude/prompts/agent-creation-template.md`
+- **Code Review Agent**: Use `.claude/prompts/code-review-agent-template.md`
+- **Debugging Agent**: Use `.claude/prompts/debugging-agent-template.md`
+- **Documentation Agent**: Use `.claude/prompts/documentation-agent-template.md`
+- **Testing Agent**: Use `.claude/prompts/testing-agent-template.md`
+
+### Example Agent Creation
+
+```bash
+# Create a database optimization agent
+pk -p "Using the agent creation template, help me create a database optimization agent that specializes in PostgreSQL performance tuning, query optimization, and index management."
+
+# Create a React code reviewer
+pk -p "Using the code review agent template, help me create a React code reviewer that focuses on component best practices, hooks usage, and performance optimization."
+```
+
+### Agent File Format
+
+Created agents follow this structure:
+
+```markdown
+---
+name: agent-name
+description: Brief description of what this agent does
+color: blue|red|green|yellow|purple
+---
+
+# Agent Name
+
+Detailed description of the agent's capabilities and behavior.
+
+## Core Traits
+
+- Key characteristics
+- Specializations
+
+## Examples
+
+<example>
+Context: When to use this agent
+user: 'Example user input'
+assistant: 'Expected response pattern'
+</example>
+```
+
+### Agent Management
+
+- **Location**: Agents are saved to `.pk/agents/[agent-name].md`
+- **Naming**: Use lowercase with hyphens (e.g., `database-optimizer`)
+- **Colors**: Choose from blue, red, green, yellow, purple
+- **Validation**: The system checks for existing agents before creation
+
 - [**`/tools`**](../tools/index.md)
   - **Description:** Display a list of tools that are currently available within Gemini CLI.
   - **Sub-commands:**

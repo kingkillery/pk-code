@@ -658,10 +658,10 @@ export class Config {
       console.debug('[MCP] Tool discovery started');
     }
     const startTime = Date.now();
-    
+
     try {
       await this.toolRegistry.discoverTools();
-      
+
       if (this.getDebugMode()) {
         const duration = Date.now() - startTime;
         console.debug(`[MCP] Tool discovery completed in ${duration}ms`);

@@ -20,6 +20,7 @@ import {
   MCPServerConfig,
   AuthType,
 } from '@pk-code/core';
+import { handleAgentCommand } from '../commands/agent.js';
 import { Settings } from './settings.js';
 
 import { Extension, filterActiveExtensions } from './extension.js';
@@ -222,7 +223,7 @@ export async function parseArguments(): Promise<CliArgs> {
         yargs
           .positional('action', {
             describe: 'The action to perform',
-            choices: ['add', 'remove', 'list'],
+            choices: ['add', 'remove', 'list', 'browser'],
           })
           .positional('provider', {
             describe: 'The provider to configure',
@@ -250,6 +251,26 @@ export async function parseArguments(): Promise<CliArgs> {
           }),
     )
     .command('create-agent', 'Create a new agent interactively', () => {})
+    .command(
+      'agent <command> [agentName]',
+      'Manage background agent processes',
+      (yargs) => {
+        yargs
+          .positional('command', {
+            describe: 'The command to execute',
+            choices: ['start', 'stop'],
+            demandOption: true,
+          })
+          .positional('agentName', {
+            describe: 'The name of the agent (e.g., browser)',
+            type: 'string',
+            demandOption: true,
+          });
+      },
+      (argv) => {
+        handleAgentCommand(argv.command as string, argv.agentName as string);
+      },
+    )
 
     .version(false) // Disable default version, we'll handle it manually
     .alias('v', 'version')
