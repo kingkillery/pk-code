@@ -7,13 +7,15 @@
         "OPENROUTER_API_KEY": "sk-or-v1-50e6b14d051c4fcfd698a1a8c01ac3d4a5e0742281684d9fff2387f30fa6d6d8s"
       }
     },
-    "browser-use": {
+          "browser-use": {
       "command": "cmd",
-      "args": ["/c", "uvx", "browser-use", "--mcp"],
+      "args": ["/c", "uvx", "--from", "browser-use[cli]", "browser-use", "--mcp"],
       "env": {
-        "BROWSER_USE_USER_DATA_DIR": "C:\\Users\\<YourUser>\\AppData\\Local\\Google\\Chrome\\User Data"
+        "BROWSER_USE_USER_DATA_DIR": "C:\Users\prest\AppData\Local\Google\Chrome\User Data",
+        "BROWSER_USE_MODEL": "openrouter/bytedance/ui-tars-1.5-7b",
+        "OPENROUTER_API_KEY": "sk-or-v1-50e6b14d051c4fcfd698a1a8c01ac3d4a5e0742281684d9fff2387f30fa6d6d8s"
       },
-      "description": "Browser automation tools. Requires 'browser-use' to be installed (`pipx install browser-use`). You must edit this config to set the BROWSER_USE_USER_DATA_DIR path."
+      "description": "Browser automation tools. Requires 'browser-use[cli]' to be installed. The BROWSER_USE_USER_DATA_DIR path is configured."
     }
   }
 }
