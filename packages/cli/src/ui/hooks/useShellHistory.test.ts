@@ -21,7 +21,7 @@ const MOCKED_PROJECT_HASH = 'mocked_hash';
 
 const MOCKED_HISTORY_DIR = path.join(
   MOCKED_HOME_DIR,
-  '.qwen',
+  '.pk',
   'tmp',
   MOCKED_PROJECT_HASH,
 );
@@ -49,7 +49,7 @@ describe('useShellHistory', () => {
 
   it('should initialize and read the history file from the correct path', async () => {
     mockedFs.readFile.mockResolvedValue('cmd1\ncmd2');
-    const { result } = renderHook(() => useShellHistory(MOCKED_PROJECT_ROOT));
+  const { result } = renderHook(() => useShellHistory(MOCKED_PROJECT_ROOT));
 
     await waitFor(() => {
       expect(mockedFs.readFile).toHaveBeenCalledWith(

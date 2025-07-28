@@ -258,13 +258,13 @@ export async function parseArguments(): Promise<CliArgs> {
         yargs
           .positional('command', {
             describe: 'The command to execute',
-            choices: ['start', 'stop'],
+            choices: ['start', 'stop', 'list', 'create', 'delete'],
             demandOption: true,
           })
           .positional('agentName', {
             describe: 'The name of the agent (e.g., browser)',
             type: 'string',
-            demandOption: true,
+            demandOption: false,
           });
       },
       (argv) => {

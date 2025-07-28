@@ -1,6 +1,20 @@
 ---
 name: test-enhanced-agent
-description: Use this agent when you need specialized assistance with a test agent created with the enhanced system. Examples: <example>Context: User needs help with testing tasks. user: "Can you help me with testing?" assistant: "I'll use the test-enhanced-agent agent to provide specialized guidance on testing tasks."</example> <example>Context: User has a specific enhancement challenge. user: "I'm working on enhancement and need expert advice" assistant: "Let me engage the test-enhanced-agent agent to provide expert assistance with your enhancement challenge."</example>
+description: |
+  Use this agent when you need specialized assistance with a test agent created with the enhanced system.
+  
+  Examples:
+  <example>
+  Context: User needs help with testing tasks.
+  user: "Can you help me with testing?"
+  assistant: "I'll use the test-enhanced-agent agent to provide specialized guidance on testing tasks."
+  </example>
+  
+  <example>
+  Context: User has a specific enhancement challenge.
+  user: "I'm working on enhancement and need expert advice"
+  assistant: "Let me engage the test-enhanced-agent agent to provide expert assistance with your enhancement challenge."
+  </example>
 color: pink
 ---
 

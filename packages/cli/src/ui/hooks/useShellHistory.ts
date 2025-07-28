@@ -7,6 +7,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import * as os from 'os';
 import { isNodeError, getProjectTempDir } from '@pk-code/core';
 
 const HISTORY_FILE = 'shell_history';
@@ -42,7 +43,7 @@ async function writeHistoryFile(
   }
 }
 
-export function useShellHistory(projectRoot: string) {
+export const useShellHistory = (projectRoot: string = os.homedir()) => {
   const [history, setHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [historyFilePath, setHistoryFilePath] = useState<string | null>(null);

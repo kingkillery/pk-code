@@ -279,7 +279,9 @@ export class AgentRegistry implements IAgentRegistry {
    */
   private stopWatching(): void {
     for (const watcher of this.watchers.values()) {
-      watcher.close();
+      if (watcher) {
+        watcher.close();
+      }
     }
     this.watchers.clear();
 

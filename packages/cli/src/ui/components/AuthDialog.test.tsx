@@ -187,8 +187,8 @@ describe('AuthDialog', () => {
         <AuthDialog onSelect={() => {}} settings={settings} />,
       );
 
-      // Default is OpenAI (the only option)
-      expect(lastFrame()).toContain('● OpenAI');
+      // Default is now OpenRouter based on the logic in AuthDialog
+      expect(lastFrame()).toContain('● OpenRouter');
     });
 
     it('should show an error and fall back to default if GEMINI_DEFAULT_AUTH_TYPE is invalid', () => {
@@ -213,8 +213,8 @@ describe('AuthDialog', () => {
       );
 
       // Since the auth dialog doesn't show GEMINI_DEFAULT_AUTH_TYPE errors anymore,
-      // it will just show the default OpenAI option
-      expect(lastFrame()).toContain('● OpenAI');
+      // it will just show the default OpenRouter option
+      expect(lastFrame()).toContain('● OpenRouter');
     });
   });
 

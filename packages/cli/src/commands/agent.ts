@@ -7,32 +7,171 @@ const execAsync = promisify(exec);
 
 const BROWSER_AGENT_PID_FILE = path.join('.taskmaster', 'browser-agent.pid');
 
+// Import agent management functions from UI commands
+import {
+  getAgentsDir,
+  ensureAgentsDir,
+  parseAgentFromFile,
+} from '../ui/commands/agentCommands.js';
+
+function showAgentHelp(errorMessage?: string) {
+  if (errorMessage) {
+    console.error(`Error: ${errorMessage}\n`);
+  }
+  console.error('Usage: pk agent <command> [args]');
+  console.error('Commands: create, list, delete, start, stop, help');
+  console.error('Examples:');
+  console.error('  pk agent list                    # List all agents');
+  console.error('  pk agent create                  # Create agent interactively');
+  console.error('  pk agent delete <name>           # Delete an agent');
+  console.error('  pk agent start browser           # Start browser agent');
+  console.error('  pk agent stop browser            # Stop browser agent');
+  console.error('  pk agent help                    # Show this help message');
+}
+
 export async function handleAgentCommand(
   command: string,
-  agentName: string,
+  agentNameOrArgs?: string,
 ): Promise<void> {
-  if (!command || !agentName) {
-    console.error('Usage: pk agent <command> <agentName>');
-    console.error('Commands: start, stop');
-    console.error('Agents: browser');
-    return;
-  }
-
-  if (agentName !== 'browser') {
-    console.error(`Unknown agent: ${agentName}`);
+  console.log(`DEBUG: command='${command}', agentNameOrArgs='${agentNameOrArgs}'`);
+  if (!command) {
+    showAgentHelp();
     return;
   }
 
   switch (command) {
+    case 'list':
+    case 'ls':
+      await handleListAgents();
+      break;
+    case 'create':
+      await handleCreateAgent();
+      break;
+    case 'delete':
+    case 'rm':
+      if (!agentNameOrArgs) {
+        console.error('Usage: pk agent delete <agent-name>');
+        return;
+      }
+      await handleDeleteAgent(agentNameOrArgs);
+      break;
     case 'start':
-      await startBrowserAgent();
+      if (agentNameOrArgs === 'browser') {
+        await startBrowserAgent();
+      } else {
+        console.error('Only browser agent start is supported');
+        console.error('Usage: pk agent start browser');
+      }
       break;
     case 'stop':
-      await stopBrowserAgent();
+      if (agentNameOrArgs === 'browser') {
+        await stopBrowserAgent();
+      } else {
+        console.error('Only browser agent stop is supported');
+        console.error('Usage: pk agent stop browser');
+      }
+      break;
+    case 'help':
+    case '-h':
+    case '--help':
+      showAgentHelp();
       break;
     default:
-      console.error(`Unknown command: ${command}`);
-      console.error('Available commands: start, stop');
+      showAgentHelp(`Unknown command: ${command}`);
+  }
+}
+
+// Agent management functions adapted from UI commands
+async function handleListAgents(): Promise<void> {
+  try {
+    const projectRoot = process.cwd();
+    const agentsDir = getAgentsDir(projectRoot);
+
+    // Check if agents directory exists
+    try {
+      await fs.promises.access(agentsDir);
+    } catch {
+      console.log('No agents directory found. Use "pk agent create" to create your first agent.');
+      return;
+    }
+
+    // Read all agent files (both .md and .json for backward compatibility)
+    const files = await fs.promises.readdir(agentsDir);
+    const agentFiles = files.filter(
+      (f) => f.endsWith('.md') || f.endsWith('.markdown') || f.endsWith('.json'),
+    );
+
+    if (agentFiles.length === 0) {
+      console.log('No agents found. Use "pk agent create" to create your first agent.');
+      return;
+    }
+
+    const agents: any[] = [];
+
+    for (const file of agentFiles) {
+      try {
+        const filePath = path.join(agentsDir, file);
+        const content = await fs.promises.readFile(filePath, 'utf-8');
+        const agent = await parseAgentFromFile(filePath, content);
+        agents.push(agent);
+      } catch (error) {
+        console.warn(`Failed to parse agent file ${file}:`, error);
+      }
+    }
+
+    if (agents.length === 0) {
+      console.log('No valid agents found.');
+      return;
+    }
+
+    // Format agent list
+    console.log(`\n🤖 Available Agents (${agents.length}):\n`);
+    for (const agent of agents) {
+      console.log(`- **${agent.name}**: ${agent.description}`);
+    }
+    console.log('\nFor more details, use the interactive UI (run "pk" without arguments).');
+  } catch (error) {
+    console.error(`Failed to list agents: ${error instanceof Error ? error.message : String(error)}`);
+  }
+}
+
+async function handleCreateAgent(): Promise<void> {
+  console.log('Interactive agent creation is not yet supported in CLI mode.');
+  console.log('Please use the interactive UI mode to create agents.');
+  console.log('Run "pk" without arguments to enter interactive mode.');
+}
+
+async function handleDeleteAgent(agentName: string): Promise<void> {
+  try {
+    const projectRoot = process.cwd();
+    const agentsDir = getAgentsDir(projectRoot);
+    const baseFileName = agentName.toLowerCase().replace(/[^a-z0-9]/g, '-');
+
+    // Try to find the agent file (check both .md and .json extensions)
+    const possibleExtensions = ['.md', '.json'];
+    let filePath: string | null = null;
+
+    for (const ext of possibleExtensions) {
+      const testPath = path.join(agentsDir, baseFileName + ext);
+      try {
+        await fs.promises.access(testPath);
+        filePath = testPath;
+        break;
+      } catch {
+        // File doesn't exist, try next extension
+      }
+    }
+
+    if (!filePath) {
+      console.error(`Agent "${agentName}" not found.`);
+      return;
+    }
+
+    // Delete the agent file
+    await fs.promises.unlink(filePath);
+    console.log(`✅ Agent "${agentName}" deleted successfully.`);
+  } catch (error) {
+    console.error(`Failed to delete agent: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 

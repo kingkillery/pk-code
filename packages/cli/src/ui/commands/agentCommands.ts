@@ -37,22 +37,82 @@ export interface AgentCreationData {
 /**
  * Get the agents directory path
  */
-const getAgentsDir = (projectRoot: string): string =>
+export const getAgentsDir = (projectRoot: string): string =>
   path.join(projectRoot, '.pk', 'agents');
 
 /**
  * Ensure agents directory exists
  */
-const ensureAgentsDir = async (projectRoot: string): Promise<string> => {
+export const ensureAgentsDir = async (projectRoot: string): Promise<string> => {
   const agentsDir = getAgentsDir(projectRoot);
   await fs.mkdir(agentsDir, { recursive: true });
   return agentsDir;
 };
 
 /**
+ * Auto-format YAML frontmatter using LLM when parsing fails
+ */
+const autoFormatYamlFrontmatter = async (yamlContent: string, filePath: string): Promise<string> => {
+  try {
+    console.warn(`Attempting to auto-format malformed YAML in ${filePath}...`);
+    
+    const aiProvider = await getDefaultAgentProvider();
+    if (!aiProvider) {
+      throw new Error('No AI provider available for YAML formatting');
+    }
+
+    const prompt = `You are a YAML formatting expert. Fix the following malformed YAML frontmatter for an agent configuration file. The YAML should be valid and properly formatted with correct indentation. Preserve all the original content but fix syntax issues like improper line breaks, missing quotes, or bad indentation.
+
+Original malformed YAML:
+\`\`\`yaml
+${yamlContent}
+\`\`\`
+
+Return ONLY the corrected YAML content (without the \`\`\`yaml wrapper), properly formatted and ready to parse. The YAML should include fields like name, description, color, etc.`;
+
+    const fixedYaml = await aiProvider.generateCode(prompt, { model: DEFAULT_OPENROUTER_MODEL });
+    const fixedYamlTrimmed = fixedYaml.trim();
+    
+    // Test if the fixed YAML can be parsed
+    try {
+      yamlLoad(fixedYamlTrimmed);
+      console.log(`✅ Successfully auto-formatted YAML in ${filePath}`);
+      return fixedYamlTrimmed;
+    } catch (testError) {
+      console.error(`❌ Auto-formatted YAML still invalid in ${filePath}:`, testError);
+      throw new Error('Auto-formatting failed to produce valid YAML');
+    }
+  } catch (error) {
+    console.error(`❌ Failed to auto-format YAML in ${filePath}:`, error);
+    throw error;
+  }
+};
+
+/**
+ * Write the corrected YAML back to the file
+ */
+const writeFixedYamlToFile = async (filePath: string, originalContent: string, fixedYaml: string): Promise<void> => {
+  try {
+    const frontMatterMatch = originalContent.match(/^---\n([\s\S]*?)\n---/);
+    if (!frontMatterMatch) {
+      throw new Error('Could not find YAML frontmatter to replace');
+    }
+
+    const markdownContent = originalContent.substring(frontMatterMatch[0].length);
+    const newContent = `---\n${fixedYaml}\n---${markdownContent}`;
+    
+    await fs.writeFile(filePath, newContent, 'utf-8');
+    console.log(`✅ Updated ${filePath} with corrected YAML frontmatter`);
+  } catch (error) {
+    console.error(`❌ Failed to write corrected YAML to ${filePath}:`, error);
+    throw error;
+  }
+};
+
+/**
  * Parse agent content from file (supports both JSON and Markdown formats)
  */
-const parseAgentFromFile = async (
+export const parseAgentFromFile = async (
   filePath: string,
   content: string,
 ): Promise<AgentConfig> => {
@@ -68,7 +128,27 @@ const parseAgentFromFile = async (
     }
 
     const yamlContent = frontMatterMatch[1];
-    const parsed = yamlLoad(yamlContent);
+    let parsed;
+    let originalYamlContent = yamlContent;
+    let currentYamlContent = yamlContent;
+    
+    try {
+      parsed = yamlLoad(yamlContent);
+    } catch (error) {
+      try {
+        // Attempt to auto-format malformed YAML using LLM
+        const fixedYamlTrimmed = await autoFormatYamlFrontmatter(yamlContent, filePath);
+        currentYamlContent = fixedYamlTrimmed;
+        parsed = yamlLoad(fixedYamlTrimmed);
+        
+        // Write the fixed YAML back to the file so it doesn't happen again
+        await writeFixedYamlToFile(filePath, content, fixedYamlTrimmed);
+      } catch (formatError) {
+        // If auto-formatting fails, throw the original parsing error
+        console.error(`Auto-formatting failed for ${filePath}:`, formatError);
+        throw new Error(`Failed to parse YAML front-matter: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
 
     if (typeof parsed !== 'object' || parsed === null) {
       throw new Error('Invalid YAML front-matter in agent file');

@@ -118,10 +118,7 @@ export async function main() {
     handleCreateAgentCommand();
     return;
   }
-  if (argv._[0] === 'agent') {
-    await handleAgentCommand(argv._[1] as string, argv._[2] as string);
-    process.exit(0);
-  }
+
   if (argv._[0] === 'use') {
     // Handle both "pk use agent query" and "pk use agent: query" syntaxes
     let agentName = argv.agent || (argv._[1] as string) || '';
@@ -491,9 +488,9 @@ async function validateNonInterActiveAuth(
         'Auto-selected Gemini for non-interactive mode based on GEMINI_API_KEY',
       );
     } else {
-      selectedAuthType = AuthType.USE_GEMINI;
+      selectedAuthType = AuthType.USE_OPENROUTER;
       console.debug(
-        'Defaulting to Gemini for non-interactive mode (no API keys found)',
+        'Defaulting to OpenRouter for non-interactive mode (no API keys found)',
       );
     }
   } else {
@@ -510,3 +507,4 @@ async function validateNonInterActiveAuth(
   await nonInteractiveConfig.refreshAuth(selectedAuthType);
   return nonInteractiveConfig;
 }
+

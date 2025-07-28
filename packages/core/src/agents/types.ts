@@ -81,8 +81,8 @@ export interface ParsedAgent {
  * Agent loader configuration options
  */
 export interface AgentLoaderOptions {
-  /** Project root directory */
-  projectRoot: string;
+  /** Project root directory (optional, defaults to user's home directory) */
+  projectRoot?: string;
   /** Whether to include global agents from ~/.pk/agents/ */
   includeGlobal?: boolean;
   /** Whether to validate agents against schema */

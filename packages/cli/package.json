@@ -69,6 +69,7 @@
     "@types/semver": "^7.7.0",
     "@types/shell-quote": "^1.7.5",
     "@types/yargs": "^17.0.32",
+    "dom-accessibility-api": "^0.5.16",
     "ink-testing-library": "^4.0.0",
     "jsdom": "^26.1.0",
     "pretty-format": "^30.0.2",

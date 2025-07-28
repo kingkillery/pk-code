@@ -21,22 +21,27 @@ import type {
 import { fileURLToPath } from 'url';
 
 // Load schema for validation
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const schemaPath = path.join(__dirname, 'agent-config.schema.json');
 let agentConfigSchema: Record<string, unknown>;
 
-try {
-  const schemaContent = await fs.readFile(schemaPath, 'utf-8');
-  agentConfigSchema = JSON.parse(schemaContent);
-} catch {
-  // Schema file not found, validation will be skipped
-}
+// Load schema lazily to avoid path issues during test module loading
+const loadSchema = async (): Promise<void> => {
+  if (agentConfigSchema !== undefined) return;
+  
+  try {
+    const __dirname = path.dirname(fileURLToPath(import.meta.url));
+    const schemaPath = path.join(__dirname, 'agent-config.schema.json');
+    const schemaContent = await fs.readFile(schemaPath, 'utf-8');
+    agentConfigSchema = JSON.parse(schemaContent);
+  } catch {
+    // Schema file not found, validation will be skipped
+    agentConfigSchema = {};
+  }
+};
 
 /**
  * Default agent directories
  */
 const DEFAULT_PROJECT_AGENTS_DIR = '.pk/agents';
-const DEFAULT_GLOBAL_AGENTS_DIR = path.join(os.homedir(), GEMINI_DIR, 'agents');
 
 /**
  * Agent file discovery and parsing utilities
@@ -45,12 +50,16 @@ export class AgentLoader {
   private readonly options: Required<AgentLoaderOptions>;
 
   constructor(options: AgentLoaderOptions) {
+    // Ensure a valid projectRoot is always set; fallback to the user's home dir
+    const projectRoot = options.projectRoot ?? os.homedir();
+
     this.options = {
       includeGlobal: true,
       validateSchema: true,
       customPaths: [],
       ...options,
-    };
+      projectRoot,
+    } as Required<AgentLoaderOptions>;
   }
 
   /**
@@ -103,7 +112,7 @@ export class AgentLoader {
       );
 
       if (this.options.validateSchema) {
-        const validationError = this.validateAgentConfig(agent.config);
+        const validationError = await this.validateAgentConfig(agent.config);
         if (validationError) {
           return {
             filePath,
@@ -132,13 +141,14 @@ export class AgentLoader {
     filePath: string,
     lastModified: Date,
   ): Promise<ParsedAgent> {
-    const frontMatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
+    // Handle different line endings (Windows/Mac/Linux) in front-matter
+    const frontMatterMatch = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
 
     if (!frontMatterMatch) {
       throw new Error('No YAML front-matter found in agent file');
     }
 
-    const yamlContent = frontMatterMatch[1];
+    const yamlContent = frontMatterMatch[1].replace(/\r\n/g, '\n');
     let config: AgentConfig;
 
     try {
@@ -167,8 +177,9 @@ export class AgentLoader {
   /**
    * Validate agent configuration against schema
    */
-  private validateAgentConfig(config: AgentConfig): string | null {
-    if (!agentConfigSchema) {
+  private async validateAgentConfig(config: AgentConfig): Promise<string | null> {
+    await loadSchema();
+    if (!agentConfigSchema || Object.keys(agentConfigSchema).length === 0) {
       return null; // Skip validation if schema not available
     }
 
@@ -239,12 +250,12 @@ export class AgentLoader {
       paths.push({ path: projectAgentsPath, source: 'project' });
     }
 
-    // Global agents directory
-    if (
-      this.options.includeGlobal &&
-      (await this.directoryExists(DEFAULT_GLOBAL_AGENTS_DIR))
-    ) {
-      paths.push({ path: DEFAULT_GLOBAL_AGENTS_DIR, source: 'global' });
+// Global agents directory – compute lazily so that test suites can mock os.homedir() before this executes.
+    if (this.options.includeGlobal) {
+      const globalAgentsDir = path.join(os.homedir(), GEMINI_DIR, 'agents');
+      if (await this.directoryExists(globalAgentsDir)) {
+        paths.push({ path: globalAgentsDir, source: 'global' });
+      }
     }
 
     // Custom paths
@@ -315,7 +326,7 @@ export class AgentLoader {
    */
   private determineAgentSource(filePath: string): 'project' | 'global' {
     const projectAgentsPath = path.join(
-      this.options.projectRoot,
+      this.options.projectRoot ?? os.homedir(),
       DEFAULT_PROJECT_AGENTS_DIR,
     );
 
@@ -366,7 +377,7 @@ export class AgentLoader {
  * Convenience function to load agents with default options
  */
 export async function loadAgents(
-  projectRoot: string,
+  projectRoot?: string,
   options?: Partial<AgentLoaderOptions>,
 ): Promise<AgentDiscoveryResult> {
   const loader = new AgentLoader({
@@ -382,7 +393,7 @@ export async function loadAgents(
  */
 export async function loadAgentFile(
   filePath: string,
-  projectRoot: string,
+  projectRoot?: string,
 ): Promise<ParsedAgent | AgentLoadError> {
   const loader = new AgentLoader({ projectRoot });
   return loader.loadAgentFile(filePath);

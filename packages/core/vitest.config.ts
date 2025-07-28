@@ -15,7 +15,7 @@ export default defineConfig({
       junit: 'junit.xml',
     },
     coverage: {
-      enabled: false,
+      enabled: true,
       provider: 'v8',
       reportsDirectory: './coverage',
       include: ['src/**/*'],

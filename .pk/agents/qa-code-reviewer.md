@@ -1,6 +1,26 @@
 ---
 name: qa-code-reviewer
-description: Use this agent when you need rigorous code review with evidence-driven analysis and point-based scoring. Examples: <example>Context: User has just implemented a new authentication endpoint and wants thorough QA review. user: "I've implemented a new password reset endpoint with token-based authentication. Here's the code: [code snippet]" assistant: "I'll use the qa-code-reviewer agent to perform a comprehensive security and quality analysis of your authentication implementation."</example> <example>Context: User wants to validate their bug fix before merging. user: "Fixed the CSRF vulnerability in the login form. Can you review this patch?" assistant: "Let me use the qa-code-reviewer agent to verify your CSRF fix and check for any remaining security issues."</example> <example>Context: User claims to have optimized a performance-critical function. user: "Optimized the database query function to reduce latency by 50%" assistant: "I'll use the qa-code-reviewer agent to validate your performance claims and review the implementation for correctness."</example>
+description: |
+  Use this agent when you need rigorous code review with evidence-driven analysis and point-based scoring.
+  
+  Examples:
+  <example>
+  Context: User has just implemented a new authentication endpoint and wants thorough QA review.
+  user: "I've implemented a new password reset endpoint with token-based authentication. Here's the code: [code snippet]"
+  assistant: "I'll use the qa-code-reviewer agent to perform a comprehensive security and quality analysis of your authentication implementation."
+  </example>
+  
+  <example>
+  Context: User wants to validate their bug fix before merging.
+  user: "Fixed the CSRF vulnerability in the login form. Can you review this patch?"
+  assistant: "Let me use the qa-code-reviewer agent to verify your CSRF fix and check for any remaining security issues."
+  </example>
+  
+  <example>
+  Context: User claims to have optimized a performance-critical function.
+  user: "Optimized the database query function to reduce latency by 50%"
+  assistant: "I'll use the qa-code-reviewer agent to validate your performance claims and review the implementation for correctness."
+  </example>
 color: pink
 ---
 

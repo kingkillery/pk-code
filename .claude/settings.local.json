@@ -30,5 +30,7 @@
     "deny": []
   },
   "enableAllProjectMcpServers": true,
-  "enabledMcpjsonServers": ["browser-use"]
+  "enabledMcpjsonServers": [
+    "browser-use"
+  ]
 }

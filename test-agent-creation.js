@@ -2,10 +2,15 @@
 
 import fs from 'fs';
 import path from 'path';
+import { execSync } from 'child_process';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Test configuration
-const PROJECT_ROOT = typeof process !== 'undefined' ? process.cwd() : './';
+const PROJECT_ROOT = process.cwd();
 const AGENTS_DIR = path.join(PROJECT_ROOT, '.pk', 'agents');
 const PROMPTS_DIR = path.join(PROJECT_ROOT, '.claude', 'prompts');
 
@@ -56,10 +61,10 @@ function testDirectoryStructure() {
   log('Testing directory structure...');
   
   // Test .pk/agents directory exists
-fs.existsSync(AGENTS_DIR) || console.error('.pk/agents directory does not exist');
+  assert(fs.existsSync(AGENTS_DIR), '.pk/agents directory exists');
   
   // Test .claude/prompts directory exists
-fs.existsSync(PROMPTS_DIR) || console.error('.claude/prompts directory does not exist');
+  assert(fs.existsSync(PROMPTS_DIR), '.claude/prompts directory exists');
   
   // Test agent creation templates exist
   const templates = [
@@ -190,9 +195,9 @@ function testDocumentationConsistency() {
 }
 
 function runTests() {
-console.log(`Starting comprehensive agent creation tests...`);
-console.log(`Project root: ${PROJECT_ROOT}`);
-console.log(`Agents directory: ${AGENTS_DIR}`);
+  log('Starting comprehensive agent creation tests...');
+  log(`Project root: ${PROJECT_ROOT}`);
+  log(`Agents directory: ${AGENTS_DIR}`);
   log(`Prompts directory: ${PROMPTS_DIR}`);
   
   try {

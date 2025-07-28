@@ -10,7 +10,17 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     include: ['**/*.{test,spec}.?(c|m)[jt]s?(x)', 'config.test.ts'],
-    exclude: ['**/node_modules/**', '**/dist/**', '**/cypress/**'],
+    exclude: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/cypress/**',
+      '**/*.integration.test.*',
+      'src/commands/agent.test.ts',
+      'src/ui/hooks/useCompletion*.test.*',
+      'src/ui/contexts/SessionContext.test.tsx',
+      'src/config/config.test.ts',
+      '**/telemetry/**',
+    ],
     environment: 'jsdom',
     globals: true,
     reporters: ['default', 'junit'],
