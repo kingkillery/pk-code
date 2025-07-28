@@ -1,13 +1,24 @@
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { handleAgentCommand } from './agent.js';
 import { spawn } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
+import { getAgentsDir, parseAgentFromFile, agentCommands } from '../ui/commands/agentCommands.js';
+import { AgentRunner } from '../agent/AgentRunner.js';
 
 // Mock UI commands that are imported
 vi.mock('../ui/commands/agentCommands.js', () => ({
   getAgentsDir: vi.fn(() => '/mock/agents'),
   ensureAgentsDir: vi.fn(),
   parseAgentFromFile: vi.fn(),
+  agentCommands: {
+    run: vi.fn(),
+  },
+}));
+
+// Mock AgentRunner
+vi.mock('../agent/AgentRunner.js', () => ({
+  AgentRunner: vi.fn(),
 }));
 
 // Mock util module
@@ -39,28 +50,165 @@ vi.mock('fs', async (importOriginal) => {
     readFileSync: vi.fn(),
     unlinkSync: vi.fn(),
     mkdirSync: vi.fn(),
+    promises: {
+      access: vi.fn(),
+      readdir: vi.fn(),
+      readFile: vi.fn(),
+      unlink: vi.fn(),
+    },
   };
 });
+
+// Mock console methods to avoid noise in tests
+const mockConsoleLog = vi.spyOn(console, 'log').mockImplementation(() => {});
+const mockConsoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+const mockConsoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
 // Mock process.kill
 const processKillSpy = vi.spyOn(process, 'kill').mockImplementation(() => true);
 
 describe('agent command', () => {
+  const mockProjectRoot = '/test/project';
+  const mockAgentsDir = path.join(mockProjectRoot, '.pk', 'agents');
+
   beforeEach(() => {
     vi.clearAllMocks();
     processKillSpy.mockClear();
+    vi.spyOn(process, 'cwd').mockReturnValue(mockProjectRoot);
+    vi.mocked(getAgentsDir).mockReturnValue(mockAgentsDir);
   });
 
   afterEach(() => {
-    processKillSpy.mockRestore();
+    vi.restoreAllMocks();
   });
 
-it.skip('should start the browser agent'
-    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-    const consoleErrorSpy = vi
-      .spyOn(console, 'error')
-      .mockImplementation(() => {});
+  it('should show help when no command is provided', async () => {
+    await handleAgentCommand('');
+    expect(mockConsoleError).toHaveBeenCalledWith('Usage: pk agent <command> [args]');
+  });
 
+  it('should show help for unknown commands', async () => {
+    await handleAgentCommand('unknown-command');
+    expect(mockConsoleError).toHaveBeenCalledWith('Error: Unknown command: unknown-command\n');
+  });
+
+  it('should handle list command when no agents exist', async () => {
+    vi.mocked(fs.promises.access).mockRejectedValue(new Error('Directory not found'));
+    
+    await handleAgentCommand('list');
+    
+    expect(mockConsoleLog).toHaveBeenCalledWith('No agents directory found. Use "pk agent create" to create your first agent.');
+  });
+
+  it('should handle list command with existing agents', async () => {
+    const mockAgentFiles = ['agent1.md', 'agent2.json', 'not-agent.txt'];
+    const mockAgent1 = { name: 'agent1', description: 'Test agent 1' };
+    const mockAgent2 = { name: 'agent2', description: 'Test agent 2' };
+
+    vi.mocked(fs.promises.access).mockResolvedValue(undefined);
+    vi.mocked(fs.promises.readdir).mockResolvedValue(mockAgentFiles as any);
+    vi.mocked(fs.promises.readFile).mockResolvedValue('mock file content');
+    vi.mocked(parseAgentFromFile)
+      .mockResolvedValueOnce(mockAgent1 as any)
+      .mockResolvedValueOnce(mockAgent2 as any);
+
+    await handleAgentCommand('list');
+
+    expect(mockConsoleLog).toHaveBeenCalledWith('\n🤖 Available Agents (2):\n');
+    expect(mockConsoleLog).toHaveBeenCalledWith('- agent1');
+    expect(mockConsoleLog).toHaveBeenCalledWith('- agent2');
+  });
+
+  it('should handle show command for existing agent', async () => {
+    const mockAgent = {
+      name: 'test-agent',
+      description: 'Test description',
+      keywords: ['test', 'demo'],
+      model: 'gpt-4',
+      provider: 'openai',
+      tools: [{ name: 'file-system' }],
+      systemPrompt: 'You are a test agent.'
+    };
+
+    vi.mocked(fs.promises.access).mockResolvedValue(undefined);
+    vi.mocked(fs.promises.readFile).mockResolvedValue('mock file content');
+    vi.mocked(parseAgentFromFile).mockResolvedValue(mockAgent as any);
+
+    await handleAgentCommand('show', 'test-agent');
+
+    expect(mockConsoleLog).toHaveBeenCalledWith('\n🤖 Agent: test-agent\n');
+    expect(mockConsoleLog).toHaveBeenCalledWith('  Description: Test description');
+    expect(mockConsoleLog).toHaveBeenCalledWith('  Keywords: test, demo');
+  });
+
+  it('should handle show command for non-existent agent', async () => {
+    vi.mocked(fs.promises.access).mockRejectedValue(new Error('File not found'));
+
+    await handleAgentCommand('show', 'non-existent');
+
+    expect(mockConsoleError).toHaveBeenCalledWith('Agent "non-existent" not found.');
+  });
+
+  it('should handle delete command for existing agent', async () => {
+    vi.mocked(fs.promises.access).mockResolvedValue(undefined);
+    vi.mocked(fs.promises.unlink).mockResolvedValue(undefined);
+
+    await handleAgentCommand('delete', 'test-agent');
+
+    expect(mockConsoleLog).toHaveBeenCalledWith('✅ Agent "test-agent" deleted successfully.');
+  });
+
+  it('should handle delete command for non-existent agent', async () => {
+    vi.mocked(fs.promises.access).mockRejectedValue(new Error('File not found'));
+
+    await handleAgentCommand('delete', 'non-existent');
+
+    expect(mockConsoleError).toHaveBeenCalledWith('Agent "non-existent" not found.');
+  });
+
+  it('should handle run command with single agent', async () => {
+    const mockAgent = { name: 'test-agent', description: 'Test agent' };
+    const mockRunner = { agent: mockAgent, status: 'pending', run: vi.fn() };
+
+    vi.mocked(fs.promises.access).mockResolvedValue(undefined);
+    vi.mocked(fs.promises.readFile).mockResolvedValue('mock content');
+    vi.mocked(parseAgentFromFile).mockResolvedValue(mockAgent as any);
+    vi.mocked(AgentRunner).mockImplementation(() => mockRunner as any);
+
+    await handleAgentCommand('run', 'test-agent');
+
+    expect(AgentRunner).toHaveBeenCalledWith(mockAgent);
+    expect(agentCommands.run).toHaveBeenCalledWith([mockRunner]);
+  });
+
+  it('should handle run command with multiple agents', async () => {
+    const mockAgent1 = { name: 'agent1', description: 'Agent 1' };
+    const mockAgent2 = { name: 'agent2', description: 'Agent 2' };
+    const mockRunner1 = { agent: mockAgent1, status: 'pending', run: vi.fn() };
+    const mockRunner2 = { agent: mockAgent2, status: 'pending', run: vi.fn() };
+
+    vi.mocked(fs.promises.access).mockResolvedValue(undefined);
+    vi.mocked(fs.promises.readFile).mockResolvedValue('mock content');
+    vi.mocked(parseAgentFromFile)
+      .mockResolvedValueOnce(mockAgent1 as any)
+      .mockResolvedValueOnce(mockAgent2 as any);
+    vi.mocked(AgentRunner)
+      .mockImplementationOnce(() => mockRunner1 as any)
+      .mockImplementationOnce(() => mockRunner2 as any);
+
+    await handleAgentCommand('run', 'agent1,agent2');
+
+    expect(AgentRunner).toHaveBeenCalledTimes(2);
+    expect(agentCommands.run).toHaveBeenCalledWith([mockRunner1, mockRunner2]);
+  });
+
+  it('should handle run command with non-existent agent', async () => {
+    vi.mocked(fs.promises.access).mockRejectedValue(new Error('File not found'));
+
+    await expect(handleAgentCommand('run', 'non-existent')).rejects.toThrow('Agent "non-existent" not found.');
+  });
+
+  it.skip('should start the browser agent', async () => {
     // Mock process.platform for consistent test behavior
     const originalPlatform = process.platform;
     Object.defineProperty(process, 'platform', {
@@ -95,12 +243,9 @@ it.skip('should start the browser agent'
       value: originalPlatform,
       configurable: true,
     });
-
-    consoleSpy.mockRestore();
-    consoleErrorSpy.mockRestore();
   });
 
-it.skip('should stop the browser agent'
+  it.skip('should stop the browser agent', async () => {
     // Mock process.platform for consistent test behavior
     const originalPlatform = process.platform;
     Object.defineProperty(process, 'platform', {
@@ -125,26 +270,35 @@ it.skip('should stop the browser agent'
     });
   });
 
-  it('should handle unknown agent', async () => {
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+  it('should handle unknown agent for start command', async () => {
     await handleAgentCommand('start', 'unknown');
-    expect(consoleSpy).toHaveBeenCalledWith('Only browser agent start is supported');
-    expect(consoleSpy).toHaveBeenCalledWith('Usage: pk agent start browser');
-    consoleSpy.mockRestore();
+    expect(mockConsoleError).toHaveBeenCalledWith('Only browser agent start is supported');
+    expect(mockConsoleError).toHaveBeenCalledWith('Usage: pk agent start browser');
   });
 
   it('should handle unknown command', async () => {
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     await handleAgentCommand('unknown', 'browser');
-    expect(consoleSpy).toHaveBeenCalledWith('Unknown command: unknown');
-    consoleSpy.mockRestore();
+    expect(mockConsoleError).toHaveBeenCalledWith('Error: Unknown command: unknown\n');
   });
 
-  it('should handle missing arguments', async () => {
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    await handleAgentCommand('', '');
-    expect(consoleSpy).toHaveBeenCalledWith('Usage: pk agent <command> [args]');
-    expect(consoleSpy).toHaveBeenCalledWith('Commands: create, list, delete, start, stop');
-    consoleSpy.mockRestore();
+  it('should handle missing arguments for commands that require them', async () => {
+    await handleAgentCommand('show');
+    expect(mockConsoleError).toHaveBeenCalledWith('Usage: pk agent show <agent-name>');
+
+    await handleAgentCommand('delete');
+    expect(mockConsoleError).toHaveBeenCalledWith('Usage: pk agent delete <agent-name>');
+
+    await handleAgentCommand('run');
+    expect(mockConsoleError).toHaveBeenCalledWith('Usage: pk agent run <agent1>,<agent2>');
+  });
+
+  it('should handle filesystem errors gracefully', async () => {
+    vi.mocked(fs.promises.access).mockRejectedValue(new Error('Permission denied'));
+
+    await handleAgentCommand('list');
+
+    expect(mockConsoleError).toHaveBeenCalledWith(
+      expect.stringContaining('Failed to list agents:')
+    );
   });
 });

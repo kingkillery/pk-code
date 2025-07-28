@@ -15,7 +15,6 @@ export default defineConfig({
       '**/dist/**',
       '**/cypress/**',
       '**/*.integration.test.*',
-      'src/commands/agent.test.ts',
       'src/ui/hooks/useCompletion*.test.*',
       'src/ui/contexts/SessionContext.test.tsx',
       'src/config/config.test.ts',

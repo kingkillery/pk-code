@@ -61,14 +61,7 @@ const autoFormatYamlFrontmatter = async (yamlContent: string, filePath: string):
       throw new Error('No AI provider available for YAML formatting');
     }
 
-    const prompt = `You are a YAML formatting expert. Fix the following malformed YAML frontmatter for an agent configuration file. The YAML should be valid and properly formatted with correct indentation. Preserve all the original content but fix syntax issues like improper line breaks, missing quotes, or bad indentation.
-
-Original malformed YAML:
-\`\`\`yaml
-${yamlContent}
-\`\`\`
-
-Return ONLY the corrected YAML content (without the \`\`\`yaml wrapper), properly formatted and ready to parse. The YAML should include fields like name, description, color, etc.`;
+    const prompt = `You are a YAML formatting expert. Fix the following malformed YAML frontmatter for an agent configuration file. The YAML should be valid and properly formatted with correct indentation. Preserve all the original content but fix syntax issues like improper line breaks, missing quotes, or bad indentation.\n\nOriginal malformed YAML:\n\`\`\`yaml\n${yamlContent}\n\`\`\`\n\nReturn ONLY the corrected YAML content (without the \`\`\`yaml wrapper), properly formatted and ready to parse. The YAML should include fields like name, description, color, etc.`;
 
     const fixedYaml = await aiProvider.generateCode(prompt, { model: DEFAULT_OPENROUTER_MODEL });
     const fixedYamlTrimmed = fixedYaml.trim();
@@ -243,32 +236,7 @@ const _processAgentCreation = async (
 
       finalDescription = `Use this agent when you need specialized assistance with ${data.description.toLowerCase()}. Examples: <example>Context: User needs help with ${data.keywords[0]} tasks. user: "Can you help me with ${data.keywords[0]}?" assistant: "I'll use the ${data.name} agent to provide specialized guidance on ${data.keywords[0]} tasks."</example> <example>Context: User has a specific ${data.keywords[1] || data.keywords[0]} challenge. user: "I'm working on ${data.keywords[1] || data.keywords[0]} and need expert advice" assistant: "Let me engage the ${data.name} agent to provide expert assistance with your ${data.keywords[1] || data.keywords[0]} challenge."</example>`;
 
-      systemPrompt = `You are a ${data.name.replace(/-/g, ' ')} specialist, an expert in ${data.keywords.join(', ')}. Your mission is to ${data.description.toLowerCase()}.
-
-When working on tasks, you will:
-
-**Phase 1: Analysis**
-- Understand the requirements thoroughly
-- Identify key challenges and constraints
-- Plan your approach systematically
-
-**Phase 2: Implementation**
-- Execute your plan with precision
-- Follow best practices and conventions
-- Maintain high quality standards
-
-**Phase 3: Verification**
-- Review your work for completeness
-- Validate against requirements
-- Ensure reliability and correctness
-
-**Quality Standards:**
-- Provide clear, actionable guidance
-- Use available tools effectively
-- Maintain professional expertise
-- Focus on practical solutions
-
-Your expertise in ${data.keywords.join(', ')} makes you uniquely qualified to deliver exceptional results in this domain.`;
+      systemPrompt = `You are a ${data.name.replace(/-/g, ' ')} specialist, an expert in ${data.keywords.join(', ')}. Your mission is to ${data.description.toLowerCase()}.\n\nWhen working on tasks, you will:\n\n**Phase 1: Analysis**\n- Understand the requirements thoroughly\n- Identify key challenges and constraints\n- Plan your approach systematically\n\n**Phase 2: Implementation**\n- Execute your plan with precision\n- Follow best practices and conventions\n- Maintain high quality standards\n\n**Phase 3: Verification**\n- Review your work for completeness\n- Validate against requirements\n- Ensure reliability and correctness\n\n**Quality Standards:**\n- Provide clear, actionable guidance\n- Use available tools effectively\n- Maintain professional expertise\n- Focus on practical solutions\n\nYour expertise in ${data.keywords.join(', ')} makes you uniquely qualified to deliver exceptional results in this domain.`;
     }
 
     // Ensure agents directory exists
@@ -483,32 +451,7 @@ const createAgentCommand: Command = {
 
         finalDescription = `Use this agent when you need specialized assistance with ${description.toLowerCase()}. Examples: <example>Context: User needs help with ${keywords[0]} tasks. user: "Can you help me with ${keywords[0]}?" assistant: "I'll use the ${name} agent to provide specialized guidance on ${keywords[0]} tasks."</example> <example>Context: User has a specific ${keywords[1] || keywords[0]} challenge. user: "I'm working on ${keywords[1] || keywords[0]} and need expert advice" assistant: "Let me engage the ${name} agent to provide expert assistance with your ${keywords[1] || keywords[0]} challenge."</example>`;
 
-        systemPrompt = `You are a ${name.replace(/-/g, ' ')} specialist, an expert in ${keywords.join(', ')}. Your mission is to ${description.toLowerCase()}.
-
-When working on tasks, you will:
-
-**Phase 1: Analysis**
-- Understand the requirements thoroughly
-- Identify key challenges and constraints
-- Plan your approach systematically
-
-**Phase 2: Implementation**
-- Execute your plan with precision
-- Follow best practices and conventions
-- Maintain high quality standards
-
-**Phase 3: Verification**
-- Review your work for completeness
-- Validate against requirements
-- Ensure reliability and correctness
-
-**Quality Standards:**
-- Provide clear, actionable guidance
-- Use available tools effectively
-- Maintain professional expertise
-- Focus on practical solutions
-
-Your expertise in ${keywords.join(', ')} makes you uniquely qualified to deliver exceptional results in this domain.`;
+        systemPrompt = `You are a ${name.replace(/-/g, ' ')} specialist, an expert in ${keywords.join(', ')}. Your mission is to ${description.toLowerCase()}.\n\nWhen working on tasks, you will:\n\n**Phase 1: Analysis**\n- Understand the requirements thoroughly\n- Identify key challenges and constraints\n- Plan your approach systematically\n\n**Phase 2: Implementation**\n- Execute your plan with precision\n- Follow best practices and conventions\n- Maintain high quality standards\n\n**Phase 3: Verification**\n- Review your work for completeness\n- Validate against requirements\n- Ensure reliability and correctness\n\n**Quality Standards:**\n- Provide clear, actionable guidance\n- Use available tools effectively\n- Maintain professional expertise\n- Focus on practical solutions\n\nYour expertise in ${keywords.join(', ')} makes you uniquely qualified to deliver exceptional results in this domain.`;
       }
 
       // Create agent configuration for YAML frontmatter
@@ -641,12 +584,10 @@ const listAgentsCommand: Command = {
       let output = `\n🤖 **Available Sub-Agents (${agents.length})**\n\n`;
 
       for (const agent of agents) {
-        output += `**${agent.name}**\n`;
-        output += `  Description: ${agent.description}\n`;
-        output += `  Keywords: ${agent.keywords.join(', ')}\n`;
-        output += `  Model: ${agent.model} (${agent.provider})\n`;
-        output += `  Tools: ${agent.tools.length === 0 ? 'all' : agent.tools.map((t) => t.name).join(', ')}\n\n`;
+        output += `**- ${agent.name}**\n`;
       }
+
+      output += '\nFor more details, run \`pk agent show <agent-name>\`';
 
       return {
         type: 'message',
@@ -658,6 +599,92 @@ const listAgentsCommand: Command = {
         type: 'message',
         messageType: 'error',
         content: `Failed to list agents: ${error instanceof Error ? error.message : String(error)}`,
+      };
+    }
+  },
+};
+
+
+/**
+ * Show agent details command
+ */
+const showAgentCommand: Command = {
+  name: 'show-agent',
+  description: 'Show details for a specific sub-agent',
+  action: async (
+    context: CommandContext,
+    args: string,
+  ): Promise<MessageActionReturn> => {
+    const { services } = context;
+
+    if (!services.config?.getProjectRoot()) {
+      return {
+        type: 'message',
+        messageType: 'error',
+        content:
+          'No project root found. Please run this command from within a project.',
+      };
+    }
+
+    const agentName = args.trim();
+    if (!agentName) {
+      return {
+        type: 'message',
+        messageType: 'error',
+        content: 'Usage: /agent show <agent-name>',
+      };
+    }
+
+    try {
+      const agentsDir = getAgentsDir(services.config.getProjectRoot());
+      const baseFileName = agentName.toLowerCase().replace(/[^a-z0-9]/g, '-');
+
+      // Try to find the agent file (check both .md and .json extensions)
+      const possibleExtensions = ['.md', '.json'];
+      let filePath: string | null = null;
+
+      for (const ext of possibleExtensions) {
+        const testPath = path.join(agentsDir, baseFileName + ext);
+        try {
+          await fs.access(testPath);
+          filePath = testPath;
+          break;
+        } catch {
+          // File doesn't exist, try next extension
+        }
+      }
+
+      if (!filePath) {
+        return {
+          type: 'message',
+          messageType: 'error',
+          content: `Agent "${agentName}" not found.`,
+        };
+      }
+
+      const content = await fs.readFile(filePath, 'utf-8');
+      const agent = await parseAgentFromFile(filePath, content);
+
+      let output = `\n🤖 **Agent: ${agent.name}**\n\n`;
+      output += `  **Description**: ${agent.description || 'No description'}\n`;
+      output += `  **Keywords**: ${(agent.keywords || []).join(', ')}\n`;
+      output += `  **Model**: ${agent.model || 'default'} (${agent.provider || 'default'})\n`;
+      output += `  **Tools**: ${(!agent.tools || agent.tools.length === 0) ? 'all' : agent.tools.map((t:any) => t.name).join(', ')}\n`;
+
+      if (agent.systemPrompt) {
+        output += `\n---\n**System Prompt**:\n${agent.systemPrompt}\n`;
+      }
+
+      return {
+        type: 'message',
+        messageType: 'info',
+        content: output,
+      };
+    } catch (error) {
+      return {
+        type: 'message',
+        messageType: 'error',
+        content: `Failed to show agent: ${error instanceof Error ? error.message : String(error)}`,
       };
     }
   },
@@ -757,6 +784,12 @@ export const agentCommand: Command = {
       action: listAgentsCommand.action,
     },
     {
+      name: 'show',
+      altName: 'view',
+      description: 'Show details for a specific sub-agent',
+      action: showAgentCommand.action,
+    },
+    {
       name: 'delete',
       altName: 'rm',
       description: 'Delete a sub-agent',
@@ -767,3 +800,34 @@ export const agentCommand: Command = {
 
 // Only export the hierarchical agent command structure
 // Individual commands are now only accessible via /agent subcommands
+
+
+import { render } from 'ink';
+import { MultiAgentRun } from '../components/MultiAgentRun.js';
+import { AgentRunner } from '../../agent/AgentRunner.js';
+import React from 'react';
+
+/**
+ * Run multiple agents in parallel with UI rendering
+ */
+const runAgents = (runners: AgentRunner[]): void => {
+  const { unmount } = render(React.createElement(MultiAgentRun, { runners }));
+
+  // Start all agents in parallel
+  Promise.all(runners.map(runner => runner.run()))
+    .then(() => {
+      // Wait a moment to show completion, then unmount
+      setTimeout(() => {
+        unmount();
+      }, 2000);
+    })
+    .catch((error) => {
+      console.error('Agent execution failed:', error);
+      unmount();
+    });
+};
+
+export const agentCommands = {
+  create: _processAgentCreation,
+  run: runAgents,
+};

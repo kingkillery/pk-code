@@ -19,13 +19,15 @@ function showAgentHelp(errorMessage?: string) {
     console.error(`Error: ${errorMessage}\n`);
   }
   console.error('Usage: pk agent <command> [args]');
-  console.error('Commands: create, list, delete, start, stop, help');
+console.error('Commands: create, list, show, delete, start, stop, help, run');
   console.error('Examples:');
   console.error('  pk agent list                    # List all agents');
+  console.error('  pk agent show <name>             # Show details for an agent');
   console.error('  pk agent create                  # Create agent interactively');
   console.error('  pk agent delete <name>           # Delete an agent');
   console.error('  pk agent start browser           # Start browser agent');
-  console.error('  pk agent stop browser            # Stop browser agent');
+console.error('  pk agent stop browser            # Stop browser agent');
+  console.error('  pk agent run \'<agent1>,<agent2>\'    # Run one or more agents in parallel');
   console.error('  pk agent help                    # Show this help message');
 }
 
@@ -43,6 +45,14 @@ export async function handleAgentCommand(
     case 'list':
     case 'ls':
       await handleListAgents();
+      break;
+    case 'show':
+    case 'view':
+      if (!agentNameOrArgs) {
+        console.error('Usage: pk agent show <agent-name>');
+        return;
+      }
+      await handleShowAgent(agentNameOrArgs);
       break;
     case 'create':
       await handleCreateAgent();
@@ -70,6 +80,13 @@ export async function handleAgentCommand(
         console.error('Only browser agent stop is supported');
         console.error('Usage: pk agent stop browser');
       }
+      break;
+    case 'run':
+      if (!agentNameOrArgs) {
+        console.error('Usage: pk agent run <agent1>,<agent2>');
+        return;
+      }
+      await handleRunAgents(agentNameOrArgs.split(','));
       break;
     case 'help':
     case '-h':
@@ -127,11 +144,54 @@ async function handleListAgents(): Promise<void> {
     // Format agent list
     console.log(`\n🤖 Available Agents (${agents.length}):\n`);
     for (const agent of agents) {
-      console.log(`- **${agent.name}**: ${agent.description}`);
+      console.log(`- ${agent.name}`);
     }
-    console.log('\nFor more details, use the interactive UI (run "pk" without arguments).');
+    console.log('\nFor more details, use `pk agent show <agent-name>`.');
   } catch (error) {
     console.error(`Failed to list agents: ${error instanceof Error ? error.message : String(error)}`);
+  }
+}
+
+async function handleShowAgent(agentName: string): Promise<void> {
+  try {
+    const projectRoot = process.cwd();
+    const agentsDir = getAgentsDir(projectRoot);
+    const baseFileName = agentName.toLowerCase().replace(/[^a-z0-9]/g, '-');
+
+    // Try to find the agent file (check both .md and .json extensions)
+    const possibleExtensions = ['.md', '.json'];
+    let filePath: string | null = null;
+
+    for (const ext of possibleExtensions) {
+      const testPath = path.join(agentsDir, baseFileName + ext);
+      try {
+        await fs.promises.access(testPath);
+        filePath = testPath;
+        break;
+      } catch {
+        // File doesn't exist, try next extension
+      }
+    }
+
+    if (!filePath) {
+      console.error(`Agent "${agentName}" not found.`);
+      return;
+    }
+
+    const content = await fs.promises.readFile(filePath, 'utf-8');
+    const agent = await parseAgentFromFile(filePath, content);
+
+    console.log(`\n🤖 Agent: ${agent.name}\n`);
+    console.log(`  Description: ${agent.description || 'No description'}`);
+    console.log(`  Keywords: ${(agent.keywords || []).join(', ')}`);
+    console.log(`  Model: ${agent.model || 'default'} (${agent.provider || 'default'})`);
+    console.log(`  Tools: ${(!agent.tools || agent.tools.length === 0) ? 'all' : agent.tools.map((t: any) => t.name).join(', ')}`);
+    if (agent.systemPrompt) {
+        console.log(`\n---\nSystem Prompt:\n${agent.systemPrompt}`);
+    }
+
+  } catch (error) {
+    console.error(`Failed to show agent: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 
@@ -264,4 +324,42 @@ async function stopBrowserAgent() {
     }
     console.log('Browser agent stopped.');
   }
+}
+
+import { render } from 'ink';
+import { MultiAgentRun } from '../ui/components/MultiAgentRun.js';
+import { AgentRunner } from '../agent/AgentRunner.js';
+import React from 'react';
+import { agentCommands } from '../ui/commands/agentCommands.js';
+
+async function handleRunAgents(agentNames: string[]): Promise<void> {
+  const projectRoot = process.cwd();
+  const agentsDir = getAgentsDir(projectRoot);
+
+  const runners = await Promise.all(
+    agentNames.map(async agentName => {
+      const baseFileName = agentName.toLowerCase().replace(/[^a-z0-9]/g, '-');
+      const possibleExtensions = ['.md', '.json'];
+      let filePath: string | null = null;
+
+      for (const ext of possibleExtensions) {
+        const testPath = path.join(agentsDir, baseFileName + ext);
+        try {
+          await fs.promises.access(testPath);
+          filePath = testPath;
+          break;
+        } catch {}
+      }
+
+      if (!filePath) {
+        throw new Error(`Agent \"${agentName}\" not found.`);
+      }
+
+      const content = await fs.promises.readFile(filePath, 'utf-8');
+      const agent = await parseAgentFromFile(filePath, content);
+      return new AgentRunner(agent);
+    })
+  );
+
+  agentCommands.run(runners);
 }
