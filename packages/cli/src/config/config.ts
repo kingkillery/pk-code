@@ -258,7 +258,7 @@ export async function parseArguments(): Promise<CliArgs> {
         yargs
           .positional('command', {
             describe: 'The command to execute',
-            choices: ['start', 'stop', 'list', 'create', 'delete'],
+            choices: ['start', 'stop', 'list', 'create', 'delete', 'run'],
             demandOption: true,
           })
           .positional('agentName', {

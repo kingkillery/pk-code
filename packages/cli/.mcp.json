@@ -1,18 +1,18 @@
 {
-	"mcpServers": {
-		"browser-use": {
-			"command": "cmd",
-			"args": [
-				"/c",
-				"uvx",
-				"--from",
-				"browser-use[cli]",
-				"browser-use",
-				"--mcp"
-			],
-			"env": {
-				"BROWSER_USE_USER_DATA_DIR": "/custom/path"
-			}
-		}
-	}
+  "mcpServers": {
+    "browser-use": {
+      "command": "cmd",
+      "args": [
+        "/c",
+        "uvx",
+        "--from",
+        "browser-use[cli]",
+        "browser-use",
+        "--mcp"
+      ],
+      "env": {
+        "BROWSER_USE_USER_DATA_DIR": "/custom/path"
+      }
+    }
+  }
 }

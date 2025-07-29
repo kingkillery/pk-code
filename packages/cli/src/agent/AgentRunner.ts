@@ -16,10 +16,9 @@ export class AgentRunner {
     this.latestOutput = 'Agent is running...';
 
     // Simulate agent work
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
 
     this.status = 'success';
     this.latestOutput = 'Agent finished successfully.';
   }
 }
-

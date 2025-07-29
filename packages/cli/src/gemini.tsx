@@ -109,7 +109,8 @@ export async function main() {
   if (argv._[0] === 'config') {
     await handleConfigCommand(
       (argv as unknown as { action?: string }).action || (argv._[1] as string),
-      (argv as unknown as { provider?: string }).provider || (argv._[2] as string),
+      (argv as unknown as { provider?: string }).provider ||
+        (argv._[2] as string),
       (argv as unknown as { apiKey?: string }).apiKey || (argv._[3] as string),
     );
     process.exit(0);
@@ -507,4 +508,3 @@ async function validateNonInterActiveAuth(
   await nonInteractiveConfig.refreshAuth(selectedAuthType);
   return nonInteractiveConfig;
 }
-

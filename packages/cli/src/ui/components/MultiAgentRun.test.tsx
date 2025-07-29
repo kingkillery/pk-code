@@ -36,7 +36,7 @@ describe('MultiAgentRun', () => {
   beforeEach(() => {
     mockRunner1 = new AgentRunner(mockAgent1);
     mockRunner2 = new AgentRunner(mockAgent2);
-    
+
     // Mock timers for the component's setInterval
     vi.useFakeTimers();
   });
@@ -46,8 +46,10 @@ describe('MultiAgentRun', () => {
   });
 
   it('should render multiple agent runners', () => {
-    const { lastFrame } = render(<MultiAgentRun runners={[mockRunner1, mockRunner2]} />);
-    
+    const { lastFrame } = render(
+      <MultiAgentRun runners={[mockRunner1, mockRunner2]} />,
+    );
+
     expect(lastFrame()).toContain('test-agent-1');
     expect(lastFrame()).toContain('test-agent-2');
     expect(lastFrame()).toContain('pending'); // Default status
@@ -60,8 +62,10 @@ describe('MultiAgentRun', () => {
     mockRunner2.status = 'success';
     mockRunner2.latestOutput = 'Task completed successfully';
 
-    const { lastFrame } = render(<MultiAgentRun runners={[mockRunner1, mockRunner2]} />);
-    
+    const { lastFrame } = render(
+      <MultiAgentRun runners={[mockRunner1, mockRunner2]} />,
+    );
+
     expect(lastFrame()).toContain('running');
     expect(lastFrame()).toContain('success');
     expect(lastFrame()).toContain('Processing task...');
@@ -69,19 +73,21 @@ describe('MultiAgentRun', () => {
   });
 
   it('should update display when runner states change', () => {
-    const { lastFrame, rerender } = render(<MultiAgentRun runners={[mockRunner1]} />);
-    
+    const { lastFrame, rerender } = render(
+      <MultiAgentRun runners={[mockRunner1]} />,
+    );
+
     // Initial state
     expect(lastFrame()).toContain('pending');
     expect(lastFrame()).not.toContain('Agent completed');
-    
+
     // Update runner state
     mockRunner1.status = 'success';
     mockRunner1.latestOutput = 'Agent completed';
-    
+
     // Re-render component
     rerender(<MultiAgentRun runners={[mockRunner1]} />);
-    
+
     // Should show updated state
     expect(lastFrame()).toContain('success');
     expect(lastFrame()).toContain('Agent completed');
@@ -89,19 +95,21 @@ describe('MultiAgentRun', () => {
 
   it('should handle empty runners array', () => {
     const { lastFrame } = render(<MultiAgentRun runners={[]} />);
-    
+
     // Should not crash and should render empty container
     expect(lastFrame()).toBeDefined();
     expect(lastFrame()).not.toContain('test-agent');
   });
 
   it('should handle runners with different colors', () => {
-    const { lastFrame } = render(<MultiAgentRun runners={[mockRunner1, mockRunner2]} />);
-    
+    const { lastFrame } = render(
+      <MultiAgentRun runners={[mockRunner1, mockRunner2]} />,
+    );
+
     // The output should contain the agent names
     expect(lastFrame()).toContain('test-agent-1');
     expect(lastFrame()).toContain('test-agent-2');
-    
+
     // Note: Testing actual colors in terminal output is complex,
     // but we can verify the component renders without errors
     expect(lastFrame()).toBeTruthy();
@@ -114,8 +122,10 @@ describe('MultiAgentRun', () => {
     };
     const runnerWithoutColor = new AgentRunner(agentWithoutColor);
 
-    const { lastFrame } = render(<MultiAgentRun runners={[runnerWithoutColor]} />);
-    
+    const { lastFrame } = render(
+      <MultiAgentRun runners={[runnerWithoutColor]} />,
+    );
+
     expect(lastFrame()).toContain('test-agent-1');
     expect(lastFrame()).toBeTruthy();
   });
@@ -128,7 +138,7 @@ describe('MultiAgentRun', () => {
     runners[1].latestOutput = 'Something went wrong';
 
     const { lastFrame } = render(<MultiAgentRun runners={runners} />);
-    
+
     expect(lastFrame()).toContain('running');
     expect(lastFrame()).toContain('error');
     expect(lastFrame()).toContain('In progress...');

@@ -26,7 +26,7 @@ let agentConfigSchema: Record<string, unknown>;
 // Load schema lazily to avoid path issues during test module loading
 const loadSchema = async (): Promise<void> => {
   if (agentConfigSchema !== undefined) return;
-  
+
   try {
     const __dirname = path.dirname(fileURLToPath(import.meta.url));
     const schemaPath = path.join(__dirname, 'agent-config.schema.json');
@@ -177,7 +177,9 @@ export class AgentLoader {
   /**
    * Validate agent configuration against schema
    */
-  private async validateAgentConfig(config: AgentConfig): Promise<string | null> {
+  private async validateAgentConfig(
+    config: AgentConfig,
+  ): Promise<string | null> {
     await loadSchema();
     if (!agentConfigSchema || Object.keys(agentConfigSchema).length === 0) {
       return null; // Skip validation if schema not available
@@ -250,7 +252,7 @@ export class AgentLoader {
       paths.push({ path: projectAgentsPath, source: 'project' });
     }
 
-// Global agents directory – compute lazily so that test suites can mock os.homedir() before this executes.
+    // Global agents directory – compute lazily so that test suites can mock os.homedir() before this executes.
     if (this.options.includeGlobal) {
       const globalAgentsDir = path.join(os.homedir(), GEMINI_DIR, 'agents');
       if (await this.directoryExists(globalAgentsDir)) {

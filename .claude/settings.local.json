@@ -25,7 +25,8 @@
       "Bash(task-master show:*)",
       "Bash(task-master update-subtask:*)",
       "Bash(npm start:*)",
-      "Bash(task-master:*)"
+      "Bash(task-master:*)",
+      "Bash(ls:*)"
     ],
     "deny": []
   },

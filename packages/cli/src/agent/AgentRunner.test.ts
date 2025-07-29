@@ -28,14 +28,14 @@ describe('AgentRunner', () => {
 
   it('should update status and output during run', async () => {
     const runPromise = runner.run();
-    
+
     // Initially should be running
     expect(runner.status).toBe('running');
     expect(runner.latestOutput).toBe('Agent is running...');
-    
+
     // Wait for completion
     await runPromise;
-    
+
     // Should be success after completion
     expect(runner.status).toBe('success');
     expect(runner.latestOutput).toBe('Agent finished successfully.');
@@ -45,23 +45,26 @@ describe('AgentRunner', () => {
     // Track status changes
     const statusChanges: string[] = [];
     const outputChanges: string[] = [];
-    
+
     // Start the run process
     const runPromise = runner.run();
-    
+
     // Capture initial status
     statusChanges.push(runner.status);
     outputChanges.push(runner.latestOutput);
-    
+
     // Wait for completion
     await runPromise;
-    
+
     // Capture final status
     statusChanges.push(runner.status);
     outputChanges.push(runner.latestOutput);
-    
+
     expect(statusChanges).toEqual(['running', 'success']);
-    expect(outputChanges).toEqual(['Agent is running...', 'Agent finished successfully.']);
+    expect(outputChanges).toEqual([
+      'Agent is running...',
+      'Agent finished successfully.',
+    ]);
   });
 
   it('should work with different agent configurations', () => {
@@ -78,7 +81,7 @@ describe('AgentRunner', () => {
     };
 
     const customRunner = new AgentRunner(customAgent);
-    
+
     expect(customRunner.agent.name).toBe('custom-agent');
     expect(customRunner.agent.color).toBe('red');
     expect(customRunner.status).toBe('pending');

@@ -27,6 +27,13 @@ import {
   setGeminiMdFilename,
   GEMINI_CONFIG_DIR as GEMINI_DIR,
 } from '../tools/memoryTool.js';
+import { TaskTool } from '../tools/task.js';
+import {
+  AgentRegistry,
+  getGlobalAgentRegistry,
+} from '../agents/agent-registry.js';
+import { ParsedAgent } from '../agents/types.js';
+import { ContentGenerator } from '../core/contentGenerator.js';
 import { GeminiClient } from '../core/client.js';
 import { FileDiscoveryService } from '../services/fileDiscoveryService.js';
 import { GitService } from '../services/gitService.js';
@@ -648,6 +655,27 @@ export class Config {
     registerCoreTool(ShellTool, this);
     registerCoreTool(MemoryTool);
     // registerCoreTool(WebSearchTool, this); // Temporarily disabled
+
+    // Register Task tool for sub-agent functionality
+    try {
+      const agentRegistry = getGlobalAgentRegistry(this.getWorkingDir());
+      const contentGeneratorFactory = async (
+        agent: ParsedAgent,
+      ): Promise<ContentGenerator> => {
+        if (this.geminiClient && this.geminiClient.isInitialized()) {
+          return this.geminiClient.getContentGenerator();
+        }
+        throw new Error(
+          'Gemini client not initialized for sub-agent execution',
+        );
+      };
+      registerCoreTool(TaskTool, agentRegistry, contentGeneratorFactory);
+    } catch (error) {
+      // If agent registry isn't available, skip Task tool registration
+      console.warn(
+        'Task tool registration skipped: Agent registry not available',
+      );
+    }
 
     // Note: Tool discovery moved to initializeTools() to decouple from creation
     return registry;

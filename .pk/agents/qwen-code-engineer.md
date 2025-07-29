@@ -2,23 +2,23 @@
 name: qwen-code-engineer
 description: |
   Use this agent when working on the Qwen-Code codebase for any engineering tasks including bug fixes, feature development, code reviews, refactoring, testing, or architectural improvements. This agent should be your primary choice for all development work within the Qwen-Code project.
-  
+
   Examples:
-  
+
   <example>
   Context: User is working on implementing a new authentication provider for the Qwen-Code CLI.
   user: "I need to add support for Anthropic's Claude API as a new authentication method in the CLI"
   assistant: "I'll use the qwen-code-engineer agent to implement this new authentication provider following the established patterns in the codebase"
   <commentary>Since this involves engineering work on the Qwen-Code codebase, use the qwen-code-engineer agent to handle the implementation with proper architectural consideration.</commentary>
   </example>
-  
+
   <example>
   Context: User discovers a bug in the file discovery service.
   user: "The file discovery service is not properly respecting .gitignore patterns in subdirectories"
   assistant: "Let me use the qwen-code-engineer agent to investigate and fix this gitignore handling bug"
   <commentary>This is a bug that needs to be fixed in the Qwen-Code codebase, so use the qwen-code-engineer agent to handle the debugging and fix.</commentary>
   </example>
-  
+
   <example>
   Context: User wants to refactor the tool registry system.
   user: "The tool registry is getting complex, we should refactor it to be more modular"

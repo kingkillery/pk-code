@@ -101,4 +101,4 @@ export const useShellHistory = (projectRoot: string = os.homedir()) => {
     getNextCommand,
     resetHistoryPosition: () => setHistoryIndex(-1),
   };
-}
+};

@@ -1040,7 +1040,7 @@ describe('handleConfigCommand browser', () => {
   });
 
   it('should save the default browser path', async () => {
-(os.platform as unknown as jest.Mock).mockReturnValue('win32');
+    (os.platform as unknown as jest.Mock).mockReturnValue('win32');
     vi.mocked(fs.readFile).mockResolvedValue('{}');
     const rl = {
       question: vi.fn((_, cb) => cb('')),
@@ -1128,7 +1128,7 @@ describe('detectChromeUserDataPath', () => {
   });
 
   it('should detect macOS Chrome path correctly when directory exists', async () => {
-(os.platform as unknown as jest.Mock).mockReturnValue('darwin');
+    (os.platform as unknown as jest.Mock).mockReturnValue('darwin');
     (os.homedir as unknown as jest.Mock).mockReturnValue('/Users/testuser');
 
     vi.mocked(fs.stat).mockResolvedValue({
@@ -1147,7 +1147,7 @@ describe('detectChromeUserDataPath', () => {
   });
 
   it('should detect Linux Chrome path correctly when directory exists', async () => {
-(os.platform as unknown as jest.Mock).mockReturnValue('linux');
+    (os.platform as unknown as jest.Mock).mockReturnValue('linux');
     (os.homedir as unknown as jest.Mock).mockReturnValue('/home/testuser');
 
     vi.mocked(fs.stat).mockResolvedValue({
@@ -1217,7 +1217,7 @@ describe('detectChromeUserDataPath', () => {
   });
 
   it('should handle unsupported platform', async () => {
-(os.platform as unknown as jest.Mock).mockReturnValue('freebsd');
+    (os.platform as unknown as jest.Mock).mockReturnValue('freebsd');
 
     const result = await detectChromeUserDataPath();
 
@@ -1243,7 +1243,7 @@ describe('detectChromeUserDataPath', () => {
   });
 
   it('should still verify as valid when Local State file is missing', async () => {
-(os.platform as unknown as jest.Mock).mockReturnValue('win32');
+    (os.platform as unknown as jest.Mock).mockReturnValue('win32');
     (os.homedir as unknown as jest.Mock).mockReturnValue('C:\\Users\\TestUser');
 
     vi.mocked(fs.stat).mockResolvedValue({

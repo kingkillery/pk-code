@@ -106,7 +106,9 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
     checkForUpdates().then(setUpdateMessage);
   }, []);
 
-  const { history, addItem, clearItems, loadHistory } = useHistory(config.getProjectRoot());
+  const { history, addItem, clearItems, loadHistory } = useHistory(
+    config.getProjectRoot(),
+  );
   const {
     consoleMessages,
     handleNewMessage,

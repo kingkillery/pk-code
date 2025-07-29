@@ -11,15 +11,21 @@ export const MultiAgentRun: React.FC<MultiAgentRunProps> = ({ runners }) => {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setRender(r => r + 1);
+      setRender((r) => r + 1);
     }, 100);
     return () => clearInterval(interval);
   }, []);
 
   return (
     <Box flexDirection="column">
-      {runners.map(runner => (
-        <Box key={runner.agent.name} flexDirection="column" borderStyle="round" padding={1} marginBottom={1}>
+      {runners.map((runner) => (
+        <Box
+          key={runner.agent.name}
+          flexDirection="column"
+          borderStyle="round"
+          padding={1}
+          marginBottom={1}
+        >
           <Text color={(runner.agent as any).color || 'white'}>
             {runner.agent.name} - {runner.status}
           </Text>

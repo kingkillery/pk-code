@@ -24,9 +24,7 @@
             "id": 2,
             "title": "Create agent command file structure",
             "description": "Create the packages/cli/src/commands/agent.ts file with the basic Commander.js command structure for the agent command and its subcommands.",
-            "dependencies": [
-              "46.1"
-            ],
+            "dependencies": ["46.1"],
             "details": "Set up the agent.ts file with Commander.js program instance, define the main 'agent' command, and create the subcommand structure for 'start' and 'stop' with proper argument handling for <agent_type>.",
             "status": "done",
             "testStrategy": "Verify the file is created with proper TypeScript imports and basic command structure that can be imported without errors."
@@ -35,9 +33,7 @@
             "id": 3,
             "title": "Implement start and stop subcommand definitions",
             "description": "Define the 'start' and 'stop' subcommands in agent.ts with proper argument parsing, validation, and placeholder command handlers.",
-            "dependencies": [
-              "46.2"
-            ],
+            "dependencies": ["46.2"],
             "details": "Create 'start <agent_type>' and 'stop <agent_type>' subcommands with argument validation to ensure 'browser' is the accepted agent type. Add descriptive help text and error handling for invalid agent types.",
             "status": "done",
             "testStrategy": "Test argument parsing by running the commands with various inputs and verify proper error messages are shown for invalid agent types."
@@ -46,10 +42,7 @@
             "id": 4,
             "title": "Register agent command in main CLI index",
             "description": "Add the agent command to the main CLI command registration file to make it discoverable through the pk CLI.",
-            "dependencies": [
-              "46.2",
-              "46.3"
-            ],
+            "dependencies": ["46.2", "46.3"],
             "details": "Import the agent command from agent.ts into packages/cli/src/commands/index.ts and add it to the command registration/export structure following the existing pattern used by other commands.",
             "status": "done",
             "testStrategy": "Run 'pk --help' to verify the agent command appears in the available commands list."
@@ -58,10 +51,7 @@
             "id": 5,
             "title": "Add comprehensive help text and command validation",
             "description": "Implement detailed help text for the agent command and its subcommands, and add proper command validation and error handling.",
-            "dependencies": [
-              "46.3",
-              "46.4"
-            ],
+            "dependencies": ["46.3", "46.4"],
             "details": "Add descriptive help text explaining the purpose of the agent command, its subcommands, and the browser agent type. Include usage examples and ensure error messages are clear and actionable.",
             "status": "done",
             "testStrategy": "Run 'pk agent --help' to verify subcommands are listed with proper descriptions. Execute 'pk agent start browser' and 'pk agent stop browser' to confirm commands are recognized and provide appropriate feedback even without full implementation."
@@ -91,9 +81,7 @@
             "id": 2,
             "title": "Set up inquirer interactive prompt interface",
             "description": "Configure inquirer to present users with auto-detected Chrome path and options for manual entry or confirmation.",
-            "dependencies": [
-              "47.1"
-            ],
+            "dependencies": ["47.1"],
             "details": "Use inquirer to create an interactive prompt that shows the auto-detected Chrome path (if found) and asks for confirmation. Provide options to use detected path, enter custom path, or cancel. Include input validation for custom paths to ensure they exist and are accessible.",
             "status": "done",
             "testStrategy": "Test prompt flow with auto-detected paths. Test manual path entry with valid and invalid paths. Test cancellation behavior (Ctrl+C). Verify input validation works correctly."
@@ -102,9 +90,7 @@
             "id": 3,
             "title": "Integrate with existing config system for path storage",
             "description": "Connect the browser command to the existing configuration system to persist the Chrome user data directory path.",
-            "dependencies": [
-              "47.2"
-            ],
+            "dependencies": ["47.2"],
             "details": "Use the existing config infrastructure from packages/cli/src/config/config.ts to store the browser path setting. Add a new config key for browser path storage. Ensure the path is saved securely and can be retrieved by other parts of the system.",
             "status": "done",
             "testStrategy": "Verify that configured paths are properly stored and retrievable. Test config persistence across CLI sessions. Ensure integration with existing config commands doesn't break."
@@ -113,9 +99,7 @@
             "id": 4,
             "title": "Add browser subcommand to CLI command structure",
             "description": "Create the 'browser' subcommand under the existing 'config' command in the CLI architecture.",
-            "dependencies": [
-              "47.3"
-            ],
+            "dependencies": ["47.3"],
             "details": "Add the browser subcommand to packages/cli/src/commands/config.ts or create a separate config/browser.ts file. Ensure proper command registration and help text. Follow existing CLI patterns and conventions used in other config subcommands.",
             "status": "done",
             "testStrategy": "Test that 'pk config browser' is recognized as a valid command. Verify help text is displayed correctly. Test command shows up in 'pk config --help' output."
@@ -124,12 +108,7 @@
             "id": 5,
             "title": "Implement comprehensive error handling and user feedback",
             "description": "Add robust error handling for all failure scenarios including permission issues, invalid paths, and system-specific edge cases.",
-            "dependencies": [
-              "47.1",
-              "47.2",
-              "47.3",
-              "47.4"
-            ],
+            "dependencies": ["47.1", "47.2", "47.3", "47.4"],
             "details": "Handle scenarios like: insufficient permissions to access Chrome directory, Chrome not installed, custom path doesn't exist, path is not a directory, and system-specific access issues. Provide clear, actionable error messages for each case. Ensure graceful handling of user cancellation.",
             "status": "done",
             "testStrategy": "Test with insufficient permissions, non-existent paths, files instead of directories, and various edge cases. Verify error messages are helpful and non-technical. Test cancellation handling."
@@ -143,9 +122,7 @@
         "details": "The logic for `pk config browser` should read the `.mcp.json` file. Upon successful path input from the user, it must validate that the directory path exists on the filesystem. If valid, it will update the `BROWSER_USE_USER_DATA_DIR` key within the `browser-use` server configuration object and save the file. Handle cases where the file or keys do not yet exist.",
         "testStrategy": "Check the state of `.mcp.json` before running the command. Run `pk config browser`, provide a valid path, and confirm that `.mcp.json` is correctly updated. Test again by providing an invalid/non-existent path and verify that the command shows an error and does not update the configuration file.",
         "priority": "high",
-        "dependencies": [
-          47
-        ],
+        "dependencies": [47],
         "status": "done",
         "subtasks": []
       },
@@ -156,9 +133,7 @@
         "details": "The script should use a command-line JSON processor like `jq` to parse `.mcp.json` and extract the `BROWSER_USE_USER_DATA_DIR` value. This value should then be exported as an environment variable that is used when executing the `uvx browser-use --mcp` command. Add basic error handling to the script for cases where `jq` is not installed or the config file is missing.",
         "testStrategy": "Manually execute the modified `start-browser-agent.sh` script in a terminal. Verify that it correctly reads the path from a sample `.mcp.json`. Use `echo` statements or logging to confirm that the correct environment variable is set before the `uvx` command is called.",
         "priority": "medium",
-        "dependencies": [
-          48
-        ],
+        "dependencies": [48],
         "status": "done",
         "subtasks": []
       },
@@ -167,10 +142,7 @@
         "title": "Implement Browser Agent Process Lifecycle Management",
         "description": "Develop the core logic in `agent.ts` for the `pk agent start browser` and `pk agent stop browser` commands to manage the browser-use MCP server process.",
         "status": "done",
-        "dependencies": [
-          46,
-          49
-        ],
+        "dependencies": [46, 49],
         "priority": "high",
         "details": "**Context:**\nThis task builds on completed work for CLI registration (46), browser config (47), .mcp.json integration (48), and the dynamic agent script (49). The current `agent.ts` contains placeholder start/stop functions that require full implementation.\n\n**Key Files & Constants:**\n- Main Logic: `packages/cli/src/commands/agent.ts`\n- Script to Execute: `scripts/start-browser-agent.sh`\n- Configuration Source: `.mcp.json`\n- PID File Path: `path.join('.taskmaster', 'browser-agent.pid')` (constant: `BROWSER_AGENT_PID_FILE`)\n\n**Implementation Plan:**\n\n1.  **Enhance `startBrowserAgent()`:**\n    -   Before starting, perform pre-checks: verify `.mcp.json` exists and that no agent process is already running (check PID file).\n    -   Ensure the `.taskmaster` directory exists before attempting to write the PID file.\n    -   Use `child_process.spawn` to run `start-browser-agent.sh` in detached mode. Implement cross-platform compatibility for spawning the script.\n    -   Capture the new process ID (PID), validate it, and write it to the `browser-agent.pid` file.\n    -   Implement robust error handling for spawn failures or PID writing issues.\n\n2.  **Enhance `stopBrowserAgent()`:**\n    -   Read the PID from `browser-agent.pid`.\n    -   Handle stale PID files: if the file exists but the process ID is not running, notify the user and clean up the file.\n    -   Implement a graceful termination sequence: first send `SIGTERM`, wait briefly, and if the process still exists, send `SIGKILL`.\n    -   Add comprehensive error handling for cases where the process is already gone or the PID file is missing.\n    -   Delete the PID file upon successful termination.\n\n3.  **Cross-Platform Logic:**\n    -   For Unix-like systems (Linux, macOS): `spawn('bash', [scriptPath], { detached: true, stdio: 'ignore' })`\n    -   For Windows: `spawn('cmd', ['/c', 'bash', scriptPath], { detached: true, stdio: 'ignore' })`\n    -   Handle potential permission and script execution errors on all platforms.",
         "testStrategy": "Run `pk agent start browser`. Verify that a `uvx` process is running and that the `.taskmaster/browser-agent.pid` file is created with the correct PID. Run `pk agent stop browser`. Verify the process is terminated and the PID file is removed. Test starting and stopping multiple times to check for stability. Also test edge cases like starting an already running agent and stopping a non-existent one.",
@@ -181,9 +153,7 @@
         "title": "Ensure Windows Compatibility for Agent Scripts and Process Management",
         "description": "Create a Windows-compatible version of the start script and update the Node.js process management logic to be cross-platform.",
         "status": "pending",
-        "dependencies": [
-          50
-        ],
+        "dependencies": [50],
         "priority": "medium",
         "details": "The Windows batch script (start-browser-agent.bat) has been created and mirrors the bash functionality with PowerShell JSON parsing and findstr fallback. Now need to update agent.ts to use platform detection for script selection and improve Windows process termination using taskkill instead of SIGTERM/SIGKILL.",
         "testStrategy": "On a Windows 10/11 machine, perform the full end-to-end test: run `pk config browser`, then `pk agent start browser`, and finally `pk agent stop browser`. Use Task Manager or `tasklist` to verify the `uvx` process is created and terminated correctly.",
@@ -242,9 +212,7 @@
         "details": "This task focuses on verifying the connection between the core CLI and the background agent process. The existing `mcp-client.ts` should handle the connection and tool prefixing. The primary goal is to confirm that when the agent is running, the client successfully connects on the configured port and registers the browser tools (e.g., `browser.navigate`).",
         "testStrategy": "1. Start the agent with `pk agent start browser`. 2. Initiate an AI session with `pk chat`. 3. Check the CLI debug logs for messages indicating a successful connection to the browser-use MCP server and registration of tools. 4. Issue a command to the AI like 'navigate to piece.work' and verify it executes correctly.",
         "priority": "high",
-        "dependencies": [
-          50
-        ],
+        "dependencies": [50],
         "status": "done",
         "subtasks": []
       },
@@ -255,11 +223,7 @@
         "details": "Review all new code paths and implement checks for potential failures. This includes: `browser-use` package not being installed, configured Chrome path not existing, agent already running when `start` is called, agent not running when `stop` is called, stale PID file, and MCP port conflicts. For each case, provide a clear, user-friendly error message and exit gracefully.",
         "testStrategy": "Systematically trigger each error condition. For example: uninstall `browser-use`, run `pk agent start browser`. Configure a bad path, run `start`. Run `start` twice. Manually kill the agent process, then run `stop`. Verify that in each case, the CLI outputs a helpful error message and does not crash.",
         "priority": "medium",
-        "dependencies": [
-          50,
-          51,
-          52
-        ],
+        "dependencies": [50, 51, 52],
         "status": "pending",
         "subtasks": []
       }
