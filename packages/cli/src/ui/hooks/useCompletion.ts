@@ -207,7 +207,7 @@ export function useCompletion(
           setActiveSuggestionIndex(finalSuggestions.length > 0 ? 0 : -1);
           setIsLoadingSuggestions(false);
         };
-        fetchAndSetSuggestions();
+        void fetchAndSetSuggestions();
         return;
       }
 

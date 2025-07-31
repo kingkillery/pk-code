@@ -221,7 +221,7 @@ describe('useSlashCommandProcessor', () => {
 
       // Act
       await act(async () => {
-        handleSlashCommand('/stats');
+        void handleSlashCommand('/memory refresh');
       });
 
       // Assert
@@ -243,7 +243,7 @@ describe('useSlashCommandProcessor', () => {
 
       // Act
       await act(async () => {
-        handleSlashCommand('/stats model');
+        void handleSlashCommand('/context clear');
       });
 
       // Assert
@@ -262,7 +262,7 @@ describe('useSlashCommandProcessor', () => {
 
       // Act
       await act(async () => {
-        handleSlashCommand('/stats tools');
+        void handleSlashCommand('/mcp config');
       });
 
       // Assert
@@ -639,7 +639,7 @@ describe('useSlashCommandProcessor', () => {
         vi.setSystemTime(mockDate);
 
         await act(async () => {
-          handleSlashCommand(command);
+          void handleSlashCommand(command);
         });
 
         expect(mockAddItem).not.toHaveBeenCalled();
@@ -1274,7 +1274,7 @@ describe('useSlashCommandProcessor', () => {
       });
 
       await act(async () => {
-        hook.result.current.handleSlashCommand('/compress');
+        void hook.result.current.handleSlashCommand('/compress');
       });
       await act(async () => {
         hook.rerender();

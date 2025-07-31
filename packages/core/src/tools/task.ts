@@ -9,7 +9,6 @@ import { BaseTool, ToolResult } from './tools.js';
 import {
   AgentOrchestrator,
   OrchestrationMode,
-  OrchestrationOptions,
 } from '../agents/agent-orchestrator.js';
 import { AgentRegistry } from '../agents/agent-registry.js';
 import { ContentGenerator } from '../core/contentGenerator.js';
@@ -175,7 +174,7 @@ export const SUBAGENT_TYPES = {
  * Task tool for launching specialized sub-agents to handle complex, multi-step tasks autonomously
  */
 export class TaskTool extends BaseTool<TaskParams, ToolResult> {
-  public static readonly Name = 'Task';
+  static readonly Name = 'Task';
 
   constructor(
     private readonly agentRegistry: AgentRegistry,
@@ -225,12 +224,12 @@ export class TaskTool extends BaseTool<TaskParams, ToolResult> {
   }
 
   getDescription(params: TaskParams): string {
-    const subagentInfo =
+    const _subagentInfo =
       SUBAGENT_TYPES[params.subagent_type as keyof typeof SUBAGENT_TYPES];
     return `Launching ${params.subagent_type} agent to: ${params.description}`;
   }
 
-  async execute(params: TaskParams, signal: AbortSignal): Promise<ToolResult> {
+  async execute(params: TaskParams, _signal: AbortSignal): Promise<ToolResult> {
     const validationError = this.validateToolParams(params);
     if (validationError) {
       return {
@@ -403,7 +402,7 @@ export class TaskTool extends BaseTool<TaskParams, ToolResult> {
     const andCount = (prompt.match(/\band\b/gi) || []).length;
 
     // Base agent count on complexity indicators
-    let agentCount = Math.min(
+    const agentCount = Math.min(
       Math.max(1, Math.floor(requirements.length / 2)),
       Math.max(1, questionCount),
       Math.max(1, andCount),

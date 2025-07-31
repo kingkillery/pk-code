@@ -26,7 +26,7 @@ export const MultiAgentRun: React.FC<MultiAgentRunProps> = ({ runners }) => {
           padding={1}
           marginBottom={1}
         >
-          <Text color={(runner.agent as any).color || 'white'}>
+          <Text color="white">
             {runner.agent.name} - {runner.status}
           </Text>
           <Box marginLeft={2} flexDirection="column">

@@ -195,7 +195,7 @@ export const useSlashCommandProcessor = (
       setCommands(commandService.getCommands());
     };
 
-    load();
+    void load();
   }, [commandService]);
 
   const savedChatTags = useCallback(async () => {
@@ -239,7 +239,7 @@ export const useSlashCommandProcessor = (
               content: `Opening documentation in your browser: ${docsUrl}`,
               timestamp: new Date(),
             });
-            await open(docsUrl);
+            void open(docsUrl);
           }
         },
       },
@@ -632,7 +632,7 @@ export const useSlashCommandProcessor = (
             content: `To submit your bug report, please open the following URL in your browser:\n${bugReportUrl}`,
             timestamp: new Date(),
           });
-          (async () => {
+          void (async () => {
             try {
               await open(bugReportUrl);
             } catch (error) {

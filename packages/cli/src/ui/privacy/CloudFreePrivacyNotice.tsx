@@ -93,7 +93,7 @@ export const CloudFreePrivacyNotice = ({
           items={items}
           initialIndex={privacyState.dataCollectionOptIn ? 0 : 1}
           onSelect={(value) => {
-            updateDataCollectionOptIn(value);
+            void updateDataCollectionOptIn(value);
             // Only exit if there was no error.
             if (!privacyState.error) {
               onExit();

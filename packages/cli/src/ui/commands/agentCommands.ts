@@ -610,7 +610,7 @@ const listAgentsCommand: Command = {
         output += `**- ${agent.name}**\n`;
       }
 
-      output += '\nFor more details, run \`pk agent show <agent-name>\`';
+      output += '\nFor more details, run `pk agent show <agent-name>`'
 
       return {
         type: 'message',

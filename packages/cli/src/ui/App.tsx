@@ -433,7 +433,7 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
           (cmd) => cmd.name === 'quit' || cmd.altName === 'exit',
         );
         if (quitCommand && quitCommand.action) {
-          quitCommand.action(commandContext, '');
+          void quitCommand.action(commandContext, '');
         } else {
           // This is unlikely to be needed but added for an additional fallback.
           process.exit(0);
@@ -541,7 +541,7 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
         const trimmedValue = submittedValue.trim();
         if (trimmedValue.length > 0) {
           console.debug('[App] Calling submitQuery');
-          submitQuery(trimmedValue);
+          void submitQuery(trimmedValue);
         } else {
           console.debug('[App] Empty input, not submitting');
         }

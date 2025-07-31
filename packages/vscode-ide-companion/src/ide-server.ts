@@ -20,7 +20,7 @@ export async function startIDEServer(_context: vscode.ExtensionContext) {
     enableJsonResponse: true,
   });
 
-  mcpServer.connect(transport);
+  void mcpServer.connect(transport);
 
   app.post('/mcp', async (req: Request, res: Response) => {
     console.log('Received MCP request:', req.body);

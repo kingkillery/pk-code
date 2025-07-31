@@ -178,9 +178,17 @@ describe('safeJsonParseResponse', () => {
       statusText: 'OK',
       headers: new Map([['content-type', 'application/json']]),
       text: vi.fn().mockRejectedValue(new Error('Network error')),
-    } as any;
+    } as unknown as Response;
 
-    mockResponse.headers.get = vi.fn((key: string) => mockResponse.headers.get(key));
+    // Create a proper mock for headers.get
+    const mockHeaders = {
+      get: vi.fn((_key: string) => 'application/json')
+    };
+    Object.defineProperty(mockResponse, 'headers', {
+      value: mockHeaders,
+      writable: false,
+      configurable: true
+    });
 
     const result = await safeJsonParseResponse(mockResponse);
     expect(result.success).toBe(false);

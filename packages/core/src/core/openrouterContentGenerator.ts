@@ -47,13 +47,13 @@ export class OpenRouterContentGenerator extends OpenAIContentGenerator {
     }
 
     // Create a new OpenAI client configured for OpenRouter
-    (this as any).client = new OpenAI({
+    this.client = new OpenAI({
       apiKey,
       baseURL: 'https://openrouter.ai/api/v1',
       timeout: timeoutConfig.timeout,
       maxRetries: timeoutConfig.maxRetries,
-      headers: this.getOpenRouterHeaders(),
-    } as any);
+      defaultHeaders: this.getOpenRouterHeaders(),
+    });
   }
 
   /**
@@ -251,8 +251,8 @@ export class OpenRouterContentGenerator extends OpenAIContentGenerator {
           baseURL: 'https://openrouter.ai/api/v1',
           timeout: timeoutConfig.timeout,
           maxRetries: timeoutConfig.maxRetries,
-          headers: this.getOpenRouterHeaders(),
-        } as any);
+          defaultHeaders: this.getOpenRouterHeaders(),
+        });
 
         // Attempt the request with the fallback model
         const result = isStreaming

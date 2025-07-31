@@ -419,7 +419,7 @@ describe('AgentRouter', () => {
       }
 
       const startTime = Date.now();
-      router.routeSingleAgent('test query');
+      void router.routeSingleAgent('test query');
       const duration = Date.now() - startTime;
 
       // Should still be reasonably fast with many agents

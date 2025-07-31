@@ -43,7 +43,7 @@ export const ToolConfirmationMessage: React.FC<
   useInput((_, key) => {
     if (!isFocused) return;
     if (key.escape) {
-      onConfirm(ToolConfirmationOutcome.Cancel);
+      void onConfirm(ToolConfirmationOutcome.Cancel);
     }
   });
 

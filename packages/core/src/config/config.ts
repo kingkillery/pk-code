@@ -29,7 +29,6 @@ import {
 } from '../tools/memoryTool.js';
 import { TaskTool } from '../tools/task.js';
 import {
-  AgentRegistry,
   getGlobalAgentRegistry,
 } from '../agents/agent-registry.js';
 import { ParsedAgent } from '../agents/types.js';
@@ -660,7 +659,7 @@ export class Config {
     try {
       const agentRegistry = getGlobalAgentRegistry(this.getWorkingDir());
       const contentGeneratorFactory = async (
-        agent: ParsedAgent,
+        _agent: ParsedAgent,
       ): Promise<ContentGenerator> => {
         if (this.geminiClient && this.geminiClient.isInitialized()) {
           return this.geminiClient.getContentGenerator();
@@ -670,7 +669,7 @@ export class Config {
         );
       };
       registerCoreTool(TaskTool, agentRegistry, contentGeneratorFactory);
-    } catch (error) {
+    } catch (_error) {
       // If agent registry isn't available, skip Task tool registration
       console.warn(
         'Task tool registration skipped: Agent registry not available',

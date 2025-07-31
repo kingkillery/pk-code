@@ -248,7 +248,7 @@ export const useGeminiStream = (
               isClientInitiated: true,
               prompt_id,
             };
-            scheduleToolCalls([toolCallRequest], abortSignal);
+            void scheduleToolCalls([toolCallRequest], abortSignal);
           }
 
           return { queryToSend: null, shouldProceed: false };
@@ -766,7 +766,7 @@ export const useGeminiStream = (
               combinedParts.push(response);
             }
           }
-          geminiClient.addHistory({
+          void geminiClient.addHistory({
             role: 'user',
             parts: combinedParts,
           });
@@ -797,7 +797,7 @@ export const useGeminiStream = (
         return;
       }
 
-      submitQuery(
+      void submitQuery(
         mergePartListUnions(responsesToSend),
         {
           isContinuation: true,
@@ -917,7 +917,7 @@ export const useGeminiStream = (
         }
       }
     };
-    saveRestorableToolCalls();
+    void saveRestorableToolCalls();
   }, [toolCalls, config, onDebugMessage, gitService, history, geminiClient]);
 
   return {

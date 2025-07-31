@@ -10,6 +10,16 @@ import {
 } from '../ui/commands/agentCommands.js';
 import { AgentRunner } from '../agent/AgentRunner.js';
 
+interface MockAgent {
+  name: string;
+  description: string;
+  keywords?: string[];
+  model?: string;
+  provider?: string;
+  tools?: Array<{ name: string }>;
+  systemPrompt?: string;
+}
+
 // Mock UI commands that are imported
 vi.mock('../ui/commands/agentCommands.js', () => ({
   getAgentsDir: vi.fn(() => '/mock/agents'),
@@ -120,11 +130,11 @@ describe('agent command', () => {
     const mockAgent2 = { name: 'agent2', description: 'Test agent 2' };
 
     vi.mocked(fs.promises.access).mockResolvedValue(undefined);
-    vi.mocked(fs.promises.readdir).mockResolvedValue(mockAgentFiles as unknown as fs.Dirent[]);
+    vi.mocked(fs.promises.readdir).mockResolvedValue(mockAgentFiles as fs.Dirent[]);
     vi.mocked(fs.promises.readFile).mockResolvedValue('mock file content');
     vi.mocked(parseAgentFromFile)
-      .mockResolvedValueOnce(mockAgent1 as any)
-      .mockResolvedValueOnce(mockAgent2 as any);
+      .mockResolvedValueOnce(mockAgent1 as MockAgent)
+      .mockResolvedValueOnce(mockAgent2 as MockAgent);
 
     await handleAgentCommand('list');
 
@@ -146,7 +156,7 @@ describe('agent command', () => {
 
     vi.mocked(fs.promises.access).mockResolvedValue(undefined);
     vi.mocked(fs.promises.readFile).mockResolvedValue('mock file content');
-    vi.mocked(parseAgentFromFile).mockResolvedValue(mockAgent as any);
+    vi.mocked(parseAgentFromFile).mockResolvedValue(mockAgent as MockAgent);
 
     await handleAgentCommand('show', 'test-agent');
 
@@ -198,7 +208,7 @@ describe('agent command', () => {
 
     vi.mocked(fs.promises.access).mockResolvedValue(undefined);
     vi.mocked(fs.promises.readFile).mockResolvedValue('mock content');
-    vi.mocked(parseAgentFromFile).mockResolvedValue(mockAgent as any);
+    vi.mocked(parseAgentFromFile).mockResolvedValue(mockAgent as MockAgent);
     vi.mocked(AgentRunner).mockImplementation(() => mockRunner);
 
     await handleAgentCommand('run', 'test-agent');
@@ -216,8 +226,8 @@ describe('agent command', () => {
     vi.mocked(fs.promises.access).mockResolvedValue(undefined);
     vi.mocked(fs.promises.readFile).mockResolvedValue('mock content');
     vi.mocked(parseAgentFromFile)
-      .mockResolvedValueOnce(mockAgent1 as any)
-      .mockResolvedValueOnce(mockAgent2 as any);
+      .mockResolvedValueOnce(mockAgent1)
+      .mockResolvedValueOnce(mockAgent2);
     vi.mocked(AgentRunner)
       .mockImplementationOnce(() => mockRunner1)
       .mockImplementationOnce(() => mockRunner2);

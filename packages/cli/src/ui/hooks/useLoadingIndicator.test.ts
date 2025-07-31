@@ -20,7 +20,7 @@ describe('useLoadingIndicator', () => {
 
   afterEach(() => {
     vi.useRealTimers(); // Restore real timers after each test
-    act(() => vi.runOnlyPendingTimers);
+    act(() => void vi.runOnlyPendingTimers);
   });
 
   it('should initialize with default values when Idle', () => {

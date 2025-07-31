@@ -182,7 +182,7 @@ function addShellCommandToGeminiHistory(
       ? resultText.substring(0, MAX_OUTPUT_LENGTH) + '\n... (truncated)'
       : resultText;
 
-  geminiClient.addHistory({
+  void geminiClient.addHistory({
     role: 'user',
     parts: [
       {

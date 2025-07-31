@@ -31,7 +31,7 @@ export class GitService {
         'Checkpointing is enabled, but Git is not installed. Please install Git or disable checkpointing to continue.',
       );
     }
-    this.setupShadowGitRepository();
+    void this.setupShadowGitRepository();
   }
 
   verifyGitAvailability(): Promise<boolean> {

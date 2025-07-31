@@ -209,7 +209,7 @@ export class AgentRegistry implements IAgentRegistry {
           }
 
           const newTimeout = setTimeout(() => {
-            this.rescanDirectory(dir);
+            void this.rescanDirectory(dir);
             this.rescanDebounceTimers.delete(dir);
           }, 100);
 

@@ -888,7 +888,7 @@ describe('useGeminiStream', () => {
 
       // Start a query
       await act(async () => {
-        result.current.submitQuery('test query');
+        void result.current.submitQuery('test query');
       });
 
       // Wait for the first part of the response
@@ -947,7 +947,7 @@ describe('useGeminiStream', () => {
       const { result } = renderTestHook();
 
       await act(async () => {
-        result.current.submitQuery('long running query');
+        void result.current.submitQuery('long running query');
       });
 
       await waitFor(() => {

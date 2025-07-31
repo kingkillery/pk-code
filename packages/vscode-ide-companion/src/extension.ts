@@ -8,7 +8,7 @@ import * as vscode from 'vscode';
 import { startIDEServer } from './ide-server.js';
 
 export async function activate(context: vscode.ExtensionContext) {
-  startIDEServer(context);
+  void startIDEServer(context);
 }
 
 export function deactivate() {}

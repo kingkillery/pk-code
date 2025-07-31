@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: Apache-20
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { AgentRunner, AgentStatus } from './AgentRunner.js';
+import { describe, it, expect, vi as _vi, beforeEach } from 'vitest';
+import { AgentRunner, AgentStatus as _AgentStatus } from './AgentRunner.js';
 import { AgentConfig } from '@pk-code/core';
 
 describe('AgentRunner', () => {

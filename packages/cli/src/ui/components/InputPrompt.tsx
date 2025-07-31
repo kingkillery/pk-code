@@ -389,7 +389,7 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
       // External editor
       const isCtrlX = key.ctrl && (key.name === 'x' || key.sequence === '\x18');
       if (isCtrlX) {
-        buffer.openInExternalEditor();
+        void buffer.openInExternalEditor();
         return;
       }
 

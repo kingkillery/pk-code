@@ -139,7 +139,7 @@ async function handleListAgents(): Promise<void> {
       return;
     }
 
-    const agents: import('@pk-code/core').AgentConfig[] = [];
+    const agents: Array<import('@pk-code/core').AgentConfig> = [];
 
     for (const file of agentFiles) {
       try {
@@ -323,7 +323,7 @@ async function startBrowserAgent() {
   }
 
   // Get the browser-use MCP server configuration
-  let browserUseConfig: any = null;
+  let browserUseConfig: { command: string; args?: string[]; env?: Record<string, string> } | null = null;
   
   // Try global settings first
   if (fs.existsSync(GLOBAL_SETTINGS_FILE)) {
@@ -331,7 +331,7 @@ async function startBrowserAgent() {
       const data = fs.readFileSync(GLOBAL_SETTINGS_FILE, 'utf8');
       const settings = JSON.parse(data);
       browserUseConfig = settings.mcpServers?.['browser-use'];
-    } catch (error) {
+    } catch (_error) {
       // Continue to try local config
     }
   }
@@ -344,8 +344,8 @@ async function startBrowserAgent() {
         const data = fs.readFileSync(mcpConfigFile, 'utf8');
         const config = JSON.parse(data);
         browserUseConfig = config.mcpServers?.['browser-use'];
-      } catch (error) {
-        console.error('Error reading MCP configuration:', error);
+      } catch (_error) {
+        console.error('Error reading MCP configuration:', _error);
         return;
       }
     }
@@ -360,7 +360,7 @@ async function startBrowserAgent() {
   const env = { ...process.env };
   if (browserUseConfig.env) {
     Object.keys(browserUseConfig.env).forEach(key => {
-      let value = browserUseConfig.env[key];
+      let value = browserUseConfig.env![key];
       // Handle environment variable substitution
       if (typeof value === 'string' && value.startsWith('$')) {
         const envVarName = value.slice(1);
@@ -373,7 +373,7 @@ async function startBrowserAgent() {
   const spawnOptions: import('child_process').SpawnOptions = {
     detached: true,
     stdio: 'ignore',
-    env: env,
+    env,
   };
 
   // Start the browser-use MCP server using the configured command and args
@@ -438,12 +438,14 @@ async function handleRunAgents(agentNames: string[]): Promise<void> {
 
       for (const ext of possibleExtensions) {
         const testPath = path.join(agentsDir, baseFileName + ext);
-        // eslint-disable-next-line no-empty
+         
         try {
           await fs.promises.access(testPath);
           filePath = testPath;
           break;
-        } catch {}
+        } catch {
+          // File doesn't exist, try next extension
+        }
       }
 
       if (!filePath) {

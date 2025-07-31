@@ -218,7 +218,7 @@ export async function connectAndDiscover(
 
       mcpClient.onerror = (error) => {
         console.error(`MCP ERROR (${mcpServerName}):`, error.toString());
-        updateMCPServerStatus(mcpServerName, MCPServerStatus.DISCONNECTED);
+        void updateMCPServerStatus(mcpServerName, MCPServerStatus.DISCONNECTED);
       };
 
       const tools = await discoverTools(
@@ -231,7 +231,7 @@ export async function connectAndDiscover(
         toolRegistry.registerTool(tool);
       }
     } catch (error) {
-      mcpClient.close();
+      void mcpClient.close();
       throw error;
     }
   } catch (error) {

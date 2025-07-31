@@ -51,7 +51,7 @@ export const usePrivacySettings = (config: Config) => {
         });
       }
     };
-    fetchInitialState();
+    void fetchInitialState();
   }, [config]);
 
   const updateDataCollectionOptIn = useCallback(
