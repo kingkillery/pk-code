@@ -268,7 +268,7 @@ export async function parseArguments(): Promise<CliArgs> {
           });
       },
       (argv) => {
-        handleAgentCommand(argv.command as string, argv.agentName as string);
+        void handleAgentCommand(argv.command as string, argv.agentName as string);
       },
     )
 

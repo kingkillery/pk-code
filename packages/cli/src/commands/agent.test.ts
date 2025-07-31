@@ -68,7 +68,7 @@ const mockConsoleLog = vi.spyOn(console, 'log').mockImplementation(() => {});
 const mockConsoleError = vi
   .spyOn(console, 'error')
   .mockImplementation(() => {});
-const mockConsoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
 
 // Mock process.kill
 const processKillSpy = vi.spyOn(process, 'kill').mockImplementation(() => true);
@@ -120,7 +120,7 @@ describe('agent command', () => {
     const mockAgent2 = { name: 'agent2', description: 'Test agent 2' };
 
     vi.mocked(fs.promises.access).mockResolvedValue(undefined);
-    vi.mocked(fs.promises.readdir).mockResolvedValue(mockAgentFiles as any);
+    vi.mocked(fs.promises.readdir).mockResolvedValue(mockAgentFiles as unknown as fs.Dirent[]);
     vi.mocked(fs.promises.readFile).mockResolvedValue('mock file content');
     vi.mocked(parseAgentFromFile)
       .mockResolvedValueOnce(mockAgent1 as any)
@@ -199,7 +199,7 @@ describe('agent command', () => {
     vi.mocked(fs.promises.access).mockResolvedValue(undefined);
     vi.mocked(fs.promises.readFile).mockResolvedValue('mock content');
     vi.mocked(parseAgentFromFile).mockResolvedValue(mockAgent as any);
-    vi.mocked(AgentRunner).mockImplementation(() => mockRunner as any);
+    vi.mocked(AgentRunner).mockImplementation(() => mockRunner);
 
     await handleAgentCommand('run', 'test-agent');
 
@@ -219,8 +219,8 @@ describe('agent command', () => {
       .mockResolvedValueOnce(mockAgent1 as any)
       .mockResolvedValueOnce(mockAgent2 as any);
     vi.mocked(AgentRunner)
-      .mockImplementationOnce(() => mockRunner1 as any)
-      .mockImplementationOnce(() => mockRunner2 as any);
+      .mockImplementationOnce(() => mockRunner1)
+      .mockImplementationOnce(() => mockRunner2);
 
     await handleAgentCommand('run', 'agent1,agent2');
 

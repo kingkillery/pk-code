@@ -207,7 +207,7 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
         const imagePath = await saveClipboardImage(config.getTargetDir());
         if (imagePath) {
           // Clean up old images
-          cleanupOldClipboardImages(config.getTargetDir()).catch(() => {
+          void cleanupOldClipboardImages(config.getTargetDir()).catch(() => {
             // Ignore cleanup errors
           });
 
@@ -395,7 +395,7 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
 
       // Ctrl+V for clipboard image paste
       if (key.ctrl && key.name === 'v') {
-        handleClipboardImage();
+        void handleClipboardImage();
         return;
       }
 

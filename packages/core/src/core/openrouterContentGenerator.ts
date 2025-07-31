@@ -11,6 +11,7 @@ import {
   GenerateContentParameters,
   GenerateContentResponse,
 } from '@google/genai';
+import { safeJsonParseResponse } from '../utils/safeJsonParse.js';
 
 export class OpenRouterContentGenerator extends OpenAIContentGenerator {
   private preferredProvider?: string;
@@ -62,11 +63,27 @@ export class OpenRouterContentGenerator extends OpenAIContentGenerator {
     try {
       const response = await fetch('https://openrouter.ai/api/v1/models');
       if (!response.ok) {
-        console.warn('Failed to fetch OpenRouter models list for validation');
+        console.warn(
+          `Failed to fetch OpenRouter models list for validation: ${response.status} ${response.statusText}`,
+        );
         return true; // Allow the request to proceed if we can't validate
       }
-      const data = (await response.json()) as { data?: Array<{ id: string }> };
-      const models = data.data || [];
+
+      const parseResult = await safeJsonParseResponse<{
+        data?: Array<{ id: string }>;
+      }>(response, {
+        context: 'OpenRouter models API validation',
+        validateContentType: false, // OpenRouter might not always return proper Content-Type
+      });
+
+      if (!parseResult.success) {
+        console.warn(
+          `Failed to parse OpenRouter models response: ${parseResult.error}`,
+        );
+        return true; // Allow the request to proceed if we can't parse response
+      }
+
+      const models = parseResult.data?.data || [];
       return models.some((m: { id: string }) => m.id === model);
     } catch (error) {
       console.warn('Error validating OpenRouter model:', error);
@@ -81,10 +98,27 @@ export class OpenRouterContentGenerator extends OpenAIContentGenerator {
     try {
       const response = await fetch('https://openrouter.ai/api/v1/models');
       if (!response.ok) {
+        console.warn(
+          `Failed to fetch OpenRouter models: ${response.status} ${response.statusText}`,
+        );
         return [];
       }
-      const data = (await response.json()) as { data?: Array<{ id: string }> };
-      const models = data.data || [];
+
+      const parseResult = await safeJsonParseResponse<{
+        data?: Array<{ id: string }>;
+      }>(response, {
+        context: 'OpenRouter models API fetch',
+        validateContentType: false, // OpenRouter might not always return proper Content-Type
+      });
+
+      if (!parseResult.success) {
+        console.warn(
+          `Failed to parse OpenRouter models response: ${parseResult.error}`,
+        );
+        return [];
+      }
+
+      const models = parseResult.data?.data || [];
       return models.map((model: { id: string }) => model.id);
     } catch (error) {
       console.warn('Error fetching OpenRouter models:', error);

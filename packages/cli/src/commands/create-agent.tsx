@@ -528,7 +528,7 @@ ${config.examples
                   value.toLowerCase() === 'y' ||
                   value.toLowerCase() === 'yes'
                 ) {
-                  generatePrompt();
+                  void generatePrompt();
                 } else {
                   setStep('provider');
                 }

@@ -1,5 +1,11 @@
 {
-  "browser": {
-    "user_data_dir": "C:\\Users\\prest\\AppData\\Local\\Google\\Chrome\\User Data"
-  }
+	"mcpServers": {
+		"browser-use": {
+			"command": "cmd",
+			"args": ["/c", "uvx", "--from", "browser-use[cli]", "browser-use", "--mcp"],
+			"env": {
+				"BROWSER_USE_USER_DATA_DIR": "C:\\Users\\prest\\AppData\\Local\\Google\\Chrome\\User Data"
+			}
+		}
+	}
 }

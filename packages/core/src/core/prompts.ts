@@ -142,7 +142,15 @@ ${Object.entries(SUBAGENT_TYPES)
 2. **Appropriate Agent Selection**: Choose the sub-agent type that best matches the task requirements
 3. **Parallel Processing**: Launch multiple sub-agents for independent aspects of complex tasks
 4. **Result Synthesis**: Integrate sub-agent results thoughtfully into your final response
-5. **User Transparency**: Explain when and why you're using sub-agents to help users understand the process
+5. **User Transparency**: Explain when and why you\'re using sub-agents to help users understand the process
+
+## MCP Integration
+
+Prefer MCP tools over shell commands for enhanced safety, features, and structured output; see \`GEMINI.md\` for a complete list. For browser automation, always use \`browser_get_state\` first to understand the current page and its indexed elements.
+- Use \`browser_navigate\` to go to URLs and \`browser_click\` or \`browser_type\` with an element\'s \`index\` to interact with the page.
+- Refresh your view often with \`browser_get_state\` as the page content may change.
+- Other tools include \`browser_extract_content\`, \`browser_scroll\`, \`browser_go_back\`, and tab managers (\`browser_list_tabs\`, \`browser_switch_tab\`, \`browser_close_tab\`).
+- If browser actions fail multiple times, fall back to \`retry_with_browser_use_agent\`.
 
 ## Interaction Details
 - **Help Command:** The user can use '/help' to display help information.

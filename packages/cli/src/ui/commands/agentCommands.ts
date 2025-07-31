@@ -64,7 +64,14 @@ const autoFormatYamlFrontmatter = async (
       throw new Error('No AI provider available for YAML formatting');
     }
 
-    const prompt = `You are a YAML formatting expert. Fix the following malformed YAML frontmatter for an agent configuration file. The YAML should be valid and properly formatted with correct indentation. Preserve all the original content but fix syntax issues like improper line breaks, missing quotes, or bad indentation.\n\nOriginal malformed YAML:\n\`\`\`yaml\n${yamlContent}\n\`\`\`\n\nReturn ONLY the corrected YAML content (without the \`\`\`yaml wrapper), properly formatted and ready to parse. The YAML should include fields like name, description, color, etc.`;
+    const prompt = `You are a YAML formatting expert. Fix the following malformed YAML frontmatter for an agent configuration file. The YAML should be valid and properly formatted with correct indentation. Preserve all the original content but fix syntax issues like improper line breaks, missing quotes, or bad indentation.
+
+Original malformed YAML:
+\`\`\`yaml
+${yamlContent}
+\`\`\`
+
+Return ONLY the corrected YAML content (without the \`\`\`yaml wrapper), properly formatted and ready to parse. The YAML should include fields like name, description, color, etc.`;
 
     const fixedYaml = await aiProvider.generateCode(prompt, {
       model: DEFAULT_OPENROUTER_MODEL,
@@ -136,8 +143,6 @@ export const parseAgentFromFile = async (
 
     const yamlContent = frontMatterMatch[1];
     let parsed;
-    let originalYamlContent = yamlContent;
-    let currentYamlContent = yamlContent;
 
     try {
       parsed = yamlLoad(yamlContent);
@@ -148,7 +153,6 @@ export const parseAgentFromFile = async (
           yamlContent,
           filePath,
         );
-        currentYamlContent = fixedYamlTrimmed;
         parsed = yamlLoad(fixedYamlTrimmed);
 
         // Write the fixed YAML back to the file so it doesn't happen again
@@ -687,7 +691,8 @@ const showAgentCommand: Command = {
       output += `  **Description**: ${agent.description || 'No description'}\n`;
       output += `  **Keywords**: ${(agent.keywords || []).join(', ')}\n`;
       output += `  **Model**: ${agent.model || 'default'} (${agent.provider || 'default'})\n`;
-      output += `  **Tools**: ${!agent.tools || agent.tools.length === 0 ? 'all' : agent.tools.map((t: any) => t.name).join(', ')}\n`;
+      output += `  **Tools**: ${!agent.tools || agent.tools.length === 0 ? 'all' : agent.tools.map((t: { name: string }) => t.name).join(', ')}
+`;
 
       if (agent.systemPrompt) {
         output += `\n---\n**System Prompt**:\n${agent.systemPrompt}\n`;

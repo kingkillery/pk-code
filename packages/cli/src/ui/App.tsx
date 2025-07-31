@@ -103,7 +103,7 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
   const nightly = version.includes('nightly');
 
   useEffect(() => {
-    checkForUpdates().then(setUpdateMessage);
+    void checkForUpdates().then(setUpdateMessage);
   }, []);
 
   const { history, addItem, clearItems, loadHistory } = useHistory(
@@ -212,7 +212,7 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
 
     // Only sync when not currently authenticating
     if (!isAuthenticating) {
-      syncUserTier();
+      void syncUserTier();
     }
   }, [config, userTier, isAuthenticating]);
 
@@ -469,7 +469,7 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
 
       const mcpServers = config.getMcpServers();
       if (Object.keys(mcpServers || {}).length > 0) {
-        handleSlashCommand(newValue ? '/mcp desc' : '/mcp nodesc');
+        void handleSlashCommand(newValue ? '/mcp desc' : '/mcp nodesc');
       }
     } else if (key.ctrl && (input === 'c' || input === 'C')) {
       handleExit(ctrlCPressedOnce, setCtrlCPressedOnce, ctrlCTimerRef);
@@ -595,7 +595,7 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
       // Reverse to oldest first for useInputHistory
       setUserMessages(deduplicatedMessages.reverse());
     };
-    fetchUserMessages();
+    void fetchUserMessages();
   }, [history, logger]);
 
   const isInputActive = streamingState === StreamingState.Idle && !initError;
@@ -679,7 +679,7 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
       !showPrivacyNotice &&
       geminiClient?.isInitialized?.()
     ) {
-      submitQuery(initialPrompt);
+      void submitQuery(initialPrompt);
       initialPromptSubmitted.current = true;
     }
   }, [

@@ -189,6 +189,41 @@ Browser agent started...
 > Navigate to https://github.com/kingkillery/pk-code and tell me how many open issues there are.
 ```
 
+## 🔌 MCP Server Integration
+
+PK Code supports Model Context Protocol (MCP) servers to extend functionality with custom tools and external integrations. MCP servers can provide additional capabilities like database access, API integrations, or specialized workflows.
+
+### Configuration
+
+MCP servers are configured in the `.pk/settings.json` file. This file can be located either:
+- Globally: `~/.pk/settings.json` 
+- Per-project: `.pk/settings.json` in your project root
+
+Add an `mcpServers` section to your settings file:
+
+```json
+{
+  "mcpServers": {
+    "myServer": {
+      "command": "node",
+      "args": ["server.js"],
+      "cwd": "./mcp-server",
+      "trust": false
+    }
+  }
+}
+```
+
+### Usage
+
+Once configured, MCP tools become available automatically. Use the `/mcp` command to view status:
+
+```bash
+> /mcp
+```
+
+See the [MCP Server documentation](./docs/tools/mcp-server.md) for detailed configuration options and examples.
+
 ## 🔧 Advanced Configuration
 
 ### Provider-Specific Settings

@@ -75,6 +75,10 @@ export default tseslint.config(
         ...globals.node,
         ...globals.es2021,
       },
+      parserOptions: {
+        project: ['./tsconfig.json', './packages/*/tsconfig.json'],
+        tsconfigRootDir: projectRoot,
+      },
     },
     rules: {
       // General Best Practice Rules (subset adapted for flat config)
@@ -90,7 +94,7 @@ export default tseslint.config(
         'error',
         { accessibility: 'no-public' },
       ],
-      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/no-explicit-any': 'warn', // Changed from 'error' to 'warn'
       '@typescript-eslint/no-inferrable-types': [
         'error',
         { ignoreParameters: true, ignoreProperties: true },

@@ -94,7 +94,7 @@ import { handleInitCommand } from './commands/init.js';
 import { handleUseCommand, parseUseCommandSyntax } from './commands/use.js';
 
 import { handleCreateAgentCommand } from './commands/create-agent.js';
-import { handleAgentCommand } from './commands/agent.js';
+
 
 export async function main() {
   const argv = await parseArguments();
