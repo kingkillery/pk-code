@@ -7,11 +7,11 @@
 import { Box, Newline, Text, useInput } from 'ink';
 import { Colors } from '../colors.js';
 
-interface QwenPrivacyNoticeProps {
+interface PKPrivacyNoticeProps {
   onExit: () => void;
 }
 
-export const QwenPrivacyNotice = ({ onExit }: QwenPrivacyNoticeProps) => {
+export const PKPrivacyNotice = ({ onExit }: PKPrivacyNoticeProps) => {
   useInput((input, key) => {
     if (key.escape) {
       onExit();
@@ -21,11 +21,11 @@ export const QwenPrivacyNotice = ({ onExit }: QwenPrivacyNoticeProps) => {
   return (
     <Box flexDirection="column" marginBottom={1}>
       <Text bold color={Colors.AccentPurple}>
-        Qwen API Key Notice
+        PK Code API Key Notice
       </Text>
       <Newline />
       <Text>
-        By using the Qwen API<Text color={Colors.AccentBlue}>[1]</Text>, Google
+        By using the PK Code API<Text color={Colors.AccentBlue}>[1]</Text>, Google
         AI Studio
         <Text color={Colors.AccentRed}>[2]</Text>, and the other Google
         developer services that reference these terms (collectively, the

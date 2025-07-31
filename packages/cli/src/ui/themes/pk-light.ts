@@ -22,7 +22,7 @@ const pkLightColors: ColorsTheme = {
   GradientColors: ['#21859e', '#399ee6'],
 };
 
-export const QwenLight: Theme = new Theme(
+export const PKLight: Theme = new Theme(
   'PK Light',
   'light',
   {

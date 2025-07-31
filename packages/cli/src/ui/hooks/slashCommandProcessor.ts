@@ -223,10 +223,10 @@ export const useSlashCommandProcessor = (
       // `/help` and `/clear` have been migrated and REMOVED from this list.
       {
         name: 'docs',
-        description: 'open full Qwen Code documentation in your browser',
+        description: 'open full PK Code documentation in your browser',
         action: async (_mainCommand, _subCommand, _args) => {
           const docsUrl =
-            'https://github.com/QwenLM/Qwen3-Coder/blob/main/README.md';
+            'https://github.com/kingkillery/pk-code#readme';
           if (process.env.SANDBOX && process.env.SANDBOX !== 'sandbox-exec') {
             addMessage({
               type: MessageType.INFO,
@@ -316,7 +316,7 @@ export const useSlashCommandProcessor = (
           const serverNames = Object.keys(mcpServers);
 
           if (serverNames.length === 0) {
-            const docsUrl = 'https://goo.gle/gemini-cli-docs-mcp';
+            const docsUrl = 'https://github.com/kingkillery/pk-code#readme';
             if (process.env.SANDBOX && process.env.SANDBOX !== 'sandbox-exec') {
               addMessage({
                 type: MessageType.INFO,
@@ -507,7 +507,7 @@ export const useSlashCommandProcessor = (
       },
       {
         name: 'tools',
-        description: 'list available Qwen Code tools',
+        description: 'list available PK Code tools',
         action: async (_mainCommand, _subCommand, _args) => {
           // Check if the _subCommand includes a specific flag to control description visibility
           let useShowDescriptions = showToolDescriptions;
@@ -536,12 +536,12 @@ export const useSlashCommandProcessor = (
           }
 
           // Filter out MCP tools by checking if they have a serverName property
-          const geminiTools = tools.filter((tool) => !('serverName' in tool));
+          const pkTools = tools.filter((tool) => !('serverName' in tool));
 
-          let message = 'Available Gemini CLI tools:\n\n';
+          let message = 'Available PK Code CLI tools:\n\n';
 
-          if (geminiTools.length > 0) {
-            geminiTools.forEach((tool) => {
+          if (pkTools.length > 0) {
+            pkTools.forEach((tool) => {
               if (useShowDescriptions && tool.description) {
                 // Format tool name in cyan using simple ANSI cyan color
                 message += `  - \u001b[36m${tool.displayName} (${tool.name})\u001b[0m:\n`;
@@ -618,7 +618,7 @@ export const useSlashCommandProcessor = (
 `;
 
           let bugReportUrl =
-            'https://github.com/google-gemini/gemini-cli/issues/new?template=bug_report.yml&title={title}&info={info}';
+            'https://github.com/kingkillery/pk-code/issues/new?template=bug_report.yml&title={title}&info={info}';
           const bugCommand = config?.getBugCommand();
           if (bugCommand?.urlTemplate) {
             bugReportUrl = bugCommand.urlTemplate;
@@ -782,6 +782,106 @@ export const useSlashCommandProcessor = (
         },
         completion: async () =>
           (await savedChatTags()).map((tag) => 'resume ' + tag),
+      },
+      {
+        name: 'status',
+        description: 'Display comprehensive session status and token usage',
+        action: async (_mainCommand, _subCommand, _args) => {
+          // Import telemetry service inline to avoid circular dependency issues
+          const { uiTelemetryService } = await import('@pk-code/core');
+          const { formatNumber } = await import('../utils/formatters.js');
+          
+          if (!config) {
+            addMessage({
+              type: MessageType.ERROR,
+              content: 'Configuration not available',
+              timestamp: new Date(),
+            });
+            return;
+          }
+
+          // Get current metrics
+          const metrics = uiTelemetryService.getMetrics();
+          const lastPromptTokenCount = uiTelemetryService.getLastPromptTokenCount();
+          
+          // Calculate session duration
+          const now = new Date();
+          const wallDuration = now.getTime() - session.stats.sessionStartTime.getTime();
+          
+          // Get token limits
+          const maxContextSize = settings.get('MAX_CONTEXT_SIZE') || 32768;
+          const contextUsagePercent = metrics.totalTokens 
+            ? Math.round((metrics.totalTokens / maxContextSize) * 100)
+            : 0;
+          
+          // Get model info
+          const modelVersion = config.getModel() || 'Unknown';
+          const authType = config.getAuthType();
+          
+          // Build status message
+          let message = '🔍 Session Status\n\n';
+          
+          // Session info
+          message += `📊 Session Information:\n`;
+          message += `  • Duration: ${formatDuration(wallDuration)}\n`;
+          message += `  • Prompts: ${session.stats.promptCount}\n`;
+          message += `  • Model: ${modelVersion}\n`;
+          message += `  • Auth: ${authType}\n\n`;
+          
+          // Token usage
+          message += `🪙 Token Usage:\n`;
+          message += `  • Total Tokens: ${formatNumber(metrics.totalTokens)} / ${formatNumber(maxContextSize)} (${contextUsagePercent}%)\n`;
+          message += `  • Input Tokens: ${formatNumber(metrics.inputTokens)}\n`;
+          message += `  • Output Tokens: ${formatNumber(metrics.outputTokens)}\n`;
+          message += `  • Cached Tokens: ${formatNumber(metrics.cachedTokens)}\n`;
+          message += `  • Last Prompt: ${formatNumber(lastPromptTokenCount)} tokens\n\n`;
+          
+          // Performance metrics
+          message += `⚡ Performance:\n`;
+          message += `  • API Calls: ${metrics.apiCalls}\n`;
+          message += `  • Tool Calls: ${metrics.toolCalls}\n`;
+          message += `  • Errors: ${metrics.errors}\n`;
+          
+          if (metrics.apiCalls > 0) {
+            const avgApiTime = Math.round(metrics.totalApiTime / metrics.apiCalls);
+            message += `  • Avg API Time: ${avgApiTime}ms\n`;
+          }
+          
+          if (metrics.toolCalls > 0) {
+            const avgToolTime = Math.round(metrics.totalToolTime / metrics.toolCalls);
+            message += `  • Avg Tool Time: ${avgToolTime}ms\n`;
+          }
+          
+          // Model-specific metrics
+          const modelMetrics = metrics.modelMetrics[modelVersion];
+          if (modelMetrics) {
+            message += `\n📈 Model Metrics (${modelVersion}):\n`;
+            message += `  • Requests: ${modelMetrics.requests}\n`;
+            message += `  • Tokens: ${formatNumber(modelMetrics.totalTokens)}\n`;
+            
+            if (modelMetrics.requests > 0) {
+              const avgTokensPerRequest = Math.round(modelMetrics.totalTokens / modelMetrics.requests);
+              message += `  • Avg Tokens/Request: ${formatNumber(avgTokensPerRequest)}\n`;
+            }
+          }
+          
+          // Memory usage
+          const memUsage = process.memoryUsage();
+          message += `\n💾 Memory Usage:\n`;
+          message += `  • Heap Used: ${Math.round(memUsage.heapUsed / 1024 / 1024)}MB\n`;
+          message += `  • RSS: ${Math.round(memUsage.rss / 1024 / 1024)}MB\n`;
+          
+          // Context warning
+          if (contextUsagePercent > 80) {
+            message += `\n⚠️ Warning: Context usage is high (${contextUsagePercent}%). Consider using /compress to reduce context size.\n`;
+          }
+          
+          addMessage({
+            type: MessageType.INFO,
+            content: message,
+            timestamp: new Date(),
+          });
+        },
       },
       {
         name: 'quit',

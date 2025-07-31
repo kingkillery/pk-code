@@ -61,3 +61,14 @@ export const formatDuration = (milliseconds: number): string => {
 
   return parts.join(' ');
 };
+
+/**
+ * Formats a number with commas for thousands separators
+ * @param num The number to format
+ * @returns A formatted string with comma separators
+ */
+export const formatNumber = (num: number): string => {
+  if (num === 0) return '0';
+  if (!num || isNaN(num)) return 'N/A';
+  return num.toLocaleString();
+};

@@ -15,8 +15,8 @@ import { DefaultLight } from './default-light.js';
 import { DefaultDark } from './default.js';
 import { ShadesOfPurple } from './shades-of-purple.js';
 import { XCode } from './xcode.js';
-import { QwenLight } from './pk-light.js';
-import { QwenDark } from './pk-dark.js';
+import { PKLight } from './pk-light.js';
+import { PKDark } from './pk-dark.js';
 import { PkRoyalty } from './pk-royalty.js';
 import { Theme, ThemeType } from './theme.js';
 import { ANSI } from './ansi.js';
@@ -29,7 +29,7 @@ export interface ThemeDisplay {
   type: ThemeType;
 }
 
-export const DEFAULT_THEME: Theme = QwenDark;
+export const DEFAULT_THEME: Theme = PKDark;
 
 class ThemeManager {
   private readonly availableThemes: Theme[];
@@ -46,8 +46,8 @@ class ThemeManager {
       GitHubDark,
       GitHubLight,
       GoogleCode,
-      QwenLight,
-      QwenDark,
+      PKLight,
+      PKDark,
       PkRoyalty,
       ShadesOfPurple,
       XCode,
@@ -64,14 +64,14 @@ class ThemeManager {
     // Separate PK themes
     const pkThemes = this.availableThemes.filter(
       (theme) =>
-        theme.name === QwenLight.name ||
-        theme.name === QwenDark.name ||
+        theme.name === PKLight.name ||
+        theme.name === PKDark.name ||
         theme.name === PkRoyalty.name,
     );
     const otherThemes = this.availableThemes.filter(
       (theme) =>
-        theme.name !== QwenLight.name &&
-        theme.name !== QwenDark.name &&
+        theme.name !== PKLight.name &&
+        theme.name !== PKDark.name &&
         theme.name !== PkRoyalty.name,
     );
 
