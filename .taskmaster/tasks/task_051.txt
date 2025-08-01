@@ -1,0 +1,43 @@
+# Task ID: 51
+# Title: Ensure Windows Compatibility for Agent Scripts and Process Management
+# Status: done
+# Dependencies: 50
+# Priority: medium
+# Description: Create a Windows-compatible version of the start script and update the Node.js process management logic to be cross-platform.
+# Details:
+The Windows batch script (start-browser-agent.bat) has been created and mirrors the bash functionality with PowerShell JSON parsing and findstr fallback. Now need to update agent.ts to use platform detection for script selection and improve Windows process termination using taskkill instead of SIGTERM/SIGKILL.
+
+# Test Strategy:
+On a Windows 10/11 machine, perform the full end-to-end test: run `pk config browser`, then `pk agent start browser`, and finally `pk agent stop browser`. Use Task Manager or `tasklist` to verify the `uvx` process is created and terminated correctly.
+
+# Subtasks:
+## 1. Create Windows batch script [done]
+### Dependencies: None
+### Description: Create start-browser-agent.bat that mirrors bash functionality
+### Details:
+Windows batch script created with PowerShell JSON parsing and findstr fallback, handles all error cases and environment variable setting
+
+## 2. Update agent.ts spawn logic for Windows [done]
+### Dependencies: None
+### Description: Modify spawn logic in packages/cli/src/commands/agent.ts lines 75-78 to detect Windows platform and use .bat script
+### Details:
+Use process.platform === 'win32' to detect OS and execute appropriate script (.bat vs .sh)
+
+## 3. Improve Windows process termination [done]
+### Dependencies: None
+### Description: Update stopBrowserAgent() function to use taskkill on Windows instead of SIGTERM/SIGKILL
+### Details:
+Implement Windows-specific process termination using taskkill command for better reliability
+
+## 4. Test complete Windows implementation [done]
+### Dependencies: None
+### Description: Perform end-to-end testing on Windows system
+### Details:
+Test full workflow: pk config browser -> pk agent start browser -> pk agent stop browser on Windows 10/11
+
+## 5. Run build validation [done]
+### Dependencies: None
+### Description: Execute npm run preflight to validate all changes
+### Details:
+Ensure all code changes pass linting, type checking, and tests
+

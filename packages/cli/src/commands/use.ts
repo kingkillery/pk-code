@@ -13,6 +13,12 @@ import {
   AuthType,
 } from '@pk-code/core';
 
+import { 
+  AgentOrchestrator, 
+  createAgentOrchestrator,
+  OrchestrationMode
+} from '@pk-code/core';
+
 /**
  * Handle the 'use' command to execute a specific agent with a query
  */
@@ -37,35 +43,36 @@ export async function handleUseCommand(
       registry = getGlobalAgentRegistry();
     }
 
-    // Find the agent by name
-    const agent = registry.getAgent(agentName);
-    if (!agent) {
-      // Try searching for agents with similar names
-      const searchResults = registry.searchAgents(agentName);
-
-      if (searchResults.length === 0) {
-        console.error(`Agent "${agentName}" not found.`);
-        console.error('Available agents:');
-        const allAgents = registry.getAgents();
-        if (allAgents.length === 0) {
-          console.error(
-            '  No agents available. Check your .pk/agents directory.',
-          );
-        } else {
-          allAgents.forEach((a) => {
-            console.error(`  - ${a.config.name}: ${a.config.description}`);
-          });
-        }
+    // Check if this is an explicit agent invocation (agentName: query)
+    if (agentName.includes(':')) {
+      const parts = agentName.split(':');
+      const actualAgentName = parts[0].trim();
+      const actualQuery = parts.slice(1).join(':').trim();
+      
+      // Find the agent by name
+      const agent = registry.getAgent(actualAgentName);
+      if (!agent) {
+        console.error(`Agent "${actualAgentName}" not found.`);
         return null;
       }
+      
+      return await executeAgent(agent, actualQuery, config);
+    }
 
-      if (searchResults.length === 1) {
-        console.log(
-          `Using similar agent "${searchResults[0].config.name}" instead of "${agentName}"`,
-        );
-        return await executeAgent(searchResults[0], query, config);
-      }
+    // Check if we're explicitly requesting a specific agent
+    const agent = registry.getAgent(agentName);
+    if (agent) {
+      return await executeAgent(agent, query, config);
+    }
 
+    // Try searching for agents with similar names
+    const searchResults = registry.searchAgents(agentName);
+    if (searchResults.length === 1) {
+      console.log(
+        `Using similar agent "${searchResults[0].config.name}" instead of "${agentName}"`,
+      );
+      return await executeAgent(searchResults[0], query, config);
+    } else if (searchResults.length > 1) {
       console.error(
         `Agent "${agentName}" not found. Did you mean one of these?`,
       );
@@ -75,7 +82,40 @@ export async function handleUseCommand(
       return null;
     }
 
-    return await executeAgent(agent, query, config);
+    // If no specific agent found, use automatic delegation based on query analysis
+    console.log('No specific agent requested. Using automatic delegation...');
+    
+    // Create orchestrator for automatic agent selection
+    const orchestrator = createAgentOrchestrator(
+      registry,
+      async (agent) => {
+        // Create content generator using the existing system
+        const version = process.env.CLI_VERSION || process.version;
+        const httpOptions = {
+          headers: {
+            'User-Agent': `PK-Code-CLI/${version} (${process.platform}; ${process.arch})`,
+          },
+        };
+
+        if (!config) {
+          throw new Error('Config required for content generation');
+        }
+        return await createCodeAssistContentGenerator(
+          httpOptions,
+          AuthType.LOGIN_WITH_GOOGLE,
+          config,
+        );
+      }
+    );
+
+    // Process query with automatic orchestration
+    const result = await orchestrator.processQuery(query, {
+      mode: OrchestrationMode.AUTO,
+    });
+
+    // Display the result
+    console.log('\n' + result.response.text);
+    return result.response.text;
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error(`Error executing agent "${agentName}":`, errorMessage);

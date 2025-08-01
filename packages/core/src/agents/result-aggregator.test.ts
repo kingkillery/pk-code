@@ -67,6 +67,8 @@ const createMockExecutionResult = (
   duration,
   startTime: new Date(Date.now() - duration),
   endTime: new Date(),
+  taskId: `task-${agent.config.name}-${Date.now()}`,
+  artifacts: [],
   error:
     status !== 'success'
       ? { message: `${status} error`, code: status.toUpperCase() }

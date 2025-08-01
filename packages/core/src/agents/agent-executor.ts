@@ -34,6 +34,14 @@ export interface AgentExecutionResult {
   startTime: Date;
   /** End time */
   endTime?: Date;
+  /** ID of the task being executed */
+  taskId: string;
+  /** Artifacts generated during execution */
+  artifacts?: Array<{
+    id: string;
+    type: string;
+    content: string;
+  }>;
   /** Additional metadata */
   metadata?: Record<string, unknown>;
 }
@@ -162,6 +170,8 @@ export class AgentExecutor {
       status: 'success',
       duration: 0,
       startTime,
+      taskId: `task-${routingResult.agent.config.name}-${Date.now()}`,
+      artifacts: [],
       metadata: {},
     };
 
@@ -305,6 +315,46 @@ export class AgentExecutor {
       effectiveOptions.onProgress?.(result);
 
       return result;
+    }
+  }
+
+  /**
+   * Execute a task with an agent
+   */
+  async executeTask(agent: ParsedAgent, task: { id: string; query: string }): Promise<AgentExecutionResult> {
+    const startTime = new Date();
+    
+    try {
+      // Create a routing result for the agent
+      const routingResult: RoutingResult = {
+        agent,
+        confidence: 1.0, // Direct task execution has full confidence
+        reason: 'Direct task execution',
+        alternatives: [],
+      };
+      
+      // Execute using executeSingleAgent
+      const result = await this.executeSingleAgent(routingResult, task.query);
+      
+      // Override taskId with the provided task ID
+      result.taskId = task.id;
+      
+      return result;
+    } catch (error) {
+      return {
+        agent,
+        status: 'error',
+        taskId: task.id,
+        duration: Date.now() - startTime.getTime(),
+        startTime,
+        endTime: new Date(),
+        artifacts: [],
+        error: {
+          message: error instanceof Error ? error.message : 'Unknown error',
+          code: 'TASK_EXECUTION_ERROR',
+          originalError: error instanceof Error ? error : undefined,
+        },
+      };
     }
   }
 

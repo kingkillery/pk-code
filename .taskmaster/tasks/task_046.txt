@@ -1,0 +1,46 @@
+# Task ID: 46
+# Title: Register `pk agent` Command with CLI
+# Status: done
+# Dependencies: None
+# Priority: high
+# Description: Register the `agent` command and its subcommands (`start browser`, `stop browser`) with the Commander.js CLI structure to make them accessible to users.
+# Details:
+Modify the main CLI command registration file (e.g., `packages/cli/src/commands/index.ts`) to include the `agent` command. In `packages/cli/src/commands/agent.ts`, define the `start` and `stop` subcommands, each accepting an `<agent_type>` argument, which will be 'browser'. Ensure help text is automatically generated and descriptive.
+
+# Test Strategy:
+Run `pk --help` and verify the `agent` command is listed. Run `pk agent --help` and verify `start` and `stop` subcommands are listed. Execute `pk agent start browser` and `pk agent stop browser` to ensure the command structure is wired up, even if the underlying logic is not yet implemented. Check for proper command recognition and argument parsing.
+
+# Subtasks:
+## 1. Analyze existing CLI command registration structure [cancelled]
+### Dependencies: None
+### Description: Examine the current Commander.js setup in packages/cli/src/commands/index.ts to understand how commands are registered and exported, and review existing command patterns for consistency.
+### Details:
+Study the existing command registration patterns, import/export structure, and how other commands like 'config' are implemented. Identify the exact location where new commands should be added and understand the naming conventions used.
+<info added on 2025-07-28T03:19:42.076Z>
+Analysis completed - CLI architecture fully understood. The agent command is already properly registered and integrated. Key findings: packages/cli/src/gemini.tsx uses direct import routing (lines 101-197), commands/index.ts exports handlers correctly, and agent.ts already exists with proper integration. No new registration needed - only need to enhance existing agent.ts functionality for additional agent types beyond browser-only support.
+</info added on 2025-07-28T03:19:42.076Z>
+
+## 2. Create agent command file structure [done]
+### Dependencies: 46.1
+### Description: Create the packages/cli/src/commands/agent.ts file with the basic Commander.js command structure for the agent command and its subcommands.
+### Details:
+Set up the agent.ts file with Commander.js program instance, define the main 'agent' command, and create the subcommand structure for 'start' and 'stop' with proper argument handling for <agent_type>.
+
+## 3. Implement start and stop subcommand definitions [done]
+### Dependencies: 46.2
+### Description: Define the 'start' and 'stop' subcommands in agent.ts with proper argument parsing, validation, and placeholder command handlers.
+### Details:
+Create 'start <agent_type>' and 'stop <agent_type>' subcommands with argument validation to ensure 'browser' is the accepted agent type. Add descriptive help text and error handling for invalid agent types.
+
+## 4. Register agent command in main CLI index [done]
+### Dependencies: 46.2, 46.3
+### Description: Add the agent command to the main CLI command registration file to make it discoverable through the pk CLI.
+### Details:
+Import the agent command from agent.ts into packages/cli/src/commands/index.ts and add it to the command registration/export structure following the existing pattern used by other commands.
+
+## 5. Add comprehensive help text and command validation [done]
+### Dependencies: 46.3, 46.4
+### Description: Implement detailed help text for the agent command and its subcommands, and add proper command validation and error handling.
+### Details:
+Add descriptive help text explaining the purpose of the agent command, its subcommands, and the browser agent type. Include usage examples and ensure error messages are clear and actionable.
+

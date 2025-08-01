@@ -3,11 +3,26 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import { promisify } from 'util';
+import * as net from 'net';
 
 const execAsync = promisify(exec);
 
 const BROWSER_AGENT_PID_FILE = path.join('.taskmaster', 'browser-agent.pid');
 const GLOBAL_SETTINGS_FILE = path.join(os.homedir(), '.pk', 'settings.json');
+
+// Helper function to read global settings
+async function getGlobalSettings(): Promise<any> {
+  if (fs.existsSync(GLOBAL_SETTINGS_FILE)) {
+    try {
+      const data = fs.readFileSync(GLOBAL_SETTINGS_FILE, 'utf8');
+      return JSON.parse(data);
+    } catch (error) {
+      console.warn(`Warning: Failed to parse ${GLOBAL_SETTINGS_FILE}: ${error}`);
+      return {};
+    }
+  }
+  return {};
+}
 
 // Import agent management functions from UI commands
 import {
@@ -157,10 +172,34 @@ async function handleListAgents(): Promise<void> {
       return;
     }
 
-    // Format agent list
+    // Format agent list with color and tool information
     console.log(`\n🤖 Available Agents (${agents.length}):\n`);
     for (const agent of agents) {
-      console.log(`- ${agent.name}`);
+      // Try to get color from YAML frontmatter
+      let colorIndicator = '';
+      try {
+        const contentLines = agent.systemPrompt?.split('\n') || [];
+        if (contentLines.length > 0 && contentLines[0].startsWith('---')) {
+          const yamlMatch = agent.systemPrompt?.match(/---\n([\s\S]*?)\n---/);
+          if (yamlMatch && yamlMatch[1]) {
+            const yamlLines = yamlMatch[1].split('\n');
+            const colorLine = yamlLines.find(line => line.startsWith('color:'));
+            if (colorLine) {
+              const color = colorLine.split(':')[1].trim();
+              colorIndicator = ` (${color})`;
+            }
+          }
+        }
+      } catch (e) {
+        // Ignore parsing errors
+      }
+      
+      // Get tools info
+      const toolsInfo = agent.tools && agent.tools.length > 0 
+        ? ` [${agent.tools.map((t: { name: string }) => t.name).join(', ')}]` 
+        : ' [all tools]';
+      
+      console.log(`- ${agent.name}${colorIndicator}${toolsInfo}`);
     }
     console.log('\nFor more details, use `pk agent show <agent-name>`.');
   } catch (error) {
@@ -199,8 +238,30 @@ async function handleShowAgent(agentName: string): Promise<void> {
     const content = await fs.promises.readFile(filePath, 'utf-8');
     const agent = await parseAgentFromFile(filePath, content);
 
-    console.log(`\n🤖 Agent: ${agent.name}\n`);
+    console.log(`
+🤖 Agent: ${agent.name}
+`);
+    
+    // Extract color from YAML frontmatter if available
+    let color = 'default';
+    try {
+      const contentLines = agent.systemPrompt?.split('\n') || [];
+      if (contentLines.length > 0 && contentLines[0].startsWith('---')) {
+        const yamlMatch = agent.systemPrompt?.match(/---\n([\s\S]*?)\n---/);
+        if (yamlMatch && yamlMatch[1]) {
+          const yamlLines = yamlMatch[1].split('\n');
+          const colorLine = yamlLines.find(line => line.startsWith('color:'));
+          if (colorLine) {
+            color = colorLine.split(':')[1].trim();
+          }
+        }
+      }
+    } catch (e) {
+      // Ignore parsing errors
+    }
+    
     console.log(`  Description: ${agent.description || 'No description'}`);
+    console.log(`  Color: ${color}`);
     console.log(`  Keywords: ${(agent.keywords || []).join(', ')}`);
     console.log(
       `  Model: ${agent.model || 'default'} (${agent.provider || 'default'})`,
@@ -208,8 +269,44 @@ async function handleShowAgent(agentName: string): Promise<void> {
     console.log(
       `  Tools: ${!agent.tools || agent.tools.length === 0 ? 'all' : agent.tools.map((t: { name: string }) => t.name).join(', ')}`,
     );
+    if (agent.examples && agent.examples.length > 0) {
+      console.log('\n  Examples:');
+      agent.examples.forEach((example: { input: string; output: string; description?: string }, index: number) => {
+        console.log(`    ${index + 1}. ${example.description || 'Example'}:`);
+        console.log(`       Input: ${example.input}`);
+        console.log(`       Output: ${example.output}`);
+      });
+    }
     if (agent.systemPrompt) {
-      console.log(`\n---\nSystem Prompt:\n${agent.systemPrompt}`);
+      // Extract just the system prompt content, not the full markdown with frontmatter
+      let promptContent = agent.systemPrompt;
+      try {
+        const contentLines = agent.systemPrompt.split('\n');
+        if (contentLines.length > 0 && contentLines[0].startsWith('---')) {
+          // Find the end of the frontmatter
+          let frontmatterEndIndex = 1;
+          while (frontmatterEndIndex < contentLines.length && contentLines[frontmatterEndIndex] !== '---') {
+            frontmatterEndIndex++;
+          }
+          if (frontmatterEndIndex < contentLines.length) {
+            promptContent = contentLines.slice(frontmatterEndIndex + 1).join('\n').trim();
+          }
+        }
+      } catch (e) {
+        // Fallback to original content if parsing fails
+      }
+      
+      if (promptContent) {
+        console.log('\n---\nSystem Prompt:');
+        // Limit the output to prevent overwhelming the terminal
+        const lines = promptContent.split('\n');
+        if (lines.length > 50) {
+          console.log(lines.slice(0, 50).join('\n'));
+          console.log(`\n... (showing first 50 lines, ${lines.length - 50} more lines available)`);
+        } else {
+          console.log(promptContent);
+        }
+      }
     }
   } catch (error) {
     console.error(
@@ -219,9 +316,9 @@ async function handleShowAgent(agentName: string): Promise<void> {
 }
 
 async function handleCreateAgent(): Promise<void> {
-  console.log('Interactive agent creation is not yet supported in CLI mode.');
-  console.log('Please use the interactive UI mode to create agents.');
-  console.log('Run "pk" without arguments to enter interactive mode.');
+  // Import the interactive creation component
+  const { handleCreateAgentCommandCLI } = await import('./create-agent-cli.js');
+  handleCreateAgentCommandCLI();
 }
 
 async function handleDeleteAgent(agentName: string): Promise<void> {
@@ -262,27 +359,18 @@ async function handleDeleteAgent(agentName: string): Promise<void> {
 
 // Helper function to check for browser-use MCP server configuration
 async function getBrowserMcpConfig(): Promise<{ hasConfig: boolean; configSource: string }> {
-  // First check global .pk/settings.json
-  if (fs.existsSync(GLOBAL_SETTINGS_FILE)) {
-    try {
-      const data = fs.readFileSync(GLOBAL_SETTINGS_FILE, 'utf8');
-      const settings = JSON.parse(data);
-      if (settings.mcpServers && settings.mcpServers['browser-use']) {
-        return { hasConfig: true, configSource: 'global .pk/settings.json' };
-      }
-    } catch (error) {
-      console.warn(`Warning: Failed to parse ${GLOBAL_SETTINGS_FILE}: ${error}`);
-    }
+  const globalSettings = await getGlobalSettings();
+  if (globalSettings.mcpServers && globalSettings.mcpServers['browser-use']) {
+    return { hasConfig: true, configSource: 'global' };
   }
 
-  // Fallback to local .mcp.json
   const mcpConfigFile = path.resolve('.mcp.json');
   if (fs.existsSync(mcpConfigFile)) {
     try {
       const data = fs.readFileSync(mcpConfigFile, 'utf8');
       const config = JSON.parse(data);
       if (config.mcpServers && config.mcpServers['browser-use']) {
-        return { hasConfig: true, configSource: 'local .mcp.json' };
+        return { hasConfig: true, configSource: 'local' };
       }
     } catch (error) {
       console.warn(`Warning: Failed to parse ${mcpConfigFile}: ${error}`);
@@ -292,99 +380,120 @@ async function getBrowserMcpConfig(): Promise<{ hasConfig: boolean; configSource
   return { hasConfig: false, configSource: '' };
 }
 
+async function isPortInUse(port: number): Promise<boolean> {
+  return new Promise((resolve) => {
+    const server = net.createServer();
+    server.once('error', (err: any) => {
+      if (err.code === 'EADDRINUSE') {
+        resolve(true);
+      } else {
+        resolve(false);
+      }
+    });
+    server.once('listening', () => {
+      server.close();
+      resolve(false);
+    });
+    server.listen(port);
+  });
+}
+
+
+
+async function checkBrowserUseInstallation(): Promise<boolean> {
+  try {
+    // Check if browser-use is installed by trying to resolve its package.json
+    require.resolve('browser-use/package.json');
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+
+async function getChromeConfig(): Promise<{ chromePath: string | null }> {
+  const globalSettings = await getGlobalSettings();
+  return {
+    chromePath: globalSettings.chromePath || null,
+  };
+}
+
+async function getBrowserConfig(): Promise<any> {
+  const { hasConfig, configSource } = await getBrowserMcpConfig();
+  if (!hasConfig) {
+    return null;
+  }
+
+  if (configSource === 'global') {
+    const globalSettings = await getGlobalSettings();
+    return globalSettings.mcpServers['browser-use'];
+  } else {
+    const mcpConfigFile = path.resolve('.mcp.json');
+    const data = fs.readFileSync(mcpConfigFile, 'utf8');
+    const config = JSON.parse(data);
+    return config.mcpServers['browser-use'];
+  }
+}
+
 async function startBrowserAgent() {
   if (fs.existsSync(BROWSER_AGENT_PID_FILE)) {
     const pid = parseInt(fs.readFileSync(BROWSER_AGENT_PID_FILE, 'utf8'), 10);
     try {
       process.kill(pid, 0);
-      console.log(`Browser agent is already running with PID: ${pid}.`);
+      console.log(`Browser agent is already running with PID: ${pid}. To stop it, run "pk agent stop browser".`);
       return;
     } catch (_error) {
-      console.log('Found stale PID file, removing it.');
+      console.warn('Found stale PID file from a previous session. Removing it.');
       fs.unlinkSync(BROWSER_AGENT_PID_FILE);
     }
   }
 
-  const mcpConfig = await getBrowserMcpConfig();
-  if (!mcpConfig.hasConfig) {
-    console.error(
-      'Error: browser-use MCP server configuration not found.',
-    );
-    console.error('Please run "pk config browser" to set up browser configuration.');
-    console.error('Configuration should be in ~/.pk/settings.json or .mcp.json');
+  const isInstalled = await checkBrowserUseInstallation();
+  if (!isInstalled) {
+    console.error('Error: The "browser-use" package is not installed.');
+    console.error('Please install it by running: npm install -g browser-use');
     return;
   }
 
-  console.log(`Using browser-use configuration from: ${mcpConfig.configSource}`);
+  const { chromePath } = await getChromeConfig();
+  if (!chromePath || !fs.existsSync(chromePath)) {
+    console.error('Error: Chrome executable path is not configured or is invalid.');
+    console.error('Please run "pk config browser" to set the correct path to your Chrome/Chromium executable.');
+    return;
+  }
+
+  const browserConfig = await getBrowserConfig();
+  if (!browserConfig) {
+    console.error('Error: browser-use MCP server configuration not found.');
+    console.error('Please run "pk config browser" to set up browser configuration.');
+    return;
+  }
+
+  const port = browserConfig.port || 3001;
+  if (await isPortInUse(port)) {
+    console.error(`Error: Port ${port} is already in use. The browser agent requires this port.`);
+    console.error('Please stop the process using this port or configure a different port for the browser agent.');
+    return;
+  }
 
   const taskmasterDir = path.dirname(BROWSER_AGENT_PID_FILE);
   if (!fs.existsSync(taskmasterDir)) {
     fs.mkdirSync(taskmasterDir, { recursive: true });
   }
 
-  // Get the browser-use MCP server configuration
-  let browserUseConfig: { command: string; args?: string[]; env?: Record<string, string> } | null = null;
-  
-  // Try global settings first
-  if (fs.existsSync(GLOBAL_SETTINGS_FILE)) {
-    try {
-      const data = fs.readFileSync(GLOBAL_SETTINGS_FILE, 'utf8');
-      const settings = JSON.parse(data);
-      browserUseConfig = settings.mcpServers?.['browser-use'];
-    } catch (_error) {
-      // Continue to try local config
-    }
-  }
-
-  // Fallback to local .mcp.json
-  if (!browserUseConfig) {
-    const mcpConfigFile = path.resolve('.mcp.json');
-    if (fs.existsSync(mcpConfigFile)) {
-      try {
-        const data = fs.readFileSync(mcpConfigFile, 'utf8');
-        const config = JSON.parse(data);
-        browserUseConfig = config.mcpServers?.['browser-use'];
-      } catch (_error) {
-        console.error('Error reading MCP configuration:', _error);
-        return;
-      }
-    }
-  }
-
-  if (!browserUseConfig) {
-    console.error('Error: browser-use configuration not found');
-    return;
-  }
-
-  // Prepare environment variables
-  const env = { ...process.env };
-  if (browserUseConfig.env) {
-    Object.keys(browserUseConfig.env).forEach(key => {
-      let value = browserUseConfig.env![key];
-      // Handle environment variable substitution
-      if (typeof value === 'string' && value.startsWith('$')) {
-        const envVarName = value.slice(1);
-        value = process.env[envVarName] || value;
-      }
-      env[key] = value;
-    });
-  }
-
   const spawnOptions: import('child_process').SpawnOptions = {
     detached: true,
     stdio: 'ignore',
-    env,
+    env: { ...process.env, ...browserConfig.env },
   };
 
-  // Start the browser-use MCP server using the configured command and args
-  const child = spawn(browserUseConfig.command, browserUseConfig.args || [], spawnOptions);
+  const child = spawn(browserConfig.command, browserConfig.args || [], spawnOptions);
   child.unref();
 
   if (child.pid) {
     fs.writeFileSync(BROWSER_AGENT_PID_FILE, String(child.pid));
-    console.log(`Browser agent started with PID: ${child.pid}`);
+    console.log(`Browser agent started successfully with PID: ${child.pid}.`);
   } else {
-    console.error('Failed to start browser agent.');
+    console.error('Failed to start the browser agent. Please check your configuration and try again.');
   }
 }
 
@@ -397,29 +506,33 @@ async function stopBrowserAgent() {
   const pid = parseInt(fs.readFileSync(BROWSER_AGENT_PID_FILE, 'utf8'), 10);
 
   try {
+    // Check if the process is actually running
+    process.kill(pid, 0);
+
     if (process.platform === 'win32') {
       await execAsync(`taskkill /PID ${pid} /F`);
-      console.log(`Terminated browser agent with PID ${pid}.`);
     } else {
       process.kill(pid, 'SIGTERM');
-      console.log(`Sent SIGTERM to browser agent with PID ${pid}.`);
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // Add a small delay to allow graceful shutdown before sending SIGKILL
+      await new Promise(resolve => setTimeout(resolve, 100));
       process.kill(pid, 'SIGKILL');
-      console.log(`Sent SIGKILL to browser agent with PID ${pid}.`);
     }
+    console.log(`Browser agent with PID ${pid} stopped successfully.`);
   } catch (error) {
-    if (error instanceof Error) {
+    if (error instanceof Error && error.message.includes('ESRCH')) {
+      // Process not found, clean up the stale PID file
+      console.warn(`Stale PID file found for a non-existent process (PID: ${pid}). Cleaning up.`);
+    } else {
       // On Windows, taskkill might fail if the process is already gone.
       // On other platforms, process.kill will throw an error.
-      if (!/not found/i.test(error.message)) {
-        console.error(`Error stopping browser agent: ${error.message}`);
+      if (!/not found/i.test((error as Error).message)) {
+        console.error(`Error stopping browser agent: ${(error as Error).message}`);
       }
     }
   } finally {
     if (fs.existsSync(BROWSER_AGENT_PID_FILE)) {
       fs.unlinkSync(BROWSER_AGENT_PID_FILE);
     }
-    console.log('Browser agent stopped.');
   }
 }
 
@@ -429,6 +542,9 @@ async function stopBrowserAgent() {
 async function handleRunAgents(agentNames: string[]): Promise<void> {
   const projectRoot = process.cwd();
   const agentsDir = getAgentsDir(projectRoot);
+
+  // Import the enhanced agent runner
+  const { EnhancedAgentRunner } = await import('../agent/EnhancedAgentRunner.js');
 
   const runners = await Promise.all(
     agentNames.map(async (agentName) => {
@@ -454,7 +570,7 @@ async function handleRunAgents(agentNames: string[]): Promise<void> {
 
       const content = await fs.promises.readFile(filePath, 'utf-8');
       const agent = await parseAgentFromFile(filePath, content);
-      return new AgentRunner(agent);
+      return new EnhancedAgentRunner(agent);
     }),
   );
 

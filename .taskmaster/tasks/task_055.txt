@@ -1,0 +1,43 @@
+# Task ID: 55
+# Title: Sub-Agents Development
+# Status: done
+# Dependencies: None
+# Priority: high
+# Description: Draft pk-debugger.md prompt, implement run_pdb_test(test_path) tool wrapper, and draft pk-planner.md prompt
+# Details:
+
+
+# Test Strategy:
+
+
+# Subtasks:
+## 1. Draft pk-debugger.md prompt and implement run_pdb_test [done]
+### Dependencies: None
+### Description: Create the design and implementation plan for pk-debugger sub-agent and PDB tool wrapper.
+### Details:
+
+
+## 2. Create pk-debugger.md agent prompt [done]
+### Dependencies: None
+### Description: Create pk-debugger.md agent prompt that can accept failing test paths, run PDB sessions, and extract stack trace + local variables
+### Details:
+
+
+## 3. Implement run_pdb_test tool wrapper [done]
+### Dependencies: None
+### Description: Implement run_pdb_test(test_path) tool that spawns Python subprocess, runs pytest under PDB, captures stack and locals, returns JSON
+### Details:
+
+
+## 4. Draft pk-planner.md agent prompt [done]
+### Dependencies: None
+### Description: Create pk-planner.md agent prompt for high-level reflection and plan revision, with single-call constraint
+### Details:
+
+
+## 5. Integrate sub-agents with orchestrator guardrails [done]
+### Dependencies: None
+### Description: Configure orchestrator to automatically open relevant files via read_files after calling the debugger sub-agent, as per Refact.ai's guardrail pattern
+### Details:
+
+

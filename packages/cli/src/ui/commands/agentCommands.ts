@@ -826,7 +826,7 @@ export const agentCommand: Command = {
 
 import { render } from 'ink';
 import { MultiAgentRun } from '../components/MultiAgentRun.js';
-import { AgentRunner } from '../../agent/AgentRunner.js';
+import { EnhancedAgentRunner as AgentRunner } from '../../agent/EnhancedAgentRunner.js';
 import React from 'react';
 
 /**
@@ -836,7 +836,7 @@ const runAgents = (runners: AgentRunner[]): void => {
   const { unmount } = render(React.createElement(MultiAgentRun, { runners }));
 
   // Start all agents in parallel
-  Promise.all(runners.map((runner) => runner.run()))
+  Promise.all(runners.map((runner) => runner.run('Running agent...', {})))
     .then(() => {
       // Wait a moment to show completion, then unmount
       setTimeout(() => {
@@ -853,3 +853,5 @@ export const agentCommands = {
   create: _processAgentCreation,
   run: runAgents,
 };
+
+export { handleCreateAgentCommandCLI } from '../../commands/create-agent-cli.js';

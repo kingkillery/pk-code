@@ -1,0 +1,39 @@
+# Task ID: 50
+# Title: Implement Browser Agent Process Lifecycle Management
+# Status: done
+# Dependencies: 46, 49
+# Priority: high
+# Description: Develop the core logic in `agent.ts` for the `pk agent start browser` and `pk agent stop browser` commands to manage the browser-use MCP server process.
+# Details:
+**Context:**
+This task builds on completed work for CLI registration (46), browser config (47), .mcp.json integration (48), and the dynamic agent script (49). The current `agent.ts` contains placeholder start/stop functions that require full implementation.
+
+**Key Files & Constants:**
+- Main Logic: `packages/cli/src/commands/agent.ts`
+- Script to Execute: `scripts/start-browser-agent.sh`
+- Configuration Source: `.mcp.json`
+- PID File Path: `path.join('.taskmaster', 'browser-agent.pid')` (constant: `BROWSER_AGENT_PID_FILE`)
+
+**Implementation Plan:**
+
+1.  **Enhance `startBrowserAgent()`:**
+    -   Before starting, perform pre-checks: verify `.mcp.json` exists and that no agent process is already running (check PID file).
+    -   Ensure the `.taskmaster` directory exists before attempting to write the PID file.
+    -   Use `child_process.spawn` to run `start-browser-agent.sh` in detached mode. Implement cross-platform compatibility for spawning the script.
+    -   Capture the new process ID (PID), validate it, and write it to the `browser-agent.pid` file.
+    -   Implement robust error handling for spawn failures or PID writing issues.
+
+2.  **Enhance `stopBrowserAgent()`:**
+    -   Read the PID from `browser-agent.pid`.
+    -   Handle stale PID files: if the file exists but the process ID is not running, notify the user and clean up the file.
+    -   Implement a graceful termination sequence: first send `SIGTERM`, wait briefly, and if the process still exists, send `SIGKILL`.
+    -   Add comprehensive error handling for cases where the process is already gone or the PID file is missing.
+    -   Delete the PID file upon successful termination.
+
+3.  **Cross-Platform Logic:**
+    -   For Unix-like systems (Linux, macOS): `spawn('bash', [scriptPath], { detached: true, stdio: 'ignore' })`
+    -   For Windows: `spawn('cmd', ['/c', 'bash', scriptPath], { detached: true, stdio: 'ignore' })`
+    -   Handle potential permission and script execution errors on all platforms.
+
+# Test Strategy:
+Run `pk agent start browser`. Verify that a `uvx` process is running and that the `.taskmaster/browser-agent.pid` file is created with the correct PID. Run `pk agent stop browser`. Verify the process is terminated and the PID file is removed. Test starting and stopping multiple times to check for stability. Also test edge cases like starting an already running agent and stopping a non-existent one.

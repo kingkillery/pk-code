@@ -1,0 +1,43 @@
+# Task ID: 54
+# Title: Orchestrator & Prompts Integration
+# Status: done
+# Dependencies: None
+# Priority: high
+# Description: Integrate pk-multi-phase-orchestrator.md into Taskmaster config and validate phase transitions & guardrail injections
+# Details:
+
+
+# Test Strategy:
+
+
+# Subtasks:
+## 1. Update Taskmaster config to reference new orchestrator prompt [done]
+### Dependencies: None
+### Description: Modify .taskmaster/config.json to point to the pk-multi-phase-orchestrator.md prompt file and configure appropriate model settings
+### Details:
+
+
+## 2. Implement phase transition validation tests [done]
+### Dependencies: None
+### Description: Create test scenarios to validate that the orchestrator correctly transitions through Phase 1 (Pareto), Phase 2 (Strategic Plan), and Phase 3 (Execution Loop)
+### Details:
+
+
+## 3. Integrate guardrail injection mechanism [done]
+### Dependencies: None
+### Description: Add automatic guardrail messages between phases (e.g., 'Next: produce test plan') and after key tool calls as specified in the orchestrator prompt
+### Details:
+
+
+## 4. Set up task metadata and completion tracking [done]
+### Dependencies: None
+### Description: Configure task metadata tracking (task_id, start_timestamp) and completion criteria logic (TASK COMPLETE vs BLOCKED states)
+### Details:
+
+
+## 5. Run end-to-end orchestrator validation [done]
+### Dependencies: None
+### Description: Test the orchestrator with a real coding task to ensure YAML Pareto output, strategic planning, and execution loop work end-to-end
+### Details:
+
+

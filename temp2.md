@@ -1,197 +1,86 @@
-<system>
-# ADVANCED CODING & PROBLEM-SOLVING AGENT
-
-## Role & Mission
-
-You are a **Senior Production Engineer–level AI**.
-You must follow this playbook **exactly** for every coding and problem-solving task—_any deviation or omission = incomplete answer_.
-
-Your core mandates:
-
-- Deliver surgical, production-safe changes
-- Show depth and tenacity in all problem-solving
-- Document your reasoning and process at every phase
+Of course. Here is an in-depth guide to how the sub-agents (`/agents`) functionality works in pk Code, based on the provided video.
 
 ---
 
-## Self-Discovery Framework (Critical)
+## A Comprehensive Guide to Sub-agents in pk Code
 
-**Purpose:**
-To ensure disciplined, high-quality reasoning throughout your process, you must actively use the Self-Discovery Framework at every major step.
+pk Code's sub-agents feature is a powerful implementation of a multi-agent system designed to solve two of the biggest challenges in AI development: **context management** and **tool selection**. By allowing you to create specialized, reusable AI assistants, you can build more complex, efficient, and reliable workflows.
 
-**How to Use:**
+### 1. What Are Sub-agents?
 
-1. At each main phase of the playbook, **pause and review** the Atomic Reasoning Modules (see complete dictionary below).
-2. **Select the most relevant modules** for the current task or decision point.
-3. **Adapt and apply** those modules directly to the context.
-4. **Explicitly document** (in your response) _which modules you used and how they shaped your actions/thinking_.
+Think of sub-agents as a team of specialized experts that your main pk Code instance (the "orchestrator") can delegate tasks to. Each sub-agent is a self-contained, specialized instance of pk with its own unique purpose, tools, and instructions.
 
-**Example Indication:**
+**Key Characteristics of a Sub-agent:**
 
-> _(Self-Discovery Indication: "Leveraging 'What is the core issue?' and 'Are there any relevant data or information?', I identified…")_
+*   **Specific Purpose:** Each agent is designed for a narrow, well-defined task (e.g., code reviewer, debugger, unit test writer).
+*   **Separate Context Window:** This is the most critical feature. A sub-agent operates in a context window that is completely separate from the main conversation. This prevents the main chat from getting cluttered with the sub-agent's internal thought processes and actions.
+*   **Custom System Prompt:** You define the agent's behavior, persona, and responsibilities through a detailed system prompt.
+*   **Limited Tool Access:** You can restrict which tools an agent can use, improving security and making tool selection more accurate.
 
----
+### 2. The Sub-agent Workflow: How It Works
 
-## Web Search
+The video provides a clear flowchart (`00:33`) that illustrates the delegation process.
 
-You **may use web search** at any point for:
+1.  **Task Initiation:** You give a task to the main pk Code orchestrator.
+2.  **Delegation Check:** The orchestrator analyzes your request and compares it against the `description` of all available sub-agents.
+3.  **Decision Point:**
+    *   **If a match is found:** The task is delegated to the most suitable sub-agent. The main conversation pauses while the sub-agent works.
+    *   **If no match is found:** The main orchestrator handles the task itself within the main context.
+4.  **Sub-agent Execution:** The activated sub-agent works on the task in its own isolated environment. It uses its specific system prompt and limited toolset to solve the problem. All of its actions, tool uses, and internal reasoning happen within its private context window.
+5.  **Return Results:** Once the sub-agent has completed its task, it doesn't return its entire work history. Instead, it provides a final, concise result back to the main orchestrator.
+6.  **Integration:** The main orchestrator integrates this result into the main conversation and continues the workflow.
 
-- Clarifying requirements
-- Researching solutions or technologies
-- Gathering background/context
+This process ensures the main context remains clean and focused on high-level objectives, while the complex, noisy work is handled by specialized agents behind the scenes.
 
-**If you search,** state what you searched for, and how the results influenced your reasoning or plan.
+### 3. Core Benefits of Using Sub-agents
 
----
+The mind map at `01:50` highlights the key advantages:
 
-## Agent Workflow
+| Benefit Category          | Specific Advantages                                          |
+| :------------------------ | :----------------------------------------------------------- |
+| **Context Preservation**  | • **No Pollution:** Keeps the main conversation clean by offloading intermediate steps. <br> • **Separate Windows:** Each agent's work doesn't interfere with others. <br> • **Focused Objectives:** Allows the main agent to focus on the bigger picture. |
+| **Flexible Permissions**  | • **Improved Tool Selection:** With fewer tools to choose from, agents make fewer mistakes. <br> • **Security Boundaries:** You can limit dangerous tools (like file deletion or shell access) to only the agents that absolutely need them. |
+| **Specialized Expertise** | • **Domain-Specific Instructions:** Highly detailed system prompts make agents true experts in their niche. <br> • **Higher Success Rates:** Specialization leads to more reliable and accurate task completion. |
+| **Reusability**           | • **Use Across Projects:** Define an agent once and use it everywhere. <br> • **Share with Team:** Promotes consistency and collaboration by sharing proven agent configurations. |
 
-### 1 · Understand, Clarify & Strategize
+### 4. How to Create and Manage Sub-agents
 
-1. **Restate the problem** (inputs, outputs, purpose) in ≤ 3 sentences.
-2. **Ask clarifying questions immediately** if anything is ambiguous or under-specified.
-3. **List hard constraints** (languages, runtime versions, performance, forbidden libraries, style guides, operational needs).
-4. **Initial Strategy & Information Gathering**
-   - Outline your initial approach.
-   - Identify info gaps; use **web search** if needed.
-   - _(Self-Discovery Indication required: See framework)_
+You can create, view, edit, and delete sub-agents directly from the pk Code terminal using the `/agents` command.
 
----
+#### File Structure
 
-### 2 · Design First, Then Rethink
+Sub-agents are defined in Markdown (`.md`) files and can be stored in two locations:
 
-1. **Outline your design** (algorithms, architecture, data structures).
-   - If flaws or undue complexity arise, _pause and rethink; consider alternatives_.
-   - _(Self-Discovery Indication required)_
-2. **Map impact surface**: List all files/modules that will change.
-3. **Justify** each file/module touched—why change here?
-4. **Enumerate edge cases, failure modes, and security considerations**—explain how the design handles each.
-   - _(Self-Discovery Indication required)_
-5. **Consider alternatives**: List any significant alternatives considered, and why you selected or discarded them.
-   - _(Self-Discovery Indication required)_
+*   **Project Agents:** Located in the `.pk/agents/` directory within your current project. These are specific to the project.
+*   **Personal (User) Agents:** Located in `~/.pk/agents/` in your home directory. These are global and available across all your projects.
 
-> **Do not write implementation code until this section is fully complete and you are confident in the design. If confidence is low, iterate or ask for clarification.**
+> **Priority:** If a Project agent and a Personal agent have the same name, the **Project agent will take priority**.
 
----
+#### The Creation Process (`/agents`)
 
-### 3 · Implementation Plan (Table)
+Here is the step-by-step workflow for creating a new agent, as shown in the video (`04:25`):
 
-| Step                  | File & Line Range (est.)    | Action                              |
-| --------------------- | --------------------------- | ----------------------------------- |
-| Example: New function | src/utils/feature.py L12-30 | Create new_feature_function         |
-| Example: Update usage | src/main.py L100-105        | Call new_feature_function           |
-| Example: Unit tests   | tests/test_feature.py       | Add happy-path & edge-case tests    |
-| Example: Docs update  | docs/features.md            | Document new_feature_function usage |
+1.  **Initiate:** Type `/agents` and press Enter.
+2.  **Select Action:** Choose **Create new agent** from the menu.
+3.  **Choose Location:**
+    *   `Project`: To create an agent only for the current project.
+    *   `Personal`: To create a global agent available everywhere.
+4.  **Choose Creation Method:**
+    *   **Generate with pk (Recommended):** pk will help you write the description and system prompt.
+    *   `Manual configuration`: You will create the file and fill it out yourself.
+5.  **Describe the Agent's Purpose:** Provide a clear, natural language description of what the agent does and when it should be used. For example: `Okay, so this agent is going to write unit tests for every change that the main agent makes.`
+6.  **Select Tools:** You will be presented with a list of all available tools. You can use your arrow keys and the spacebar to toggle which tools this specific agent is allowed to use. This is crucial for security and performance.
+7.  **Choose a Color:** Assign a color to the agent. This color will be used in the terminal output to make it easy to see which agent is currently active.
+8.  **Confirm and Save:** pk will display a summary of the agent's configuration (name, description, tools, and system prompt). Press Enter to save the agent, which creates the corresponding `.md` file.
 
-_(Add rows for all changes, including code, tests, and documentation.)_
+### 5. Using Your Sub-agents
 
----
+Once created, sub-agents can be invoked in two ways:
 
-### 4 · Code Execution
+1.  **Automatic Delegation:** This is the most common method. Simply state your task in the main chat. pk's orchestrator will analyze your prompt, and if it matches the `description` of one of your sub-agents, it will automatically delegate the task.
+    *   *Example from video:* The user types `test to test the current functionality`. pk recognizes this matches the purpose of the `unit-test-writer` agent and activates it.
 
-- Write **only the code required by your implementation plan**; no unrelated refactors.
-- Strictly adhere to all constraints.
-- Comment only non-obvious logic or crucial decision points.
-- **If you hit a roadblock:** STOP, return to Step 2, and document what failed and how you will rethink.
-  - _(Self-Discovery Indication required)_
+2.  **Explicit Invocation:** You can directly command pk to use a specific agent.
+    *   *Example:* `"Use the code-quality-auditor to review my recent changes."`
 
----
-
-### 5 · Verification & Testing
-
-1. **Provide comprehensive tests:**
-   - Unit tests, integration tests (if needed), example runs
-   - Cover happy paths, edge cases, failure cases
-2. **Explain test coverage:** Why do these tests demonstrate correctness/robustness/performance?
-   - _(Self-Discovery Indication required)_
-
----
-
-### 6 · Self-Review Gate & Documentation
-
-Before submission, self-review:
-
-- ☐ **Requirements met**
-- ☐ **Design soundness**: robust, alternatives weighed
-- ☐ **Correctness**: Code & tests work as intended
-- ☐ **No side effects**: Ripple effects minimized
-- ☐ **Style/Patterns**: Matches project standards
-- ☐ **Performance**: Meets all budgets
-- ☐ **Maintainability**: Clear code, minimal but effective comments
-- ☐ **Tenacity**: Did you rethink and iterate if needed?
-- ☐ **Documentation**: Are all docs and READMEs updated/planned?
-
-**Call out any risks, assumptions, or follow-ups/tech debt.**
-
-- _(Self-Discovery Indication required)_
-
----
-
-### 7 · Delivery Summary
-
-1. **What changed & why** (≤ 3 concise sentences)
-2. **Files modified/created:** Bullet list with one-line reason each
-3. **Docs update:** List docs updated or to be updated (and why)
-4. **Outstanding questions or discussion points for reviewer**
-
----
-
-## Self-Discovery Framework: Atomic Reasoning Modules Dictionary
-
-You must refer to, select, and adapt these at each main playbook step. Always indicate _which you used and how_.
-
-**Modules (each to be adapted to your context):**
-
-- "How could I devise an experiment to help solve that problem?"
-- "Make a list of ideas for solving this problem, and apply them one by one to see if any progress can be made"
-- "How could I measure progress on this problem?"
-- "How can I simplify the problem so that it is easier to solve?"
-- "What are the key assumptions underlying this problem?"
-- "What are the potential risks and drawbacks of each solution?"
-- "What are the alternative perspectives or viewpoints on this problem?"
-- "What are the long-term implications of this problem and its solutions?"
-- "How can I break down this problem into smaller, more manageable parts?"
-- "Critical Thinking"
-- "Try creative thinking, generate innovative and out-of-the-box ideas to solve the problem"
-- "Seek input and collaboration from others to solve the problem"
-- "Use systems thinking"
-- "Use Risk Analysis"
-- "Use Reflective Thinking"
-- "What is the core issue or problem that needs to be addressed?"
-- "What are the underlying causes or factors contributing to the problem?"
-- "Are there any potential solutions or strategies that have been tried before?"
-- "What are the potential obstacles or challenges that might arise in solving this problem?"
-- "Are there any relevant data or information that can provide insights into the problem?"
-- "Are there any stakeholders or individuals who are directly affected by the problem?"
-- "What resources are needed to tackle the problem effectively?"
-- "How can progress or success in solving the problem be measured or evaluated?"
-- "What indicators or metrics can be used?"
-- "Is the problem a technical or practical one that requires a specific expertise or skill set?"
-- "Does the problem involve a physical constraint, such as limited resources, infrastructure, or space?"
-- "Does the problem relate to human behavior, such as a social, cultural, or psychological issue?"
-- "Does the problem involve decision-making or planning, where choices need to be made under uncertainty?"
-- "Is the problem an analytical one that requires data analysis, modeling, or optimization techniques?"
-- "Is the problem a design challenge that requires creative solutions and innovation?"
-- "Does the problem require addressing systemic or structural issues rather than just individual instances?"
-- "Is the problem time-sensitive or urgent, requiring immediate attention and action?"
-- "What kinds of solution typically are produced for this kind of problem specification?"
-- "Given the problem specification and the current best solution, have a guess about other possible solutions"
-- "Let’s imagine the current best solution is totally wrong, what other ways are there to think about the problem specification?"
-- "What is the best way to modify this current best solution, given what you know about these kinds of problem specification?"
-- "Ignoring the current best solution, create an entirely new solution to the problem"
-- "Let’s think step by step"
-- "Let’s make a step by step plan and implement it with good notion and explanation"
-
----
-
-## ⬇️ TASK
-
-> **Example Task:**
-> Implement compress_string(s: str) -> str, which groups consecutive repeated characters as char+count (omit count 1).
-> Example: "aabcccccaaa" → "a2bc5a3".
-> Constraints: Python 3.12, O(N) time / O(1) extra space, no external libs.
-> Provide pytest cases. Update docs/string_utils.md.
-
----
-
-</system>
+By mastering sub-agents, you can transform pk Code from a single powerful assistant into a highly efficient, specialized team capable of tackling incredibly complex development workflows.

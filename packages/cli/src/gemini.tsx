@@ -95,6 +95,8 @@ import { handleUseCommand, parseUseCommandSyntax } from './commands/use.js';
 
 import { handleCreateAgentCommand } from './commands/create-agent.js';
 
+import { handleParallelCommand } from './commands/parallel.js';
+
 
 export async function main() {
   const argv = await parseArguments();
@@ -117,6 +119,12 @@ export async function main() {
   }
   if (argv._[0] === 'create-agent') {
     handleCreateAgentCommand();
+    return;
+  }
+
+  // Handle parallel command
+  if (argv.parallel) {
+    await handleParallelCommand(argv);
     return;
   }
 

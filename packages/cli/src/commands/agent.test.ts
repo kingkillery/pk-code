@@ -55,23 +55,117 @@ vi.mock('child_process', async (importOriginal) => {
   };
 });
 
-vi.mock('fs', async (importOriginal) => {
-  const actual = await importOriginal();
-  return {
-    ...actual,
-    existsSync: vi.fn(),
-    writeFileSync: vi.fn(),
-    readFileSync: vi.fn(),
-    unlinkSync: vi.fn(),
-    mkdirSync: vi.fn(),
-    promises: {
-      access: vi.fn(),
-      readdir: vi.fn(),
-      readFile: vi.fn(),
-      unlink: vi.fn(),
-    },
-  };
+"""
+// Mock net module for port checking
+vi.mock('net', () => ({
+  createServer: vi.fn(() => {
+    const server = {
+      once: vi.fn(),
+      close: vi.fn(),
+      listen: vi.fn(),
+    };
+    // Simulate port in use
+    server.once.mockImplementation((event, callback) => {
+      if (event === 'error') {
+        // @ts-ignore
+        callback({ code: 'EADDRINUSE' });
+      }
+      return server;
+    });
+    return server;
+  }),
+}));
+
+describe('Browser Agent Error Handling', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('should show error if browser-use is not installed', async () => {
+    vi.mocked(fs.existsSync).mockReturnValue(false); // PID file
+    // Mock require.resolve to throw an error, simulating package not found
+    vi.mock('browser-use/package.json', () => {
+      throw new Error("Cannot find module 'browser-use/package.json'");
+    });
+
+    await handleAgentCommand('start', 'browser');
+
+    expect(mockConsoleError).toHaveBeenCalledWith('Error: The "browser-use" package is not installed.');
+    expect(mockConsoleError).toHaveBeenCalledWith('Please install it by running: npm install -g browser-use');
+  });
+
+  it('should show error if Chrome path is not configured', async () => {
+    vi.mocked(fs.existsSync).mockReturnValue(false); // PID file
+    vi.mock('browser-use/package.json', () => ({})); // Mock package as installed
+    vi.mocked(fs.readFileSync).mockReturnValueOnce(JSON.stringify({})); // Global settings
+
+    await handleAgentCommand('start', 'browser');
+
+    expect(mockConsoleError).toHaveBeenCalledWith('Error: Chrome executable path is not configured or is invalid.');
+  });
+
+  it('should show error if browser-use config is missing', async () => {
+    vi.mocked(fs.existsSync).mockImplementation((p) => {
+      if (p.toString().endsWith('settings.json')) return true;
+      if (p.toString().endsWith('.mcp.json')) return false;
+      return false;
+    });
+    vi.mocked(fs.readFileSync).mockReturnValueOnce(JSON.stringify({ chromePath: '/mock/chrome' })); // Global settings
+
+    await handleAgentCommand('start', 'browser');
+
+    expect(mockConsoleError).toHaveBeenCalledWith('Error: browser-use MCP server configuration not found.');
+  });
+
+  it('should show error if agent is already running', async () => {
+    vi.mocked(fs.existsSync).mockReturnValue(true); // PID file
+    vi.mocked(fs.readFileSync).mockReturnValue('1234');
+    processKillSpy.mockImplementation(() => true); // Process is running
+
+    await handleAgentCommand('start', 'browser');
+
+    expect(mockConsoleLog).toHaveBeenCalledWith('Browser agent is already running with PID: 1234. To stop it, run "pk agent stop browser".');
+  });
+
+  it('should show error if agent is not running on stop', async () => {
+    vi.mocked(fs.existsSync).mockReturnValue(false); // PID file
+
+    await handleAgentCommand('stop', 'browser');
+
+    expect(mockConsoleLog).toHaveBeenCalledWith('Browser agent is not running.');
+  });
+
+  it('should handle stale PID file on start', async () => {
+    vi.mocked(fs.existsSync).mockReturnValue(true); // PID file
+    vi.mocked(fs.readFileSync).mockReturnValue('1234');
+    processKillSpy.mockImplementation(() => {
+      throw new Error('ESRCH');
+    }); // Process not found
+
+    // Mock the rest of the start sequence to prevent further errors in this test
+    vi.mock('browser-use/package.json', () => ({}));
+    vi.mocked(fs.readFileSync).mockReturnValueOnce(JSON.stringify({ chromePath: '/mock/chrome' }));
+
+    await handleAgentCommand('start', 'browser');
+
+    expect(console.warn).toHaveBeenCalledWith('Found stale PID file from a previous session. Removing it.');
+    expect(fs.unlinkSync).toHaveBeenCalledWith(expect.stringContaining('browser-agent.pid'));
+  });
+
+  it('should handle stale PID file on stop', async () => {
+    vi.mocked(fs.existsSync).mockReturnValue(true); // PID file
+    vi.mocked(fs.readFileSync).mockReturnValue('5678');
+    processKillSpy.mockImplementation(() => {
+      throw new Error('ESRCH');
+    }); // Process not found
+
+    await handleAgentCommand('stop', 'browser');
+
+    expect(console.warn).toHaveBeenCalledWith('Stale PID file found for a non-existent process (PID: 5678). Cleaning up.');
+    expect(fs.unlinkSync).toHaveBeenCalledWith(expect.stringContaining('browser-agent.pid'));
+  });
 });
+""
 
 // Mock console methods to avoid noise in tests
 const mockConsoleLog = vi.spyOn(console, 'log').mockImplementation(() => {});

@@ -1,127 +1,66 @@
-# Browser-Use Agent Integration PRD
+# Product Requirements Document (PRD)
 
-## 1. Overview
-Complete the browser-use agent integration in PK Code CLI to enable browser automation capabilities through MCP integration. The codebase has partial browser-use integration but missing critical CLI command registration and configuration functionality.
+Project: pk-code – High-Performance Multi-Phase Coding Agent
+Owner: Team pk-code • Date: 2025-08-01
 
-## 2. Goals & Objectives
+## 1. Vision / Goal
+Build an evidence-driven AI coding agent that achieves state-of-the-art real-world performance on SWE-bench-style tasks while remaining maintainable and extensible.
 
-### 1. Complete Browser-Use Agent Integration
-*   **Goal:** Enable full browser automation capabilities through MCP integration
-    *   **Metric:** `pk agent start browser` and `pk agent stop browser` commands work correctly
-    *   **Time-Bound:** Within 1 week
+## 2. Background
+Research on top-scoring agents (Warp, Refact.ai, MarsCode, mini-SWE-agent) shows that a single agent with a robust scaffold augmented by targeted sub-agents (debugger, planner) and strong guardrails delivers the highest verified-bug-fix rates.
 
-### 2. Browser Configuration Command
-*   **Goal:** Implement browser configuration setup for users
-    *   **Metric:** `pk config browser` command properly configures Chrome user data directory
-    *   **Time-Bound:** Within 1 week
+## 3. Scope & Features
+1. Multi-phase orchestrator prompt (Pareto → Plan → Execute).
+2. Optional sub-agents:
+   • pk-debugger – one-shot PDB session.
+   • pk-planner – reflection / plan revision.
+3. Repository embeddings index for accurate file retrieval.
+4. Automatic retry & model fail-over chain.
+5. Guardrail directives between phases and after key tool calls.
+6. Multi-patch voting mode (configurable).
+7. Detailed logging, rollback safety, and metrics.
 
-### 3. Agent Command Registration
-*   **Goal:** Register agent commands with CLI command structure
-    *   **Metric:** Agent commands appear in help and are accessible
-    *   **Time-Bound:** Within 3 days
+## 4. Non-Functional Requirements
+• Deterministic default temperature (≤0.2) for reproducibility.
+• All secrets redacted; no persistent shell sessions.
+• <2 min average latency per typical SWE-bench task.
 
-### 4. Browser Tools Availability
-*   **Goal:** Ensure browser automation tools are discoverable by AI agent
-    *   **Metric:** Browser tools (browser.navigate, browser.click, etc.) are available during chat sessions
-    *   **Time-Bound:** Within 1 week
+## 5. Milestones & Subtasks
+### 5.1 Orchestrator & Prompts
+- [ ] Integrate `pk-multi-phase-orchestrator.md` into Taskmaster config.
+- [ ] Validate phase transitions & guardrail injections.
 
-## 3. Target Users & Personas
-PK Code CLI users who want to use browser automation capabilities for testing, scraping, or other browser-based tasks through AI assistance.
+### 5.2 Sub-Agents
+- [ ] Draft `pk-debugger.md` prompt.
+- [ ] Implement `run_pdb_test(test_path)` tool wrapper.
+- [ ] Draft `pk-planner.md` prompt.
 
-## 4. Key Features / Requirements
+### 5.3 Repository Index
+- [ ] Choose embedding model (text-embedding-3-large).
+- [ ] Build nightly FAISS index job.
+- [ ] Add `search_index(query, top_k)` tool.
 
-| # | Feature | Description | Acceptance Criteria |
-|---|---|---|---|
-| 1 | **Agent Command Registration** | Register the agent command with CLI command structure so users can access `pk agent start browser` and `pk agent stop browser` commands. | - Agent command appears in `pk --help` output<br>- `pk agent start browser` launches browser-use MCP server<br>- `pk agent stop browser` terminates browser-use MCP server<br>- Commands provide proper error messages and feedback |
-| 2 | **Browser Configuration Command** | Implement `pk config browser` command to interactively set up Chrome user data directory path and update `.mcp.json` configuration. | - `pk config browser` command is available<br>- Interactive setup finds Chrome user data directory<br>- Updates `.mcp.json` with correct path<br>- Validates that the configured path exists |
-| 3 | **Browser Agent Process Management** | Ensure proper lifecycle management of browser-use MCP server process including PID file handling and cross-platform compatibility. | - PID file is created and managed correctly<br>- Process starts and stops cleanly<br>- Works on Windows platform<br>- Handles error cases gracefully |
-| 4 | **MCP Server Integration** | Verify browser-use MCP server connects properly and browser tools are discoverable by the AI agent during chat sessions. | - Browser tools are prefixed correctly (e.g., browser.navigate)<br>- Tools are available during AI chat sessions<br>- MCP server starts without errors<br>- Tools function correctly when called |
-| 5 | **Script and Path Fixes** | Update start-browser-agent.sh script to use proper environment variables and paths from `.mcp.json` configuration. | - Script uses BROWSER_USE_USER_DATA_DIR from config<br>- Script runs uvx browser-use --mcp correctly<br>- Script handles errors and provides logging<br>- Works with configured environment variables |
+### 5.4 Retry & Fail-Over
+- [ ] Wrap tool calls with retry logic.
+- [ ] Configure fallback LLM (GPT-4o).
 
-## 5. Non-functional Requirements
+### 5.5 Voting Mode
+- [ ] Implement multi-patch generator in execution loop.
+- [ ] Select first passing patch via tests.
 
-### 1. Performance
-*   **Command Response:** Agent commands should respond within 2 seconds
-*   **Process Startup:** Browser-use MCP server should start within 10 seconds
+### 5.6 Documentation & Examples
+- [ ] Update README and docs/examples/orchestrator-run.md.
+- [ ] Add CHANGELOG entries.
 
-### 2. Compatibility
-*   **Windows Support:** Must work on Windows 10 and higher
-*   **Chrome Browser:** Must work with standard Chrome installations
-*   **Node.js:** Compatible with existing PK Code Node.js requirements
+### 5.7 QA & Benchmarking
+- [ ] Add integration tests for each new tool.
+- [ ] Run SWE-bench subset to baseline.
 
-### 3. Security
-*   **Process Isolation:** Browser-use server runs as separate process
-*   **Data Directory:** Respects Chrome user data directory permissions
+## 6. Open Questions
+• Which vector DB hosting option (local FAISS vs. cloud)?
+• Preferred logging sink (stdout, file, or remote).
 
-## 6. Technical Constraints & Stack
-
-### Current Stack
-- TypeScript/Node.js CLI application
-- Commander.js for CLI commands
-- MCP (Model Context Protocol) for tool integration
-- browser-use Python package for browser automation
-
-### Constraints
-- Must maintain existing CLI command structure
-- Must follow existing MCP integration patterns
-- Windows compatibility required
-- Must work with existing `.mcp.json` configuration format
-
-## 7. Current State Analysis
-
-### Existing Components
-- `.mcp.json` has browser-use server configuration
-- `packages/cli/src/commands/agent.ts` has agent start/stop logic
-- `scripts/start-browser-agent.sh` exists but has placeholder path
-- MCP client in `packages/core/src/tools/mcp-client.ts` handles browser-use tools with special prefixing
-
-### Missing Components
-- Agent command not registered with CLI
-- No browser configuration command
-- Start script has hardcoded placeholder path
-- No integration between config command and MCP configuration
-
-## 8. Implementation Plan
-
-### Phase 1: Command Registration (Day 1)
-- Register agent command with CLI command structure
-- Update CLI help to show agent commands
-
-### Phase 2: Browser Configuration (Days 2-3)
-- Implement `pk config browser` command
-- Add Chrome user data directory detection
-- Update `.mcp.json` configuration
-
-### Phase 3: Process Management (Days 4-5)
-- Fix start-browser-agent.sh script
-- Ensure proper PID file handling
-- Test Windows compatibility
-
-### Phase 4: Integration Testing (Days 6-7)
-- Verify MCP server starts correctly
-- Test browser tools availability
-- End-to-end testing of browser automation
-
-## 9. Success Metrics
-
-### Functional Success
-- `pk agent start browser` command works without errors
-- `pk agent stop browser` command works without errors
-- `pk config browser` command successfully configures Chrome path
-- Browser tools (browser.navigate, browser.click, etc.) are available in AI sessions
-
-### Technical Success
-- MCP server starts within 10 seconds
-- Commands respond within 2 seconds
-- No breaking changes to existing CLI functionality
-- Windows compatibility maintained
-
-## 10. Risks & Mitigations
-
-| Risk | Likelihood | Impact | Mitigation |
-|---|---|---|---|
-| Browser-use package not installed | Medium | High | Check for uvx/browser-use availability, provide clear error messages |
-| Chrome path detection fails | Medium | Medium | Provide manual path entry option, support multiple browser types |
-| Windows script compatibility | High | Medium | Create Windows-compatible process spawning, test on Windows |
-| MCP connection issues | Low | High | Robust error handling, fallback to CLI-only mode |
-
+## 7. Success Metrics
+• ≥70 % success on SWE-bench Verified subset.
+• <2 min p95 latency.
+• <1 % JSON/tool failure rate after retries.

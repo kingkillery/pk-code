@@ -1,0 +1,11 @@
+# Task ID: 60
+# Title: QA & Benchmarking
+# Status: pending
+# Dependencies: None
+# Priority: medium
+# Description: Add integration tests for each new tool and run SWE-bench subset to baseline performance
+# Details:
+
+
+# Test Strategy:
+

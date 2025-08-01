@@ -1,9 +1,9 @@
 {
   "models": {
     "main": {
-      "provider": "claude-code",
-      "modelId": "sonnet",
-      "maxTokens": 64000,
+      "provider": "gemini-cli",
+      "modelId": "gemini-2.5-pro",
+      "maxTokens": 65536,
       "temperature": 0.2
     },
     "research": {
@@ -13,10 +13,58 @@
       "temperature": 0.1
     },
     "fallback": {
-      "provider": "claude-code",
-      "modelId": "sonnet",
-      "maxTokens": 64000,
+      "provider": "gemini-cli",
+      "modelId": "gemini-2.5-pro",
+      "maxTokens": 65536,
       "temperature": 0.2
+    }
+  },
+  "orchestrator": {
+    "enabled": true,
+    "promptFile": ".pk/agents/pk-multi-phase-orchestrator.md",
+    "model": {
+      "provider": "gemini-cli",
+      "modelId": "gemini-2.5-pro",
+      "maxTokens": 65536,
+      "temperature": 0
+    },
+    "phases": {
+      "pareto": {
+        "temperature": 0,
+        "maxTokens": 2048
+      },
+      "strategic": {
+        "temperature": 0.1,
+        "maxTokens": 4096
+      },
+      "execution": {
+        "temperature": 0.2,
+        "maxTokens": 65536
+      }
+    },
+    "guardrails": {
+      "enabled": true,
+      "phaseTransitionMessages": true,
+      "toolCallValidation": true,
+      "retryEnabled": true,
+      "maxRetries": 1
+    },
+    "subAgents": {
+      "debugger": {
+        "enabled": true,
+        "maxCalls": 1,
+        "promptFile": ".pk/agents/pk-debugger.md"
+      },
+      "planner": {
+        "enabled": true,
+        "maxCalls": 1,
+        "promptFile": ".pk/agents/pk-planner.md"
+      }
+    },
+    "completion": {
+      "trackMetadata": true,
+      "requireTests": true,
+      "taskStates": ["TASK COMPLETE", "BLOCKED"]
     }
   },
   "global": {

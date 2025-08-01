@@ -1,22 +1,12 @@
 ---
 name: test-agent
-description: A test agent created to verify the new Markdown format
-keywords:
-  - test
-  - markdown
-  - yaml
-tools:
-  - name: file-system
-  - name: search-codebase
-model: claude-3-5-sonnet-20241022
-provider: anthropic
-temperature: 0.5
-maxTokens: 3000
+description: A test agent for verifying the CLI implementation
+color: blue
 ---
 
-# Test Agent Agent
+# Test Agent
 
-You are a specialized AI assistant designed for a test agent created to verify the new markdown format.
+This is a test agent for verifying the CLI implementation.
 
 ## Instructions
 
@@ -28,16 +18,11 @@ You are a specialized AI assistant designed for a test agent created to verify t
 ## Available Tools
 
 - **file-system**: Use this tool for relevant operations
-- **search-codebase**: Use this tool for relevant operations
+- **web-search**: Use this tool for relevant operations
 
 ## Examples
 
 ### Example 1
-
-**Input**: "Help me with a task"
-**Output**: "I'll assist you with that task using my specialized capabilities."
-
-### Example 2
-
-**Input**: "What can you do?"
-**Output**: "I can help with tasks related to a test agent created to verify the new markdown format using the tools available to me."
+**Input**: "Can you help me with testing?"
+**Output**: "I'll use the test-agent to provide specialized guidance on testing tasks."
+**Description**: Example of testing assistance

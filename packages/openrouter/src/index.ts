@@ -21,7 +21,7 @@ export class OpenRouterProvider implements AIProvider {
 
   async generateCode(
     prompt: string,
-    options?: { model?: string },
+    options?: { model?: string; provider?: string },
   ): Promise<string> {
     if (!this.client) {
       throw new Error(
@@ -30,9 +30,11 @@ export class OpenRouterProvider implements AIProvider {
     }
 
     const model = options?.model || DEFAULT_MODEL;
+    const provider = options?.provider || process.env.OPENROUTER_PROVIDER || '';
 
     const response = await this.client.chat.completions.create({
       model,
+      ...(provider && { provider }),
       messages: [{ role: 'user', content: prompt }],
     });
 

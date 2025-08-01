@@ -54,6 +54,9 @@ export class OpenRouterContentGenerator extends OpenAIContentGenerator {
       maxRetries: timeoutConfig.maxRetries,
       defaultHeaders: this.getOpenRouterHeaders(),
     });
+
+    // Patch the client to add provider routing to request body
+    this.patchClientForProviderRouting();
   }
 
   /**
@@ -299,12 +302,18 @@ export class OpenRouterContentGenerator extends OpenAIContentGenerator {
   }
 
   /**
-   * Override generateContent to add fallback mechanism
+   * Override generateContent to add OpenRouter provider routing and fallback mechanism
    */
   async generateContent(
     request: GenerateContentParameters,
   ): Promise<GenerateContentResponse> {
     try {
+      // If we have a preferred provider, intercept the OpenAI client call
+      if (this.preferredProvider) {
+        return await this.generateContentWithProvider(request);
+      }
+      
+      // Otherwise, use the parent implementation
       return await super.generateContent(request);
     } catch (error) {
       const enhancedError = this.enhanceOpenRouterError(
@@ -322,12 +331,18 @@ export class OpenRouterContentGenerator extends OpenAIContentGenerator {
   }
 
   /**
-   * Override generateContentStream to add fallback mechanism
+   * Override generateContentStream to add OpenRouter provider routing and fallback mechanism
    */
   async generateContentStream(
     request: GenerateContentParameters,
   ): Promise<AsyncGenerator<GenerateContentResponse>> {
     try {
+      // If we have a preferred provider, intercept the OpenAI client call
+      if (this.preferredProvider) {
+        return await this.generateContentStreamWithProvider(request);
+      }
+      
+      // Otherwise, use the parent implementation
       return await super.generateContentStream(request);
     } catch (error) {
       const enhancedError = this.enhanceOpenRouterError(
@@ -341,6 +356,62 @@ export class OpenRouterContentGenerator extends OpenAIContentGenerator {
         enhancedError,
         true,
       )) as AsyncGenerator<GenerateContentResponse>;
+    }
+  }
+
+
+  /**
+   * Patch the OpenAI client to automatically add provider routing to request body
+   */
+  private patchClientForProviderRouting(): void {
+    if (!this.preferredProvider) {
+      return; // No provider specified, no need to patch
+    }
+
+    const originalCreate = this.client.chat.completions.create.bind(
+      this.client.chat.completions,
+    );
+
+    // Override the create method to add provider field to request body
+    this.client.chat.completions.create = ((params: any, options?: any) => {
+      // Add OpenRouter provider routing to the request body
+      const enhancedParams = {
+        ...params,
+        provider: {
+          only: [this.preferredProvider],
+        },
+      };
+
+      // Call the original method with enhanced parameters
+      return originalCreate(enhancedParams, options);
+    }) as any;
+  }
+
+  /**
+   * Generate content with provider routing by directly calling OpenAI API
+   */
+  private async generateContentWithProvider(
+    request: GenerateContentParameters,
+  ): Promise<GenerateContentResponse> {
+    try {
+      // The provider routing is handled by the patched client
+      return await super.generateContent(request);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * Generate content stream with provider routing by directly calling OpenAI API
+   */
+  private async generateContentStreamWithProvider(
+    request: GenerateContentParameters,
+  ): Promise<AsyncGenerator<GenerateContentResponse>> {
+    try {
+      // The provider routing is handled by the patched client
+      return await super.generateContentStream(request);
+    } catch (error) {
+      throw error;
     }
   }
 

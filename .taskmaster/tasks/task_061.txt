@@ -1,0 +1,93 @@
+# Task ID: 61
+# Title: Implement Advanced Agentic Framework Patterns in Orchestrator
+# Status: in-progress
+# Dependencies: 54, 55, 52
+# Priority: high
+# Description: Enhance the agent orchestrator by implementing advanced agentic patterns including ReAct prompting, self-reflection, memory management, and a Planner-Executor model with specialized agent roles to leverage browser automation tools.
+# Details:
+This task involves a significant refactoring of `agent-orchestrator.ts` to incorporate state-of-the-art agentic design patterns based on recent research. The goal is to move from a single monolithic agent to a more robust, multi-agent system capable of complex reasoning and tool use.
+
+**1. ReAct Prompting Framework:**
+- Modify the core prompt structure to enforce a ReAct (Reason, Act) cycle.
+- The agent's output must be a structured format (e.g., JSON or a specific markdown block) containing two keys: `thought` for the reasoning trace and `action` for the tool call or final answer.
+- The orchestrator must parse this output, log the `thought` for observability, and execute the `action` (e.g., a tool call).
+
+**2. Planner-Executor Pattern & Specialized Roles:**
+- Refactor the orchestrator to support a multi-agent, role-based architecture.
+- Create distinct prompt templates for the following roles:
+  - **Planner Agent:** Receives the initial user request and decomposes it into a high-level, step-by-step plan. The output should be a structured list of tasks.
+  - **Executor Agents (Specialized):** The orchestrator will route each task from the plan to the appropriate executor.
+    - **Research Agent:** Specialized in using browser tools (`browser.navigate`, `browser.search`, etc.) provided by the MCP server to gather information.
+    - **Code Agent:** Specialized in writing, reading, and modifying code files.
+    - **Test Agent:** Specialized in executing test commands and analyzing their output.
+
+**3. Self-Reflection Mechanism:**
+- Implement a loop for error correction and strategy refinement.
+- When a tool call fails or a sequence of actions does not yield progress, the orchestrator should trigger a reflection step.
+- This involves invoking the agent with a specific reflection prompt, providing it with the recent history (thoughts, actions, observations) and asking it to critique its strategy and propose a revised plan or next step.
+
+**4. Memory Management & Context Retention:**
+- Implement a 'scratchpad' or short-term memory module within the orchestrator.
+- After each ReAct cycle, append a summary of the `Thought`, `Action`, and `Observation` to the scratchpad.
+- This scratchpad will be included in the context for subsequent LLM calls to ensure continuity. Implement a summarization or truncation strategy to manage the context window size.
+
+# Test Strategy:
+Testing should cover each new pattern individually and then as an integrated system.
+
+**1. ReAct Cycle Verification:**
+- Issue a simple, single-tool command (e.g., "list files in the current directory").
+- Inspect the debug logs to verify the agent produces a valid `thought` and `action` structure.
+- Confirm the orchestrator correctly parses the structure and executes the tool.
+
+**2. Planner-Executor Flow Test:**
+- Provide a multi-step task: "Research the 'axios' library's API for POST requests and then write a TypeScript code snippet demonstrating its use."
+- Verify the Planner agent generates a logical, multi-step plan.
+- Confirm the orchestrator routes the research steps to the Research Agent (which should invoke browser tools) and the coding step to the Code Agent.
+
+**3. Self-Reflection Test:**
+- Create a scenario where a tool is guaranteed to fail (e.g., ask the Research Agent to navigate to an invalid URL like `http://nonexistent.domain.tld`).
+- Verify the orchestrator detects the tool execution failure and triggers the self-reflection prompt.
+- Check the agent's subsequent `thought` to confirm it has acknowledged the failure and adjusted its strategy.
+
+**4. End-to-End Integration Test:**
+- Start the browser agent using `pk agent start browser`.
+- Initiate a chat session with a complex task requiring web research and file modification (e.g., "Find the latest version of 'inquirer' on npm, then update the version in our project's package.json").
+- Verify the entire Planner-Executor-Reflection loop functions correctly, utilizing the browser MCP tools, and successfully completes the task.
+
+# Subtasks:
+## 1. Integrate ReAct Prompting Framework and Structured Output Parsing [in-progress]
+### Dependencies: None
+### Description: Refactor the core agent interaction loop in `agent-orchestrator.ts` to implement the ReAct (Reason, Act) pattern. This involves creating a new prompt template that instructs the LLM to output a structured format (e.g., JSON) containing `thought` and `action` fields. The orchestrator must be updated to parse this output, log the reasoning (`thought`), and prepare the `action` for execution.
+### Details:
+The primary goal is to establish the foundational ReAct cycle. The agent's response must be strictly parsed. If the output format is invalid, the orchestrator should handle the error, potentially by re-prompting with a correction. This subtask focuses solely on the single-turn interaction loop, not on memory or multi-agent patterns yet.
+
+## 2. Implement Planner-Executor Architecture with Role Specialization [pending]
+### Dependencies: 61.1
+### Description: Refactor `agent-orchestrator.ts` to support a multi-agent, role-based architecture. Create a 'Planner Agent' responsible for decomposing the user's request into a step-by-step plan. Implement the logic for the orchestrator to first invoke the Planner and then iterate through the generated plan, routing tasks to a generic Executor.
+### Details:
+This subtask introduces the two-level hierarchy. The Planner's output should be a structured list of tasks. The orchestrator's main loop will change from executing a single ReAct cycle to managing a state machine that tracks the execution of the plan. Initially, a single generic Executor agent will handle all tasks from the plan, using the ReAct cycle established in the previous subtask.
+
+## 3. Develop Specialized Research Agent for Browser Automation [pending]
+### Dependencies: 61.2
+### Description: Create the 'Research Agent' as a specialized executor. Develop its specific prompt template, which will include detailed instructions and examples for using the browser automation tools (`browser.navigate`, `browser.search`, etc.) available via the MCP server. Implement the routing logic in the orchestrator to delegate browser-related tasks from the plan to this agent.
+### Details:
+This subtask builds on the Planner-Executor pattern by introducing the first specialized agent. The orchestrator will need to inspect the task description or a specified tool name from the plan to route it to the Research Agent. This leverages the existing MCP infrastructure from tasks 50 and 47.
+
+## 4. Implement Short-Term Memory (Scratchpad) for Context Retention [pending]
+### Dependencies: 61.1
+### Description: Create a memory management module within the orchestrator to maintain a 'scratchpad'. After each ReAct cycle (Thought, Action, Observation), a summary of the turn will be appended to the scratchpad. Implement a truncation or summarization strategy to ensure the scratchpad, when added to the prompt, does not exceed the LLM's context window limit.
+### Details:
+The scratchpad is crucial for multi-step tasks, providing context from previous steps to the agent. The memory module should be a class or a set of functions that can be easily integrated into the orchestrator's main loop. The truncation strategy could be as simple as keeping the last N turns or a more advanced token-based sliding window.
+
+## 5. Implement Self-Reflection Loop for Strategy Revision [pending]
+### Dependencies: 61.1, 61.4
+### Description: Enhance the orchestrator to detect when a tool execution returns an error or a sequence of actions fails to make progress. When a failure is detected, trigger a self-reflection step by invoking the agent with a specialized reflection prompt, providing it with the error and recent history from the scratchpad to critique its strategy and propose a revised action.
+### Details:
+This mechanism turns failures into learning opportunities. The orchestrator's error handling, which currently might just report an error (per Task 53), will be extended to call the reflection prompt. The agent's response to the reflection prompt will then replace the failed action in the execution flow.
+
+## 6. Implement and Coordinate Specialized Code and Test Agents [pending]
+### Dependencies: 61.2, 61.3
+### Description: Create the remaining specialized agents: a 'Code Agent' for file I/O and code generation, and a 'Test Agent' for running test suites. Develop their unique prompt templates and toolsets. Enhance the orchestrator's routing logic to handle the full lifecycle of a complex task, ensuring synergy between the Planner, Research, Code, and Test agents.
+### Details:
+This final subtask completes the multi-agent system. It involves creating the prompt templates and tool definitions for the Code and Test agents. The key challenge is ensuring the orchestrator can manage the handoff between agents, for example, passing the output of the Research Agent as context to the Code Agent.
+

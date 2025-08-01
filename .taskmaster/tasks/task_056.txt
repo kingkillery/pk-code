@@ -1,0 +1,11 @@
+# Task ID: 56
+# Title: Repository Embeddings Index
+# Status: in-progress
+# Dependencies: None
+# Priority: medium
+# Description: Choose embedding model (text-embedding-3-large), build nightly FAISS index job, and add search_index(query, top_k) tool
+# Details:
+
+
+# Test Strategy:
+

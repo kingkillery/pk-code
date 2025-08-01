@@ -1,0 +1,11 @@
+# Task ID: 49
+# Title: Update `start-browser-agent.sh` to Use Dynamic Configuration
+# Status: done
+# Dependencies: 48
+# Priority: medium
+# Description: Modify the `start-browser-agent.sh` script to dynamically read the Chrome user data directory path from `.mcp.json` instead of using a hardcoded placeholder.
+# Details:
+The script should use a command-line JSON processor like `jq` to parse `.mcp.json` and extract the `BROWSER_USE_USER_DATA_DIR` value. This value should then be exported as an environment variable that is used when executing the `uvx browser-use --mcp` command. Add basic error handling to the script for cases where `jq` is not installed or the config file is missing.
+
+# Test Strategy:
+Manually execute the modified `start-browser-agent.sh` script in a terminal. Verify that it correctly reads the path from a sample `.mcp.json`. Use `echo` statements or logging to confirm that the correct environment variable is set before the `uvx` command is called.

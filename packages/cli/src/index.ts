@@ -17,6 +17,8 @@ export {
   handleConfigCommand,
 } from './commands/index.js';
 
+export { handleCreateAgentCommandCLI } from './commands/create-agent-cli.js';
+
 // --- Global Entry Point ---
 main().catch((error) => {
   console.error('An unexpected critical error occurred:');

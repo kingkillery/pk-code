@@ -1,6 +1,6 @@
 {
   "name": "@pk-code/openrouter",
-  "version": "0.0.2-alpha",
+  "version": "0.0.3-alpha",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -10,7 +10,7 @@
     "test": "echo \"No tests specified\" && exit 0"
   },
   "dependencies": {
-    "@pk-code/core": "0.0.2-alpha",
+    "@pk-code/core": "0.0.3-alpha",
     "openai": "^4.20.0"
   },
   "devDependencies": {

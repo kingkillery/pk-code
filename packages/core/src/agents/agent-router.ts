@@ -236,6 +236,25 @@ export class AgentRouter {
   }
 
   /**
+   * Route a task to the most appropriate agent(s)
+   * This method combines single and multi-agent routing based on task complexity
+   */
+  async routeTask(
+    task: { id: string; query: string; requiresMultipleAgents?: boolean },
+    maxAgents: number = 3,
+  ): Promise<RoutingResult | MultiAgentRoutingResult> {
+    const analysis = this.analyzeQuery(task.query);
+    
+    // If task explicitly requires multiple agents or query is complex
+    if (task.requiresMultipleAgents || analysis.complexity > 7) {
+      return this.routeMultipleAgents(task.query, maxAgents);
+    }
+    
+    // For simpler tasks, use single agent routing
+    return this.routeSingleAgent(task.query);
+  }
+
+  /**
    * Validate if an agent can handle a specific query type
    */
   validateAgentCapability(agent: ParsedAgent, query: string): boolean {

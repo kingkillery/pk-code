@@ -1,0 +1,11 @@
+# Task ID: 48
+# Title: Integrate Browser Configuration with `.mcp.json`
+# Status: done
+# Dependencies: 47
+# Priority: high
+# Description: Connect the `pk config browser` command to the `.mcp.json` configuration file, enabling it to read and write the browser user data directory path.
+# Details:
+The logic for `pk config browser` should read the `.mcp.json` file. Upon successful path input from the user, it must validate that the directory path exists on the filesystem. If valid, it will update the `BROWSER_USE_USER_DATA_DIR` key within the `browser-use` server configuration object and save the file. Handle cases where the file or keys do not yet exist.
+
+# Test Strategy:
+Check the state of `.mcp.json` before running the command. Run `pk config browser`, provide a valid path, and confirm that `.mcp.json` is correctly updated. Test again by providing an invalid/non-existent path and verify that the command shows an error and does not update the configuration file.

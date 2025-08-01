@@ -32,10 +32,24 @@ export const statusCommand: SlashCommand = {
     const now = new Date();
     const wallDuration = now.getTime() - stats.sessionStartTime.getTime();
     
+    // Calculate total tokens across all models
+    const totalTokens = Object.values(metrics.models).reduce(
+      (sum, model) => sum + model.tokens.total, 0
+    );
+    const totalInputTokens = Object.values(metrics.models).reduce(
+      (sum, model) => sum + model.tokens.prompt, 0
+    );
+    const totalOutputTokens = Object.values(metrics.models).reduce(
+      (sum, model) => sum + model.tokens.candidates, 0
+    );
+    const totalCachedTokens = Object.values(metrics.models).reduce(
+      (sum, model) => sum + model.tokens.cached, 0
+    );
+    
     // Get token limits
-    const maxContextSize = settings.get('MAX_CONTEXT_SIZE') || 32768;
-    const contextUsagePercent = metrics.totalTokens 
-      ? Math.round((metrics.totalTokens / maxContextSize) * 100)
+    const maxContextSize = 32768; // Default context size
+    const contextUsagePercent = totalTokens 
+      ? Math.round((totalTokens / maxContextSize) * 100)
       : 0;
     
     // Get model info
@@ -54,37 +68,48 @@ export const statusCommand: SlashCommand = {
     
     // Token usage
     message += `🪙 Token Usage:\n`;
-    message += `  • Total Tokens: ${formatNumber(metrics.totalTokens)} / ${formatNumber(maxContextSize)} (${contextUsagePercent}%)\n`;
-    message += `  • Input Tokens: ${formatNumber(metrics.inputTokens)}\n`;
-    message += `  • Output Tokens: ${formatNumber(metrics.outputTokens)}\n`;
-    message += `  • Cached Tokens: ${formatNumber(metrics.cachedTokens)}\n`;
+    message += `  • Total Tokens: ${formatNumber(totalTokens)} / ${formatNumber(maxContextSize)} (${contextUsagePercent}%)\n`;
+    message += `  • Input Tokens: ${formatNumber(totalInputTokens)}\n`;
+    message += `  • Output Tokens: ${formatNumber(totalOutputTokens)}\n`;
+    message += `  • Cached Tokens: ${formatNumber(totalCachedTokens)}\n`;
     message += `  • Last Prompt: ${formatNumber(lastPromptTokenCount)} tokens\n\n`;
+    
+    // Calculate performance metrics from API and tool data
+    const totalApiRequests = Object.values(metrics.models).reduce(
+      (sum, model) => sum + model.api.totalRequests, 0
+    );
+    const totalApiTime = Object.values(metrics.models).reduce(
+      (sum, model) => sum + model.api.totalLatencyMs, 0
+    );
+    const totalApiErrors = Object.values(metrics.models).reduce(
+      (sum, model) => sum + model.api.totalErrors, 0
+    );
     
     // Performance metrics
     message += `⚡ Performance:\n`;
-    message += `  • API Calls: ${metrics.apiCalls}\n`;
-    message += `  • Tool Calls: ${metrics.toolCalls}\n`;
-    message += `  • Errors: ${metrics.errors}\n`;
+    message += `  • API Calls: ${totalApiRequests}\n`;
+    message += `  • Tool Calls: ${metrics.tools.totalCalls}\n`;
+    message += `  • Errors: ${totalApiErrors}\n`;
     
-    if (metrics.apiCalls > 0) {
-      const avgApiTime = Math.round(metrics.totalApiTime / metrics.apiCalls);
+    if (totalApiRequests > 0) {
+      const avgApiTime = Math.round(totalApiTime / totalApiRequests);
       message += `  • Avg API Time: ${avgApiTime}ms\n`;
     }
     
-    if (metrics.toolCalls > 0) {
-      const avgToolTime = Math.round(metrics.totalToolTime / metrics.toolCalls);
+    if (metrics.tools.totalCalls > 0) {
+      const avgToolTime = Math.round(metrics.tools.totalDurationMs / metrics.tools.totalCalls);
       message += `  • Avg Tool Time: ${avgToolTime}ms\n`;
     }
     
     // Model-specific metrics
-    const modelMetrics = metrics.modelMetrics[modelVersion];
-    if (modelMetrics) {
+    const modelData = metrics.models[modelVersion];
+    if (modelData) {
       message += `\n📈 Model Metrics (${modelVersion}):\n`;
-      message += `  • Requests: ${modelMetrics.requests}\n`;
-      message += `  • Tokens: ${formatNumber(modelMetrics.totalTokens)}\n`;
+      message += `  • Requests: ${modelData.api.totalRequests}\n`;
+      message += `  • Tokens: ${formatNumber(modelData.tokens.total)}\n`;
       
-      if (modelMetrics.requests > 0) {
-        const avgTokensPerRequest = Math.round(modelMetrics.totalTokens / modelMetrics.requests);
+      if (modelData.api.totalRequests > 0) {
+        const avgTokensPerRequest = Math.round(modelData.tokens.total / modelData.api.totalRequests);
         message += `  • Avg Tokens/Request: ${formatNumber(avgTokensPerRequest)}\n`;
       }
     }

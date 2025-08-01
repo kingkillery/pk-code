@@ -24,7 +24,9 @@
             "id": 2,
             "title": "Create agent command file structure",
             "description": "Create the packages/cli/src/commands/agent.ts file with the basic Commander.js command structure for the agent command and its subcommands.",
-            "dependencies": ["46.1"],
+            "dependencies": [
+              "46.1"
+            ],
             "details": "Set up the agent.ts file with Commander.js program instance, define the main 'agent' command, and create the subcommand structure for 'start' and 'stop' with proper argument handling for <agent_type>.",
             "status": "done",
             "testStrategy": "Verify the file is created with proper TypeScript imports and basic command structure that can be imported without errors."
@@ -33,7 +35,9 @@
             "id": 3,
             "title": "Implement start and stop subcommand definitions",
             "description": "Define the 'start' and 'stop' subcommands in agent.ts with proper argument parsing, validation, and placeholder command handlers.",
-            "dependencies": ["46.2"],
+            "dependencies": [
+              "46.2"
+            ],
             "details": "Create 'start <agent_type>' and 'stop <agent_type>' subcommands with argument validation to ensure 'browser' is the accepted agent type. Add descriptive help text and error handling for invalid agent types.",
             "status": "done",
             "testStrategy": "Test argument parsing by running the commands with various inputs and verify proper error messages are shown for invalid agent types."
@@ -42,7 +46,10 @@
             "id": 4,
             "title": "Register agent command in main CLI index",
             "description": "Add the agent command to the main CLI command registration file to make it discoverable through the pk CLI.",
-            "dependencies": ["46.2", "46.3"],
+            "dependencies": [
+              "46.2",
+              "46.3"
+            ],
             "details": "Import the agent command from agent.ts into packages/cli/src/commands/index.ts and add it to the command registration/export structure following the existing pattern used by other commands.",
             "status": "done",
             "testStrategy": "Run 'pk --help' to verify the agent command appears in the available commands list."
@@ -51,7 +58,10 @@
             "id": 5,
             "title": "Add comprehensive help text and command validation",
             "description": "Implement detailed help text for the agent command and its subcommands, and add proper command validation and error handling.",
-            "dependencies": ["46.3", "46.4"],
+            "dependencies": [
+              "46.3",
+              "46.4"
+            ],
             "details": "Add descriptive help text explaining the purpose of the agent command, its subcommands, and the browser agent type. Include usage examples and ensure error messages are clear and actionable.",
             "status": "done",
             "testStrategy": "Run 'pk agent --help' to verify subcommands are listed with proper descriptions. Execute 'pk agent start browser' and 'pk agent stop browser' to confirm commands are recognized and provide appropriate feedback even without full implementation."
@@ -81,7 +91,9 @@
             "id": 2,
             "title": "Set up inquirer interactive prompt interface",
             "description": "Configure inquirer to present users with auto-detected Chrome path and options for manual entry or confirmation.",
-            "dependencies": ["47.1"],
+            "dependencies": [
+              "47.1"
+            ],
             "details": "Use inquirer to create an interactive prompt that shows the auto-detected Chrome path (if found) and asks for confirmation. Provide options to use detected path, enter custom path, or cancel. Include input validation for custom paths to ensure they exist and are accessible.",
             "status": "done",
             "testStrategy": "Test prompt flow with auto-detected paths. Test manual path entry with valid and invalid paths. Test cancellation behavior (Ctrl+C). Verify input validation works correctly."
@@ -90,7 +102,9 @@
             "id": 3,
             "title": "Integrate with existing config system for path storage",
             "description": "Connect the browser command to the existing configuration system to persist the Chrome user data directory path.",
-            "dependencies": ["47.2"],
+            "dependencies": [
+              "47.2"
+            ],
             "details": "Use the existing config infrastructure from packages/cli/src/config/config.ts to store the browser path setting. Add a new config key for browser path storage. Ensure the path is saved securely and can be retrieved by other parts of the system.",
             "status": "done",
             "testStrategy": "Verify that configured paths are properly stored and retrievable. Test config persistence across CLI sessions. Ensure integration with existing config commands doesn't break."
@@ -99,7 +113,9 @@
             "id": 4,
             "title": "Add browser subcommand to CLI command structure",
             "description": "Create the 'browser' subcommand under the existing 'config' command in the CLI architecture.",
-            "dependencies": ["47.3"],
+            "dependencies": [
+              "47.3"
+            ],
             "details": "Add the browser subcommand to packages/cli/src/commands/config.ts or create a separate config/browser.ts file. Ensure proper command registration and help text. Follow existing CLI patterns and conventions used in other config subcommands.",
             "status": "done",
             "testStrategy": "Test that 'pk config browser' is recognized as a valid command. Verify help text is displayed correctly. Test command shows up in 'pk config --help' output."
@@ -108,7 +124,12 @@
             "id": 5,
             "title": "Implement comprehensive error handling and user feedback",
             "description": "Add robust error handling for all failure scenarios including permission issues, invalid paths, and system-specific edge cases.",
-            "dependencies": ["47.1", "47.2", "47.3", "47.4"],
+            "dependencies": [
+              "47.1",
+              "47.2",
+              "47.3",
+              "47.4"
+            ],
             "details": "Handle scenarios like: insufficient permissions to access Chrome directory, Chrome not installed, custom path doesn't exist, path is not a directory, and system-specific access issues. Provide clear, actionable error messages for each case. Ensure graceful handling of user cancellation.",
             "status": "done",
             "testStrategy": "Test with insufficient permissions, non-existent paths, files instead of directories, and various edge cases. Verify error messages are helpful and non-technical. Test cancellation handling."
@@ -122,7 +143,9 @@
         "details": "The logic for `pk config browser` should read the `.mcp.json` file. Upon successful path input from the user, it must validate that the directory path exists on the filesystem. If valid, it will update the `BROWSER_USE_USER_DATA_DIR` key within the `browser-use` server configuration object and save the file. Handle cases where the file or keys do not yet exist.",
         "testStrategy": "Check the state of `.mcp.json` before running the command. Run `pk config browser`, provide a valid path, and confirm that `.mcp.json` is correctly updated. Test again by providing an invalid/non-existent path and verify that the command shows an error and does not update the configuration file.",
         "priority": "high",
-        "dependencies": [47],
+        "dependencies": [
+          47
+        ],
         "status": "done",
         "subtasks": []
       },
@@ -133,7 +156,9 @@
         "details": "The script should use a command-line JSON processor like `jq` to parse `.mcp.json` and extract the `BROWSER_USE_USER_DATA_DIR` value. This value should then be exported as an environment variable that is used when executing the `uvx browser-use --mcp` command. Add basic error handling to the script for cases where `jq` is not installed or the config file is missing.",
         "testStrategy": "Manually execute the modified `start-browser-agent.sh` script in a terminal. Verify that it correctly reads the path from a sample `.mcp.json`. Use `echo` statements or logging to confirm that the correct environment variable is set before the `uvx` command is called.",
         "priority": "medium",
-        "dependencies": [48],
+        "dependencies": [
+          48
+        ],
         "status": "done",
         "subtasks": []
       },
@@ -142,7 +167,10 @@
         "title": "Implement Browser Agent Process Lifecycle Management",
         "description": "Develop the core logic in `agent.ts` for the `pk agent start browser` and `pk agent stop browser` commands to manage the browser-use MCP server process.",
         "status": "done",
-        "dependencies": [46, 49],
+        "dependencies": [
+          46,
+          49
+        ],
         "priority": "high",
         "details": "**Context:**\nThis task builds on completed work for CLI registration (46), browser config (47), .mcp.json integration (48), and the dynamic agent script (49). The current `agent.ts` contains placeholder start/stop functions that require full implementation.\n\n**Key Files & Constants:**\n- Main Logic: `packages/cli/src/commands/agent.ts`\n- Script to Execute: `scripts/start-browser-agent.sh`\n- Configuration Source: `.mcp.json`\n- PID File Path: `path.join('.taskmaster', 'browser-agent.pid')` (constant: `BROWSER_AGENT_PID_FILE`)\n\n**Implementation Plan:**\n\n1.  **Enhance `startBrowserAgent()`:**\n    -   Before starting, perform pre-checks: verify `.mcp.json` exists and that no agent process is already running (check PID file).\n    -   Ensure the `.taskmaster` directory exists before attempting to write the PID file.\n    -   Use `child_process.spawn` to run `start-browser-agent.sh` in detached mode. Implement cross-platform compatibility for spawning the script.\n    -   Capture the new process ID (PID), validate it, and write it to the `browser-agent.pid` file.\n    -   Implement robust error handling for spawn failures or PID writing issues.\n\n2.  **Enhance `stopBrowserAgent()`:**\n    -   Read the PID from `browser-agent.pid`.\n    -   Handle stale PID files: if the file exists but the process ID is not running, notify the user and clean up the file.\n    -   Implement a graceful termination sequence: first send `SIGTERM`, wait briefly, and if the process still exists, send `SIGKILL`.\n    -   Add comprehensive error handling for cases where the process is already gone or the PID file is missing.\n    -   Delete the PID file upon successful termination.\n\n3.  **Cross-Platform Logic:**\n    -   For Unix-like systems (Linux, macOS): `spawn('bash', [scriptPath], { detached: true, stdio: 'ignore' })`\n    -   For Windows: `spawn('cmd', ['/c', 'bash', scriptPath], { detached: true, stdio: 'ignore' })`\n    -   Handle potential permission and script execution errors on all platforms.",
         "testStrategy": "Run `pk agent start browser`. Verify that a `uvx` process is running and that the `.taskmaster/browser-agent.pid` file is created with the correct PID. Run `pk agent stop browser`. Verify the process is terminated and the PID file is removed. Test starting and stopping multiple times to check for stability. Also test edge cases like starting an already running agent and stopping a non-existent one.",
@@ -152,8 +180,10 @@
         "id": 51,
         "title": "Ensure Windows Compatibility for Agent Scripts and Process Management",
         "description": "Create a Windows-compatible version of the start script and update the Node.js process management logic to be cross-platform.",
-        "status": "pending",
-        "dependencies": [50],
+        "status": "done",
+        "dependencies": [
+          50
+        ],
         "priority": "medium",
         "details": "The Windows batch script (start-browser-agent.bat) has been created and mirrors the bash functionality with PowerShell JSON parsing and findstr fallback. Now need to update agent.ts to use platform detection for script selection and improve Windows process termination using taskkill instead of SIGTERM/SIGKILL.",
         "testStrategy": "On a Windows 10/11 machine, perform the full end-to-end test: run `pk config browser`, then `pk agent start browser`, and finally `pk agent stop browser`. Use Task Manager or `tasklist` to verify the `uvx` process is created and terminated correctly.",
@@ -189,7 +219,7 @@
             "id": 4,
             "title": "Test complete Windows implementation",
             "description": "Perform end-to-end testing on Windows system",
-            "status": "pending",
+            "status": "done",
             "dependencies": [],
             "details": "Test full workflow: pk config browser -> pk agent start browser -> pk agent stop browser on Windows 10/11",
             "testStrategy": ""
@@ -198,7 +228,7 @@
             "id": 5,
             "title": "Run build validation",
             "description": "Execute npm run preflight to validate all changes",
-            "status": "pending",
+            "status": "done",
             "dependencies": [],
             "details": "Ensure all code changes pass linting, type checking, and tests",
             "testStrategy": ""
@@ -212,7 +242,9 @@
         "details": "This task focuses on verifying the connection between the core CLI and the background agent process. The existing `mcp-client.ts` should handle the connection and tool prefixing. The primary goal is to confirm that when the agent is running, the client successfully connects on the configured port and registers the browser tools (e.g., `browser.navigate`).",
         "testStrategy": "1. Start the agent with `pk agent start browser`. 2. Initiate an AI session with `pk chat`. 3. Check the CLI debug logs for messages indicating a successful connection to the browser-use MCP server and registration of tools. 4. Issue a command to the AI like 'navigate to piece.work' and verify it executes correctly.",
         "priority": "high",
-        "dependencies": [50],
+        "dependencies": [
+          50
+        ],
         "status": "done",
         "subtasks": []
       },
@@ -223,14 +255,398 @@
         "details": "Review all new code paths and implement checks for potential failures. This includes: `browser-use` package not being installed, configured Chrome path not existing, agent already running when `start` is called, agent not running when `stop` is called, stale PID file, and MCP port conflicts. For each case, provide a clear, user-friendly error message and exit gracefully.",
         "testStrategy": "Systematically trigger each error condition. For example: uninstall `browser-use`, run `pk agent start browser`. Configure a bad path, run `start`. Run `start` twice. Manually kill the agent process, then run `stop`. Verify that in each case, the CLI outputs a helpful error message and does not crash.",
         "priority": "medium",
-        "dependencies": [50, 51, 52],
-        "status": "pending",
+        "dependencies": [
+          50,
+          51,
+          52
+        ],
+        "status": "done",
         "subtasks": []
+      },
+      {
+        "id": 54,
+        "title": "Orchestrator & Prompts Integration",
+        "description": "Integrate pk-multi-phase-orchestrator.md into Taskmaster config and validate phase transitions & guardrail injections",
+        "details": "",
+        "testStrategy": "",
+        "status": "done",
+        "dependencies": [],
+        "priority": "high",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Update Taskmaster config to reference new orchestrator prompt",
+            "description": "Modify .taskmaster/config.json to point to the pk-multi-phase-orchestrator.md prompt file and configure appropriate model settings",
+            "details": "",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 54
+          },
+          {
+            "id": 2,
+            "title": "Implement phase transition validation tests",
+            "description": "Create test scenarios to validate that the orchestrator correctly transitions through Phase 1 (Pareto), Phase 2 (Strategic Plan), and Phase 3 (Execution Loop)",
+            "details": "",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 54
+          },
+          {
+            "id": 3,
+            "title": "Integrate guardrail injection mechanism",
+            "description": "Add automatic guardrail messages between phases (e.g., 'Next: produce test plan') and after key tool calls as specified in the orchestrator prompt",
+            "details": "",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 54
+          },
+          {
+            "id": 4,
+            "title": "Set up task metadata and completion tracking",
+            "description": "Configure task metadata tracking (task_id, start_timestamp) and completion criteria logic (TASK COMPLETE vs BLOCKED states)",
+            "details": "",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 54
+          },
+          {
+            "id": 5,
+            "title": "Run end-to-end orchestrator validation",
+            "description": "Test the orchestrator with a real coding task to ensure YAML Pareto output, strategic planning, and execution loop work end-to-end",
+            "details": "",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 54
+          }
+        ]
+      },
+      {
+        "id": 55,
+        "title": "Sub-Agents Development",
+        "description": "Draft pk-debugger.md prompt, implement run_pdb_test(test_path) tool wrapper, and draft pk-planner.md prompt",
+        "details": "",
+        "testStrategy": "",
+        "status": "done",
+        "dependencies": [],
+        "priority": "high",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Draft pk-debugger.md prompt and implement run_pdb_test",
+            "description": "Create the design and implementation plan for pk-debugger sub-agent and PDB tool wrapper.",
+            "details": "",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 55
+          },
+          {
+            "id": 2,
+            "title": "Create pk-debugger.md agent prompt",
+            "description": "Create pk-debugger.md agent prompt that can accept failing test paths, run PDB sessions, and extract stack trace + local variables",
+            "details": "",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 55
+          },
+          {
+            "id": 3,
+            "title": "Implement run_pdb_test tool wrapper",
+            "description": "Implement run_pdb_test(test_path) tool that spawns Python subprocess, runs pytest under PDB, captures stack and locals, returns JSON",
+            "details": "",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 55
+          },
+          {
+            "id": 4,
+            "title": "Draft pk-planner.md agent prompt",
+            "description": "Create pk-planner.md agent prompt for high-level reflection and plan revision, with single-call constraint",
+            "details": "",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 55
+          },
+          {
+            "id": 5,
+            "title": "Integrate sub-agents with orchestrator guardrails",
+            "description": "Configure orchestrator to automatically open relevant files via read_files after calling the debugger sub-agent, as per Refact.ai's guardrail pattern",
+            "details": "",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 55
+          }
+        ]
+      },
+      {
+        "id": 56,
+        "title": "Repository Embeddings Index",
+        "description": "Choose embedding model (text-embedding-3-large), build nightly FAISS index job, and add search_index(query, top_k) tool",
+        "details": "",
+        "testStrategy": "",
+        "status": "in-progress",
+        "dependencies": [],
+        "priority": "medium",
+        "subtasks": []
+      },
+      {
+        "id": 57,
+        "title": "Intelligent Retry & Fail-Over with Self-Reflection",
+        "description": "Wrap tool calls with an intelligent retry and fail-over mechanism. This system will integrate with self-reflection loops (from #61) to analyze failures, adjust strategy, and then retry or fail-over to a fallback LLM (GPT-4o).",
+        "status": "pending",
+        "dependencies": [
+          61
+        ],
+        "priority": "high",
+        "details": "This creates a more intelligent failure recovery system that learns from errors rather than just mechanically retrying. The goal is to improve robustness and task success rate by dynamically adapting to tool call failures.",
+        "testStrategy": "Develop a test plan to validate the entire intelligent recovery system. Simulate various failure conditions (network issues, API limits, malformed responses, invalid tool parameters) to ensure the self-reflection loop is triggered correctly and that its strategic adjustments lead to successful retries or graceful failovers.",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement Failure Detection and Self-Reflection Trigger",
+            "description": "Create a wrapper that detects tool call failures (e.g., JSON errors, timeouts). Instead of a simple retry, this wrapper should trigger the self-reflection loop (#61), passing it the context of the failure.",
+            "status": "pending",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Integrate Self-Reflection Output into Retry/Fail-Over Logic",
+            "description": "After the self-reflection loop analyzes the failure, use its output to decide the next step. This could be retrying the tool call with an adjusted strategy, retrying with the same model, or failing over to the fallback LLM (GPT-4o).",
+            "status": "pending",
+            "dependencies": [
+              1
+            ],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Enhance Logging for Self-Reflection and Recovery",
+            "description": "Expand logging to capture the entire intelligent recovery process. This includes the initial failure, the trigger of the self-reflection loop, the analysis/strategy generated by the reflection, and the final recovery action (retry or failover).",
+            "status": "pending",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Implement Informative Final Failure Messaging",
+            "description": "If the entire recovery process (including self-reflection and fallback attempts) fails, create a clear, informative error message for the user. The message should briefly explain that an intelligent recovery was attempted and failed, providing guidance on how to report the issue.",
+            "status": "pending",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Test Intelligent Recovery System",
+            "description": "Test the complete intelligent recovery system under various failure conditions to ensure the self-reflection loop is triggered correctly and that its strategic adjustments lead to successful retries or graceful failovers.",
+            "status": "pending",
+            "dependencies": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "details": "",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 58,
+        "title": "Multi-Patch Voting Mode",
+        "description": "Implement multi-patch generator in execution loop and select first passing patch via tests",
+        "details": "<info added on 2025-08-01T05:54:13.398Z>\nThis mode should leverage the specialized Code and Test agents from task #61 for generating and evaluating patch candidates, creating a more robust collaborative patch selection process.\n</info added on 2025-08-01T05:54:13.398Z>",
+        "testStrategy": "",
+        "status": "pending",
+        "dependencies": [
+          "61"
+        ],
+        "priority": "medium",
+        "subtasks": []
+      },
+      {
+        "id": 59,
+        "title": "Documentation & Examples",
+        "description": "Update README and docs/examples/orchestrator-run.md, add CHANGELOG entries",
+        "details": "",
+        "testStrategy": "",
+        "status": "pending",
+        "dependencies": [],
+        "priority": "low",
+        "subtasks": []
+      },
+      {
+        "id": 60,
+        "title": "QA & Benchmarking",
+        "description": "Add integration tests for each new tool and run SWE-bench subset to baseline performance",
+        "details": "",
+        "testStrategy": "",
+        "status": "pending",
+        "dependencies": [],
+        "priority": "medium",
+        "subtasks": []
+      },
+      {
+        "id": 61,
+        "title": "Implement Advanced Agentic Framework Patterns in Orchestrator",
+        "description": "Enhance the agent orchestrator by implementing advanced agentic patterns including ReAct prompting, self-reflection, memory management, and a Planner-Executor model with specialized agent roles to leverage browser automation tools.",
+        "details": "This task involves a significant refactoring of `agent-orchestrator.ts` to incorporate state-of-the-art agentic design patterns based on recent research. The goal is to move from a single monolithic agent to a more robust, multi-agent system capable of complex reasoning and tool use.\n\n**1. ReAct Prompting Framework:**\n- Modify the core prompt structure to enforce a ReAct (Reason, Act) cycle.\n- The agent's output must be a structured format (e.g., JSON or a specific markdown block) containing two keys: `thought` for the reasoning trace and `action` for the tool call or final answer.\n- The orchestrator must parse this output, log the `thought` for observability, and execute the `action` (e.g., a tool call).\n\n**2. Planner-Executor Pattern & Specialized Roles:**\n- Refactor the orchestrator to support a multi-agent, role-based architecture.\n- Create distinct prompt templates for the following roles:\n  - **Planner Agent:** Receives the initial user request and decomposes it into a high-level, step-by-step plan. The output should be a structured list of tasks.\n  - **Executor Agents (Specialized):** The orchestrator will route each task from the plan to the appropriate executor.\n    - **Research Agent:** Specialized in using browser tools (`browser.navigate`, `browser.search`, etc.) provided by the MCP server to gather information.\n    - **Code Agent:** Specialized in writing, reading, and modifying code files.\n    - **Test Agent:** Specialized in executing test commands and analyzing their output.\n\n**3. Self-Reflection Mechanism:**\n- Implement a loop for error correction and strategy refinement.\n- When a tool call fails or a sequence of actions does not yield progress, the orchestrator should trigger a reflection step.\n- This involves invoking the agent with a specific reflection prompt, providing it with the recent history (thoughts, actions, observations) and asking it to critique its strategy and propose a revised plan or next step.\n\n**4. Memory Management & Context Retention:**\n- Implement a 'scratchpad' or short-term memory module within the orchestrator.\n- After each ReAct cycle, append a summary of the `Thought`, `Action`, and `Observation` to the scratchpad.\n- This scratchpad will be included in the context for subsequent LLM calls to ensure continuity. Implement a summarization or truncation strategy to manage the context window size.",
+        "testStrategy": "Testing should cover each new pattern individually and then as an integrated system.\n\n**1. ReAct Cycle Verification:**\n- Issue a simple, single-tool command (e.g., \"list files in the current directory\").\n- Inspect the debug logs to verify the agent produces a valid `thought` and `action` structure.\n- Confirm the orchestrator correctly parses the structure and executes the tool.\n\n**2. Planner-Executor Flow Test:**\n- Provide a multi-step task: \"Research the 'axios' library's API for POST requests and then write a TypeScript code snippet demonstrating its use.\"\n- Verify the Planner agent generates a logical, multi-step plan.\n- Confirm the orchestrator routes the research steps to the Research Agent (which should invoke browser tools) and the coding step to the Code Agent.\n\n**3. Self-Reflection Test:**\n- Create a scenario where a tool is guaranteed to fail (e.g., ask the Research Agent to navigate to an invalid URL like `http://nonexistent.domain.tld`).\n- Verify the orchestrator detects the tool execution failure and triggers the self-reflection prompt.\n- Check the agent's subsequent `thought` to confirm it has acknowledged the failure and adjusted its strategy.\n\n**4. End-to-End Integration Test:**\n- Start the browser agent using `pk agent start browser`.\n- Initiate a chat session with a complex task requiring web research and file modification (e.g., \"Find the latest version of 'inquirer' on npm, then update the version in our project's package.json\").\n- Verify the entire Planner-Executor-Reflection loop functions correctly, utilizing the browser MCP tools, and successfully completes the task.",
+        "status": "in-progress",
+        "dependencies": [
+          54,
+          55,
+          52
+        ],
+        "priority": "high",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Integrate ReAct Prompting Framework and Structured Output Parsing",
+            "description": "Refactor the core agent interaction loop in `agent-orchestrator.ts` to implement the ReAct (Reason, Act) pattern. This involves creating a new prompt template that instructs the LLM to output a structured format (e.g., JSON) containing `thought` and `action` fields. The orchestrator must be updated to parse this output, log the reasoning (`thought`), and prepare the `action` for execution.",
+            "dependencies": [],
+            "details": "The primary goal is to establish the foundational ReAct cycle. The agent's response must be strictly parsed. If the output format is invalid, the orchestrator should handle the error, potentially by re-prompting with a correction. This subtask focuses solely on the single-turn interaction loop, not on memory or multi-agent patterns yet.",
+            "status": "in-progress",
+            "testStrategy": "Issue a simple, single-tool command (e.g., \"list files in the current directory\"). Verify the orchestrator logs a `thought` and correctly identifies the `action` to be executed. Test with malformed or incomplete JSON responses to ensure robust parsing and error handling."
+          },
+          {
+            "id": 2,
+            "title": "Implement Planner-Executor Architecture with Role Specialization",
+            "description": "Refactor `agent-orchestrator.ts` to support a multi-agent, role-based architecture. Create a 'Planner Agent' responsible for decomposing the user's request into a step-by-step plan. Implement the logic for the orchestrator to first invoke the Planner and then iterate through the generated plan, routing tasks to a generic Executor.",
+            "dependencies": [
+              "61.1"
+            ],
+            "details": "This subtask introduces the two-level hierarchy. The Planner's output should be a structured list of tasks. The orchestrator's main loop will change from executing a single ReAct cycle to managing a state machine that tracks the execution of the plan. Initially, a single generic Executor agent will handle all tasks from the plan, using the ReAct cycle established in the previous subtask.",
+            "status": "pending",
+            "testStrategy": "Provide a multi-step user request (e.g., \"research the latest AI trends and then write a summary to a file\"). Verify the Planner Agent produces a structured plan (e.g., a JSON array of tasks). Check that the orchestrator correctly logs the plan and begins executing the first step."
+          },
+          {
+            "id": 3,
+            "title": "Develop Specialized Research Agent for Browser Automation",
+            "description": "Create the 'Research Agent' as a specialized executor. Develop its specific prompt template, which will include detailed instructions and examples for using the browser automation tools (`browser.navigate`, `browser.search`, etc.) available via the MCP server. Implement the routing logic in the orchestrator to delegate browser-related tasks from the plan to this agent.",
+            "dependencies": [
+              "61.2"
+            ],
+            "details": "This subtask builds on the Planner-Executor pattern by introducing the first specialized agent. The orchestrator will need to inspect the task description or a specified tool name from the plan to route it to the Research Agent. This leverages the existing MCP infrastructure from tasks 50 and 47.",
+            "status": "pending",
+            "testStrategy": "Use a plan generated by the Planner that requires web research (e.g., \"search for 'agentic design patterns'\"). Verify the orchestrator routes the task to the Research Agent. Monitor the interaction with the MCP server to confirm the correct browser commands are executed."
+          },
+          {
+            "id": 4,
+            "title": "Implement Short-Term Memory (Scratchpad) for Context Retention",
+            "description": "Create a memory management module within the orchestrator to maintain a 'scratchpad'. After each ReAct cycle (Thought, Action, Observation), a summary of the turn will be appended to the scratchpad. Implement a truncation or summarization strategy to ensure the scratchpad, when added to the prompt, does not exceed the LLM's context window limit.",
+            "dependencies": [
+              "61.1"
+            ],
+            "details": "The scratchpad is crucial for multi-step tasks, providing context from previous steps to the agent. The memory module should be a class or a set of functions that can be easily integrated into the orchestrator's main loop. The truncation strategy could be as simple as keeping the last N turns or a more advanced token-based sliding window.",
+            "status": "pending",
+            "testStrategy": "Execute a multi-step task. Inspect the context sent to the LLM on the third or fourth step to verify that it contains a summarized history of the previous steps. Test the truncation logic by simulating a long conversation that would exceed the context limit and ensure the process does not fail."
+          },
+          {
+            "id": 5,
+            "title": "Implement Self-Reflection Loop for Strategy Revision",
+            "description": "Enhance the orchestrator to detect when a tool execution returns an error or a sequence of actions fails to make progress. When a failure is detected, trigger a self-reflection step by invoking the agent with a specialized reflection prompt, providing it with the error and recent history from the scratchpad to critique its strategy and propose a revised action.",
+            "dependencies": [
+              "61.1",
+              "61.4"
+            ],
+            "details": "This mechanism turns failures into learning opportunities. The orchestrator's error handling, which currently might just report an error (per Task 53), will be extended to call the reflection prompt. The agent's response to the reflection prompt will then replace the failed action in the execution flow.",
+            "status": "pending",
+            "testStrategy": "Intentionally cause a tool to fail (e.g., try to read a non-existent file or navigate to a bad URL). Verify that the orchestrator catches the error and triggers the reflection prompt. Check that the agent's subsequent `thought` and `action` demonstrate an understanding of the error and a change in strategy."
+          },
+          {
+            "id": 6,
+            "title": "Implement and Coordinate Specialized Code and Test Agents",
+            "description": "Create the remaining specialized agents: a 'Code Agent' for file I/O and code generation, and a 'Test Agent' for running test suites. Develop their unique prompt templates and toolsets. Enhance the orchestrator's routing logic to handle the full lifecycle of a complex task, ensuring synergy between the Planner, Research, Code, and Test agents.",
+            "dependencies": [
+              "61.2",
+              "61.3"
+            ],
+            "details": "This final subtask completes the multi-agent system. It involves creating the prompt templates and tool definitions for the Code and Test agents. The key challenge is ensuring the orchestrator can manage the handoff between agents, for example, passing the output of the Research Agent as context to the Code Agent.",
+            "status": "pending",
+            "testStrategy": "Provide a complex end-to-end task: \"Research how to use the 'axios' library, write a sample script `fetch.js` that makes a GET request, and then run the script using node.\" Verify that the orchestrator correctly delegates tasks to the Planner, Research, and Code agents in the correct sequence and that the final output is successful."
+          }
+        ]
+      },
+      {
+        "id": 62,
+        "title": "Fix TypeScript Build Compilation Errors",
+        "description": "Resolve all TypeScript compilation errors preventing successful npm run build. Main issues include type mismatches, import path problems, and syntax errors.",
+        "details": "Key errors to fix: 1) agent-orchestrator.ts: GenerateContentParameters and GenerateContentResponse type issues, 2) Missing properties in Artifact creation, 3) Invalid TaskStatus types, 4) Import path corrections for embeddingIndex.ts, 5) Syntax errors in CLI agent.ts file",
+        "testStrategy": "Run npm run build successfully without TypeScript errors",
+        "status": "in-progress",
+        "dependencies": [],
+        "priority": "high",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Fix GenerateContentParameters type mismatch in agent-orchestrator.ts",
+            "description": "Fix the error where 'prompt' property doesn't exist in GenerateContentParameters type at line 490",
+            "details": "Update the generateContent call to use the correct parameter structure for the API",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 62
+          },
+          {
+            "id": 2,
+            "title": "Fix GenerateContentResponse duration property error",
+            "description": "Fix the error where 'duration' property doesn't exist on GenerateContentResponse type at line 506",
+            "details": "Update the response handling to use available properties or provide a fallback value",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 62
+          },
+          {
+            "id": 3,
+            "title": "Fix incomplete Artifact object creation",
+            "description": "Fix missing required properties (name, metadata, dependencies, createdBy, tags) in Artifact creation at line 598",
+            "details": "Add the missing properties to match the Artifact type definition",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 62
+          },
+          {
+            "id": 4,
+            "title": "Fix invalid TaskStatus type assignment",
+            "description": "Fix the error where 'timeout' is not assignable to TaskStatus type at line 603",
+            "details": "Update the status value to use a valid TaskStatus enum value",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 62
+          },
+          {
+            "id": 5,
+            "title": "Fix embeddingIndex.ts import path errors",
+            "description": "Fix incorrect import paths for embeddingIndex.ts that are causing module resolution errors",
+            "details": "Correct the import paths to properly reference the embeddingIndex module and ensure all related imports are accessible",
+            "status": "in-progress",
+            "dependencies": [],
+            "parentTaskId": 62
+          },
+          {
+            "id": 6,
+            "title": "Fix CLI agent.ts syntax errors",
+            "description": "Fix syntax errors in CLI agent.ts file including unterminated string literals and missing semicolons",
+            "details": "Clean up the syntax errors around lines 383, 485, and 523 in the agent command file",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 62
+          }
+        ]
       }
     ],
     "metadata": {
       "created": "2025-07-26T18:17:50.719Z",
-      "updated": "2025-07-28T04:24:49.839Z",
+      "updated": "2025-08-01T06:50:20.952Z",
       "description": "Tasks for master context"
     }
   }

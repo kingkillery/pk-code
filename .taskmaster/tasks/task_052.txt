@@ -1,0 +1,11 @@
+# Task ID: 52
+# Title: Verify MCP Integration and Browser Tool Discovery
+# Status: done
+# Dependencies: 50
+# Priority: high
+# Description: Conduct end-to-end testing to ensure the browser-use MCP server integrates correctly and its tools are discoverable by the AI agent during a chat session.
+# Details:
+This task focuses on verifying the connection between the core CLI and the background agent process. The existing `mcp-client.ts` should handle the connection and tool prefixing. The primary goal is to confirm that when the agent is running, the client successfully connects on the configured port and registers the browser tools (e.g., `browser.navigate`).
+
+# Test Strategy:
+1. Start the agent with `pk agent start browser`. 2. Initiate an AI session with `pk chat`. 3. Check the CLI debug logs for messages indicating a successful connection to the browser-use MCP server and registration of tools. 4. Issue a command to the AI like 'navigate to piece.work' and verify it executes correctly.

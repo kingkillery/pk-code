@@ -71,6 +71,7 @@ export const inferenceProviderCommand: Command = {
       process.env.OPENROUTER_PROVIDER = '';
 
       // Refresh the content generator to pick up the cleared provider
+      // This ensures requests no longer include the provider field in request body
       try {
         await config.refreshContentGenerator();
       } catch (error) {
@@ -96,10 +97,12 @@ export const inferenceProviderCommand: Command = {
       };
     }
 
-    // Set the new provider
+    // Set the new provider in environment variable
     setOpenRouterProvider(newProvider);
 
     // Refresh the content generator to pick up the new provider
+    // This ensures the OpenRouterContentGenerator is recreated with the new provider
+    // and will include 'provider: { only: ["newProvider"] }' in request body
     try {
       await config.refreshContentGenerator();
     } catch (error) {

@@ -44,6 +44,8 @@ export interface CliArgs {
   debug: boolean | undefined;
   prompt: string | undefined;
   promptInteractive: string | undefined;
+  parallel: string | undefined;
+  parallelTasks: number | undefined;
   allFiles: boolean | undefined;
   all_files: boolean | undefined;
   showMemoryUsage: boolean | undefined;
@@ -96,6 +98,15 @@ export async function parseArguments(): Promise<CliArgs> {
       type: 'string',
       description:
         'Execute the provided prompt and continue in interactive mode',
+    })
+    .option('parallel', {
+      type: 'string',
+      description: 'Execute multiple prompts in parallel. Provide comma-separated prompts.',
+    })
+    .option('parallel-tasks', {
+      type: 'number',
+      description: 'Number of parallel tasks to run (default: number of prompts)',
+      default: undefined,
     })
     .option('sandbox', {
       alias: 's',

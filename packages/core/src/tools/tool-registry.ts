@@ -13,6 +13,7 @@ import { discoverMcpTools } from './mcp-client.js';
 import { DiscoveredMCPTool } from './mcp-tool.js';
 import { parse } from 'shell-quote';
 import { MultimodalContentGenerator } from '../core/contentGenerator.js';
+import { SearchIndexTool } from './search-index.js';
 
 type ToolParams = Record<string, unknown>;
 
@@ -130,6 +131,15 @@ export class ToolRegistry {
 
   constructor(config: Config) {
     this.config = config;
+    this.initializeBuiltInTools();
+  }
+
+  /**
+   * Initializes built-in tools that are always available.
+   */
+  private initializeBuiltInTools(): void {
+    // Register the search index tool
+    this.registerTool(new SearchIndexTool(this.config));
   }
 
   /**

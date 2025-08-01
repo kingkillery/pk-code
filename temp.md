@@ -1,237 +1,113 @@
-# Codebase Review #1
+Great. I’ll look into research papers and open-source projects that showcase agentic frameworks combining coding and browser interaction, especially those similar to pk code and tools like Manus or AI browsers for deep research.
 
-- ### Implementation Summary
+I’ll identify the most effective architectures, orchestration patterns, tool integration strategies, and how they manage both browser-based tasks and code generation. I’ll prioritize recent studies (2023–2025) from arXiv and Papers with Code.
 
-  PK Code’s sub‑agent system is described in `packages/core/src/agents/ARCHITECTURE.md`. It routes queries to specialized agents, can execute several agents in parallel, and aggregates the results:
+I’ll get back to you shortly with a structured breakdown of the best approaches and how they could inform your CLI agent’s design.
 
-  ```
-  The PK-Code sub-agent system is a sophisticated multi-agent architecture designed to intelligently route queries to specialized AI agents, execute them in parallel or sequentially, and aggregate results for optimal user experience. The system achieves ≥80% routing accuracy with ≤400ms overhead compared to single-agent execution.
-  ```
 
-  The architecture includes an `Agent Router` for selecting agents, an `Agent Executor` for running them concurrently, a `Result Aggregator`, and an `Agent Orchestrator` coordinating the flow.
+# Advanced Agentic Frameworks for Code Generation and Web Browsing (2023–2025)
 
-  The CLI exposes commands like `/agent create`, `/agent list`, and `/agent delete` to manage sub‑agents. Example snippet:
+## Introduction
 
-  ```
-  name: 'list-agents',
-  altName: 'agents',
-  description: 'List all available sub-agents',
-  ```
+Recent AI agents have begun to **combine software coding skills with web browsing abilities**, aiming to tackle complex “real-world” tasks. For example, an agent might read documentation or search the web for information, then write and execute code based on its findings. Research from 2023–2025 highlights new frameworks that integrate **code generation/reasoning** (as tested by benchmarks like SWE-Bench) with **browser-based research and navigation** (as evaluated on tasks like WebArena). This report surveys advanced agent architectures, tools, prompting strategies, open-source projects, and benchmarks that **bridge coding and browsing** capabilities. We also discuss their strengths and limitations, to inform the design of powerful CLI tools (like *pk code*) for deep research and coding tasks.
 
-  Parallel execution is handled by `executeParallel()` in the executor:
+## Integrated Architectures for Coding + Browsing Agents
 
-  ```
-  /** Execute agents in parallel with concurrency control */
-  private async executeParallel(
-    routingResults: RoutingResult[],
-    query: string,
-    options: ExecutionOptions,
-    maxConcurrency: number,
-  ): Promise<AgentExecutionResult[]> {
-    ...
-    const remainingResults = await Promise.allSettled(Array.from(executing));
-    ...
-  }
-  ```
+**Generalist Agent Designs:** A notable trend is toward *unified agents* that possess both coding and web-navigation tools, rather than separate specialists. Soni et al. (2025) introduce a generalist agent (open-sourced as **OpenHands-Versa**) equipped with a minimal set of tools – *code editing/execution, web search, multimodal web browsing,* and file access. Remarkably, this single agent achieved **state-of-the-art** or competitive performance across diverse benchmarks: solving software issues in SWE-Bench, navigating websites in WebArena, and performing office-like tasks in the GAIA and Agent Company evaluations. By having coding and browsing in one architecture, it outperformed prior *specialist* agents on each domain (e.g. pure coders that couldn’t browse, or pure web navigators that couldn’t code). This suggests an integrated design can handle multi-faceted tasks that require both writing code and gathering information online.
 
-  ### Current Functionality and Limitations
+**Planner-Executor Systems:** Some frameworks use a *multi-agent* orchestration to integrate capabilities. **Manus**, a recently launched general-purpose AI agent platform, is *not* just a single LLM prompt – it employs a **planner agent** to decompose the user’s request into sub-tasks, and multiple **executor agents** to carry out those tasks with appropriate tools. For instance, Manus’s executors can perform web browsing, run file searches, or execute code in a terminal. This approach effectively **bridges “thinking” and “doing”**: the planner forms a high-level strategy, then tool-using agents implement each step. Manus notably runs in a cloud sandbox (via E2B’s platform) so that it has a *full virtual computer* available. This means the agent can open a Chromium browser to visit pages, **scroll/click through websites, then write or execute code** on the fly – all in one coherent workflow. Such architectures demonstrate how coordinating multiple sub-agents or modules can achieve end-to-end autonomy (e.g. reading documentation on the web, then compiling code to solve a problem).
 
-  While routing, concurrent execution, and aggregation are coded, the implementation is not fully integrated. For example, `createContentGenerator()` simply throws an error unless a factory is passed in:
+**Specialized Agent Roles:** Other research explores dividing the coding task itself among specialized agents. For example, **AgentCoder** (2024) uses three coordinated agents – a *“programmer” agent, a “test designer” agent, and a “test executor” agent* – to iteratively generate and refine code. The programmer writes code solutions, the test designer creates test cases, and the test executor runs the code and reports failures, creating a feedback loop. This multi-agent framework improved code reliability significantly compared to a single-pass coder. It reflects a broader principle: agents can be organized into **modular roles** (planner, coder, tester, browser, etc.), communicating to solve complex tasks. An integrated coding+browser agent might similarly have sub-modules for searching the web, reading content, writing code, and verifying results.
 
-  ```
-  throw new Error(
-    'Content generator factory not provided. This should be integrated with the existing PK-Code content generation system.'
-  );
-  ```
+## Tools for Browser-Based Agents
 
-  The project’s task list shows many required pieces still marked “pending,” such as documentation, tool sandboxing, audit logging, provider fallback, and a comprehensive test suite.
+Building an “AI web browser” agent requires robust tools to simulate human web use. A variety of **headless browser** APIs and automation frameworks have been leveraged in recent projects:
 
-  The PRD highlights that future work includes agent collaboration (inter-agent communication protocols):
+* **Browser Automation Libraries:** Many agents use tools like *Chromium in headless mode, Puppeteer/Playwright, or Selenium* to control a web browser. For instance, the Manus system leverages a headless **Chromium browser** within its sandbox to visit URLs, click links, fill forms, and even save page content or images. These tools let an agent navigate webpages by programmatically clicking buttons, typing into fields, scrolling, etc., much as a human would.
 
-  ### Question Responses
-  1. **Simultaneous execution**: Yes. `AgentExecutor` supports parallel spawning through `Promise.allSettled` with configurable concurrency, enabling multiple agents to run at once.
-  2. **Inter-agent communication**: No built-in mechanism currently exists. Communication is listed as a future enhancement (“Agent Collaboration: Inter-agent communication protocols”). Potential approaches could leverage PK Code’s existing Model Context Protocol (MCP) infrastructure or use an internal message bus to share state or requests between running agents.
+* **“Browser Use” Framework:** A notable open-source project in 2025 is **Browser-Use**, which gained popularity as part of the Manus stack. Browser-Use provides an agent-friendly abstraction on top of a browser. It *extracts webpage elements* (buttons, input fields, etc.) into a machine-readable form, manages multiple tabs, handles file downloads, and simulates mouse/keyboard inputs. In short, it offers a high-level API for web actions so that an AI agent can reliably interact with complex sites (including logging in or navigating multi-step forms). This tool saw a surge of interest after Manus’s success, proving valuable for developers building their own AI “browsers”.
 
-  Overall, the core sub‑agent framework (routing, concurrent execution, and aggregation) is coded but not fully wired into the rest of the CLI, and additional features such as provider fallback, auditing, and inter-agent communication remain incomplete.
+* **Web Environments for Evaluation:** Researchers have also built controlled web environments to test agents. **WebArena**, introduced in 2024, is a *self-hostable web sandbox* with several realistic websites (social media, shopping, maps, wiki, etc.) that agents can be deployed on. Each site in WebArena mimics real-world functionality and data, enabling reproducible benchmarks for web navigation tasks. Crucially, WebArena comes with instrumentation to check an agent’s success (e.g. by validating a sequence of actions against a “ground truth” script) and can embed tools/knowledge bases as needed. This environment uses real browser rendering under the hood, but by constraining the content and providing known tasks, it allows rigorous evaluation of browsing agents (several recent papers report results on WebArena’s benchmark tasks).
 
-  ***
+**APIs vs. GUI Interaction:** An interesting twist in tooling is the idea of bypassing the front-end GUI entirely when possible. *Yao et al.* (2024) propose giving agents direct **web API access** in addition to GUI browsing. In their **“Beyond Browsing”** study, they implemented an *API-calling agent* (essentially having the LLM write code to call web services’ APIs, like a programmer would) and a **Hybrid Agent** that can choose between API calls or traditional browser actions. On the WebArena tasks, the API-centric agent dramatically outperformed a pure browser-based agent in success rate, and the Hybrid agent (using both methods) did best of all. It achieved about **35.8% success on WebArena, \~20 points higher** than the browser-only approach. The takeaway is that when machine-friendly APIs are available (e.g. a REST endpoint to get data directly), an agent should use them instead of scraping a website. However, since not all websites have useful APIs, a capable agent needs the flexibility to fall back on GUI browsing. This result highlights that *code generation (to call APIs) can be a powerful tool for an agent*, complementing conventional browser automation. In practice, frameworks might integrate an HTTP client or SDK so the agent can fetch data in JSON form when possible – essentially treating API calls as another “tool” alongside the web browser.
 
-  # Codebase Review #2
+## Prompting Strategies and Agent Orchestration
 
-The repository has a dedicated “sub‑agent system” in `packages/core/src/agents`. The architecture document describes how the system is supposed to work:
+Simply equipping an agent with tools is not enough – *how* the agent plans and reasons through a task is critical. Recent frameworks draw on advanced prompting strategies to coordinate reasoning (thought) and acting (tool usage):
 
-```
-# PK-Code Sub-Agent System Architecture
-…
-The PK-Code sub-agent system is a sophisticated multi-agent architecture designed to intelligently route queries to specialized AI agents, execute them in parallel or sequentially, and aggregate results for optimal user experience. The system achieves ≥80% routing accuracy with ≤400ms overhead compared to single-agent execution.
-```
+* **ReAct Prompting:** The ReAct framework (Yang et al. 2022) pioneered interleaving the agent’s **Reasoning and Acting** steps in a single prompt loop. Instead of one-shot answering, the LLM is prompted to produce thought traces (e.g. “Search for X… I found Y… Next I will do Z”) and tool commands in sequence. This approach has influenced nearly all modern agent implementations – it allows the model to **plan a series of actions with intermediate reasoning**, reducing haphazard trial-and-error. ReAct-style prompting is evident in many code-and-browser agents: they maintain a *scratchpad* of observations and thoughts, enabling the agent to justify each action (like opening a webpage or running code) before execution. This significantly improves transparency and correctness compared to a naive end-to-end prompt.
 
-Key features include a router, an executor that supports `Promise.allSettled` for concurrent execution, and a result aggregator:
+* **Plan-and-Solve Prompting:** To further improve zero-shot reasoning, researchers introduced a **plan-then-execute** paradigm. Wang et al. (2023) call this *Plan-and-Solve (PS) prompting*: the LLM is first asked to outline a **step-by-step plan** for the task, then separately prompted to carry out each step in order. By explicitly formulating a plan, the agent is less likely to skip necessary sub-problems or get confused mid-way. Plan-and-Solve has been shown to reduce errors in multi-step reasoning (like math or logic puzzles) and even match few-shot Chain-of-Thought performance in some cases. Many agent frameworks now incorporate a planning phase (some implicitly, as seen with Manus’s dedicated planner agent). For a coding + browsing agent, this could mean first listing sub-goals (e.g. “1. Search for API docs, 2. Read relevant snippet, 3. Write code, 4. Test code”) and then executing them, rather than jumping in blindly. This **two-phase approach** improves reliability.
 
-```
-### 2. Agent Executor (`agent-executor.ts`)
-**Purpose**: High-performance parallel execution engine for agent invocations.
+* **Self-Reflection and Feedback:** Another powerful strategy is to enable the agent to **learn from its mistakes within a single session**. The **Reflexion** framework (Shinn et al. 2023) demonstrated that after an agent fails or gets feedback, it can *generate a self-reflection* (in plain language) noting what went wrong, store this in memory, and then attempt the task again with that hindsight. Notably, Reflexion achieved *91%* success on the HumanEval code benchmark – whereas even GPT-4 originally scored \~80% – by iteratively debugging its own outputs based on test feedback. This concept of **verbal reinforcement** can be applied to browsing as well (e.g. if an agent fails to find info on one site, it might reflect: “The site may require login. I should try an alternative source.”). Several open-source agents now implement some form of self-correction loop (sometimes called “Self-Refine” or “Retry on error”), drawing on Reflexion’s idea. In coding scenarios, as in AgentCoder, having test feedback or error messages fed back into the prompt for another attempt is essentially automating the debugging process. Overall, *reflection augments prompting with a dynamic memory*: the agent’s own critique of each attempt guides the next try, leading to more robust performance.
 
-**Key Features**:
-- Promise.allSettled() for concurrent execution
-- Timeout handling and resource management
-- Multiple execution strategies (parallel, sequential, prioritized)
-```
+* **Memory and Long-Term Context:** To support complex research tasks (which might involve reading many web pages or writing a lot of code), frameworks often include a memory module or vector store to keep track of facts and partial results. For example, an agent might save relevant text from documents it read, or store intermediate code snippets. Some multi-step agents (like AutoGPT-like systems) maintain a **task list** or memory of completed steps which the LLM can review each iteration. This helps when an agent must coordinate information across browsing and coding – e.g. *remembering a web-sourced data point when writing a script later*. While not a single “prompting strategy” per se, memory integration is a common orchestration feature in 2024–2025 agents.
 
-The architecture diagram shows the multi-agent execution flow where agent selection leads to parallel execution and result aggregation:
+In summary, the orchestration layer of an agent uses these strategies to keep the LLM **focused, organized, and able to correct itself**. Whether via a single prompt template (ReAct, Plan-and-Solve) or a more explicit multi-agent controller, the goal is to prevent the large language model from going off-track when performing long-horizon tasks.
 
-```
-### Multi-Agent Execution Flow
-  Query Input
-      │
-      ▼
-  ┌─────────────────┐
-  │ Complexity      │ (Analysis for multi-agent need)
-  │ Analysis        │
-  └─────────────────┘
-      │
-      ▼
-  ┌─────────────────┐
-  │ Agent Selection │ (Primary + Secondary agents)
-  └─────────────────┘
-      │
-      ▼
-  ┌─────────────────┐
-  │ Parallel        │ (Promise.allSettled execution)
-  │ Execution       │
-  └─────────────────┘
-      │
-      ▼
-  ┌─────────────────┐
-  │ Result          │ (Quality evaluation, conflict detection)
-  │ Aggregation     │
-  └─────────────────┘
-      │
-      ▼
-  ┌─────────────────┐
-  │ Synthesized     │ (Primary + alternatives + summary)
-  │ Response        │
-  └─────────────────┘
-```
+## Open-Source Projects and Benchmarks
 
-### Implementation state
+The rapid progress in agent capabilities has been fueled by open-source efforts and challenging benchmarks:
 
-The repository contains implementations for the loader, registry, router, executor, aggregator, and orchestrator. Example test code demonstrates parallel execution:
+* **SWE-Bench (Software Engineered Benchmark):** Introduced in late 2023, SWE-Bench is a benchmark that evaluates coding agents on *real GitHub issues*. The agent is given a repository’s codebase and a description of an issue/bug, and it must propose a code patch to fix the problem. This is far more realistic than toy coding tasks, as it requires reading and understanding a large codebase, then performing multi-step reasoning to identify the bug and implement a fix. SWE-Bench has a public leaderboard, which has spurred development of agents like **SWE-Agent** (a specialized pipeline from Princeton) and **Agentless** (a minimalist Bytedance agent). By early 2024, SWE-Agent achieved SOTA on the benchmark by carefully integrating static analysis and stepwise repair prompts. However, these early solutions were *domain-specific* – they excelled at coding, but as noted earlier, they had no facility to gather information from documentation or the web. SWE-Bench has since expanded (e.g. a **Multimodal** variant adds front-end/web UI issues that may include screenshots). A generalist agent with browsing ability could potentially use the web to assist code generation (for instance, searching error messages), which is a motivation for integrated frameworks.
 
-```
-it('should execute multiple agents in parallel', async () => {
-  const options: ExecutionOptions = {
-    contentGeneratorFactory: mockContentGeneratorFactory,
-    aggregateResults: true,
-  };
+* **WebArena Benchmark:** WebArena, mentioned above as an environment, comes with a suite of **web-based tasks** that form a benchmark for web agents. Tasks range from simple (e.g. fill a form) to complex multi-step scenarios that mimic real user goals (planning a trip using a map site, updating a setting on a social platform, etc.). Each task is described in natural language and the agent’s success is judged by whether it accomplished the goal on the websites. WebArena’s tasks are *tedious and realistic*, revealing whether an agent can perform **long-horizon action sequences on the web**. Top agents in 2024 could solve over half of these tasks in the constrained environment. Approaches that did well often incorporated memory and efficient browsing strategies; for example, **AgentSymbiotic** (2025) combined a large LLM and a smaller model to balance reasoning and speed, achieving over 50% success on WebArena. Another, **AgentOccam**, focused on minimal steps and was also a strong entrant. These specialist web agents, however, generally *could not write or execute code* – underscoring the gap that a dual-capability agent needs to fill.
 
-  const startTime = Date.now();
-  const result = await executor.executeMultipleAgents(
-    multiRoutingResult,
-    'test query',
-    options,
-  );
-  const totalTime = Date.now() - startTime;
+* **GAIA and The Agent Company:** Beyond coding and web navigation, researchers have started to define *general assistance* benchmarks that involve a mix of skills. **GAIA** (General AI Agent benchmark, 2023) includes tasks like gathering and synthesizing information from multiple websites and files, sometimes requiring some calculation or coding. **The Agent Company** (2024) is a simulation of a corporate intranet where an agent might need to navigate internal websites and even communicate with simulated co-workers. In these benchmarks, an agent that can do *a bit of everything* (browse, search, use tools, write code or queries) is favored. Open-source projects like **OpenDeepResearch** (2025) have aimed at these broad tasks – e.g. an agent that can read PDFs, search the web, and run analyses in one workflow. The authors of OpenHands-Versa specifically evaluated their agent on GAIA and Agent Company tasks, finding it surpassed many domain-specific agents by virtue of its multi-tool versatility. These benchmarks are shaping “agent OS” toolkits that provide many integrations (web browser, shell, code interpreter, etc.) in one system – similar in spirit to what a powerful CLI research assistant would need.
 
-  expect(result.status).toBe('success');
-  expect(result.primaryResults).toHaveLength(2);
-  expect(result.secondaryResults).toHaveLength(1);
-  expect(result.strategy).toBe('parallel');
-  expect(result.metadata.totalAgents).toBe(3);
-  expect(result.metadata.successfulAgents).toBe(3);
+* **Community Projects (AutoGPT, BabyAGI, etc.):** In parallel to academic work, 2023 saw an explosion of community-driven agent projects. **AutoGPT** was an early example of an “AI that self-loops” – it uses GPT-4 to generate its own next objectives and can use tools like web search and a Python interpreter. While not tied to a formal benchmark, AutoGPT demonstrated the *feasibility and pitfalls* of autonomous research agents. It could browse websites for information and then write code snippets (for example, scraping data or solving a math problem), but users found it often got stuck in loops or made illogical plans. **BabyAGI** and similar projects explored task list management and vector memory to keep the agent on track. These open-source efforts provided **toolkits (LangChain, etc.)** that make it easier to wire up web search APIs, browser controllers, and coding environments to an LLM. By late 2024, LangChain Agents and Microsoft’s **Jarvis (HuggingGPT)** framework enabled developers to compose an agent that can do things like: search the web, call Python functions, use a calculator, or invoke other models (for vision, etc.) in a single pipeline. For a CLI tool like *pk code*, these toolkits offer building blocks – e.g. one could use LangChain’s browser tool plus a code execution tool, and wrap them with a ReAct prompt to create a custom research assistant. The **Papers with Code** community has catalogued many such implementations, and it’s common to see references to “browser + code” agents in their listings (for instance, **LiteWebAgent (2024)** which integrates vision-language models for web tasks, or **AgentVerse** which provides a platform for multi-agent simulations).
 
-  // Parallel execution should be faster than sequential
-  expect(totalTime).toBeLessThan(3000); // Much less than sum of individual times
-});
-```
+In summary, an ecosystem of benchmarks is driving agents to become proficient in either coding or browsing, and the cutting edge is at their intersection. Open-source projects and toolkits are freely available to experiment with these capabilities – making it easier to prototype an agent that reads, writes, and executes both text and code in pursuit of a goal.
 
-The executor’s parallel implementation uses concurrency control with `Promise.allSettled`:
+## Strengths and Limitations of Combined Agents
 
-```
-private async executeParallel(
-  routingResults: RoutingResult[],
-  query: string,
-  options: ExecutionOptions,
-  maxConcurrency: number,
-): Promise<AgentExecutionResult[]> {
-  const results: AgentExecutionResult[] = [];
-  const executing = new Set<Promise<AgentExecutionResult>>();
+Integrating code generation with web navigation yields **significant advantages**:
 
-  for (let i = 0; i < routingResults.length; i++) {
-    // Wait if we've reached max concurrency
-    if (executing.size >= maxConcurrency) {
-      const completed = await Promise.race(executing);
-      executing.delete(Promise.resolve(completed));
-      results.push(completed);
-    }
+* **Rich Problem-Solving Abilities:** Agents that can *both* browse and code can handle problems end-to-end without human intervention. For example, a user could ask, “Analyze the trend of stock X over the past month and generate a chart.” A capable agent might **search the web** for the latest stock data or an API, then **write a script** to fetch and plot that data. Generalist agents have demonstrated higher success on mixed-task benchmarks (e.g. OpenHands-Versa solved issues and answered web queries better than specialized models). By not being siloed, the agent can fetch whatever information it needs (from documentation, examples, etc.) and immediately use that information in code or calculations.
 
-    // Start execution
-    const executionPromise = this.executeSingleAgent(
-      routingResults[i],
-      query,
-      options,
-    );
-    executing.add(executionPromise);
-  }
+* **Tool Synergy:** There is a complementary effect as seen in the Hybrid Agent approach – coding skills (for API calls or data processing) can compensate for weaknesses in pure web browsing, and vice versa. One study showed a hybrid agent improved success by \~5–20% over agents using only one mode. Code-execution also allows an agent to **verify or simulate** things: e.g. if a question requires complex math or brute force, the agent can write a short program to get a reliable answer rather than reasoning entirely in natural language. Meanwhile, web access lets the agent overcome knowledge cutoffs or gather real-time information that isn’t in its training data.
 
-  // Wait for remaining executions
-  const remainingResults = await Promise.allSettled(Array.from(executing));
-  for (const result of remainingResults) {
-    if (result.status === 'fulfilled') {
-      results.push(result.value);
-    }
-  }
+* **Adaptability:** A well-designed coding+browser agent is closer to how a human problem-solver works – switching between reading references and trying out solutions. This makes it more general. In fact, a recent evaluation across different agent benchmarks found that a generalist agent with a small set of **core tools (code, web, search)** outperformed various specialist agents that were each tuned to one domain. The implication is that a unified agent can *adapt* to tasks it wasn’t explicitly trained for, simply by using its broader toolkit. This flexibility is ideal for a CLI assistant meant to tackle arbitrary “deep research” questions and coding tasks.
 
-  return results;
-}
-```
+However, there are also **non-trivial limitations and challenges** in integrating these capabilities:
 
-### Not yet fully integrated
+* **Complexity and Reliability:** Combining tools increases the system’s complexity. There are more failure points – the agent could get stuck navigating a tricky website (for example, a login page or a site with dynamic content), or it might write code that crashes or runs indefinitely. Ensuring reliability is hard; recent work by Xue et al. (2025) suggests that **current web agents are less competent than earlier results suggested**, largely due to evaluation being easier in sandbox setups. When faced with truly open-ended web tasks, agents often struggle, indicating that browsing+coding agents in the wild might still fail in unpredictable ways. In short, *autonomous debugging* of either web navigation or code is an open problem – agents may not always recognize when they made a mistake.
 
-The project’s task tracker indicates that while core pieces are implemented, some key tasks (such as tool sandboxing and audit logging) remain **pending**:
+* **Resource Intensiveness:** Running a browser and executing code can be **computationally heavy** and slow. Autonomous agents typically require cloud resources. Manus, for instance, had to integrate a fast VM orchestration (via Firecracker/E2B) to spin up isolated environments for each user’s agent. This adds overhead – there is latency in launching tools, and the agent might spend a lot of tokens describing observations (e.g. large chunks of webpage text or error logs). If not managed, an agent can rapidly consume API calls and time by iterating between web content and code. Practical systems may need to impose limits or heuristics (for example, only scraping essential text, or using search queries to avoid browsing irrelevant pages).
 
-```
-{
-  "id": 35,
-  "title": "Implement Per-Agent Tool Sandboxing",
-  ...
-  "status": "pending"
-},
-{
-  "id": 36,
-  "title": "Create Comprehensive Audit Logging System",
-  ...
-  "status": "pending"
-}
-```
+* **Prompt and Memory Management:** With multiple modalities, keeping the context coherent is challenging. The agent’s prompt can become cluttered: e.g. after a few web browsing steps, it might have a long history of HTML snippets or text that pushes important instructions out of the context window. Likewise, if it’s writing code, the intermediate code and error messages need to be tracked. Sophisticated memory strategies (like summarizing older steps or using a vector store for retrieved info) are needed, otherwise the LLM may “forget” crucial details. Designing prompts that juggle a summary of a web page, the current goal, and maybe a code snippet to fix – all at once – is **non-trivial**. A limitation seen in some early autonomous agents is a tendency to lose focus or repeat actions, due to the difficulty of prompt management across long sequences.
 
-The “Future Enhancements” section of the sub‑agent PRD lists “Agent Collaboration: Inter-agent communication protocols” as a post-MVP feature, showing that inter-agent communication has not yet been built:
+* **Benchmarks vs. Reality:** There is evidence that agents tuned to benchmarks might not generalize to the real open web or arbitrary codebases. The *“Illusion of Progress”* study (2025) points out that many current web agents do well on structured tasks, but fail or require heavy prompt tuning on truly novel tasks. In real-world scenarios, a browsing agent might encounter unexpected pop-ups, CAPTCHAs, layout changes, or incomplete information. Similarly, a coding agent in the real world may face dependency issues or ambiguous requirements that weren’t present in curated benchmark problems. Thus, an integrated agent has to be robust to a lot of *messiness* – an active area of research is how to make these agents more resilient (for example, learning to recognize when a website is blocking automation, or when an API call’s output seems off and should be validated).
 
-```
-### Post-MVP Features
-- **Agent Marketplace**: Shared repository of community agents
-- **Visual Agent Builder**: GUI for creating agent definitions
-- **Advanced Routing**: Machine learning-based delegation
-- **Agent Collaboration**: Inter-agent communication protocols
-- **Performance Analytics**: Detailed metrics and optimization suggestions
-```
+* **Safety and Alignment:** A combined agent wielding both web access and the ability to execute code raises safety concerns. It could, if misdirected, scrape sensitive information or run harmful code. Most current research agents have **guardrails** (like only accessing certain approved tools or domains, or running code in sandboxed environments as Manus does). Nonetheless, this complexity means a CLI tool integrating these ideas must carefully handle permissions (e.g. not letting the agent arbitrarily write to the user’s filesystem or call external APIs without checks). The flip side is that sometimes safety mechanisms (like requiring user confirmation for certain actions) can interrupt the agent’s autonomy, which is a design balance to consider.
 
-### Model Context Protocol
+Despite these challenges, the trend is clearly towards improving these limitations. Each new framework often introduces a tweak – e.g. better error-handling, more efficient use of context, or integration of user feedback – that incrementally improves the robustness of browser+coding agents.
 
-PK Code already integrates a “browser-use” agent using the Model Context Protocol (MCP):
+## Key Takeaways
 
-```
-The `browser-use` library is integrated into the PK Code CLI, allowing agents to interact with live web applications. This integration is achieved through the Model Context Protocol (MCP), with `browser-use` running as a separate MCP server.
-```
+Research from 2023–2025 demonstrates that **blending code generation with browser-based research** in one agent is not only feasible but hugely beneficial for tackling complex tasks:
 
-### Summary
+* **Architectures:** Both *single-agent* (monolithic) and *multi-agent* designs are used to integrate capabilities. Single agents like OpenHands-Versa show that a modest set of general tools (execute code, browse web, search, etc.) can solve coding issues and web tasks within one unified framework. Meanwhile, multi-agent systems like Manus use a planner and dedicated executors to achieve a similar end – an approach that can simplify the reasoning for each sub-agent at the cost of a more complex system. Choosing an architecture may depend on the use case: a CLI tool might start with a simpler ReAct-style single agent, and later introduce specialized sub-agents if needed for performance or reliability.
 
-- **How it works:** Sub-agent definitions are stored as Markdown with YAML front matter. The `AgentLoader` and `AgentRegistry` discover these agents. The `AgentRouter` selects one or more agents for a query, the `AgentExecutor` can run them in parallel, and the `ResultAggregator` merges their outputs. The architecture aims for ≤400 ms overhead versus single-agent execution.
-- **Is it fully functional?**
-  No. Core modules exist and pass unit tests, but several roadmap items (tool sandboxing, audit logging, provider fallback, full CLI integration) remain “pending” in the task tracker. CLI commands currently execute one agent directly.
-- **Parallel spawning:**
-  Yes. The `executeParallel` method runs multiple agents concurrently with concurrency limits and is tested to confirm reduced wall‑clock time.
-- **Inter-agent communication:**
-  Not yet. Inter-agent communication is mentioned only as a future enhancement in the PRD. Currently agents do not share state or messages with each other.
-- **Possible protocols:**
-  A similar approach to the existing MCP integration could be adopted for agent-to-agent communication—e.g., using MCP as a message bus or employing lightweight messaging protocols (such as WebSocket or HTTP-based RPC) so agents can exchange structured data in a controlled way. This would allow collaboration while keeping each agent isolated.
+* **Tools & Environments:** Robust web automation is a cornerstone. Using headless browsers via frameworks (Playwright, Puppeteer, Selenium) or higher-level libraries like Browser-Use gives the agent “eyes and hands” on the web. Sandboxed execution environments (Docker, microVMs) are important for safely running code that the agent writes. Benchmarks like SWE-Bench and WebArena have driven the development of these tools, ensuring agents can be tested on realistic scenarios (fixing actual bugs, navigating actual websites). For a product like *pk code*, leveraging these existing tools (e.g. a browser controller, a code runner with resource limits) will jump-start the agent’s capabilities.
+
+* **Prompting & Strategy:** Successful agents carefully orchestrate LLM reasoning through strategies like ReAct (stepwise reasoning/actions), Plan-and-Solve (high-level planning before execution), and Reflexion (learning from mistakes mid-run). These strategies dramatically improve outcomes in both coding (more correct, tested code) and browsing (fewer irrelevant clicks, better focus on the goal). An ideal agent incorporates a feedback loop – for example, after running code or receiving a webpage result, it evaluates “Did this bring me closer to the goal? If not, why?” and adjusts accordingly. Incorporating such patterns into *pk code* (perhaps via prompt templates or an agent loop) would likely enhance its problem-solving power and autonomy.
+
+* **Open-Source Resources:** There is a wealth of open-source projects and research to draw from. Code bases like those of OpenHands-Versa, AgentCoder, and the API-Based Hybrid Agent are publicly available, providing reference implementations. Toolkits like LangChain, HuggingGPT, and Browser-Use can supply out-of-the-box components for web browsing and code execution, so one doesn’t need to reinvent the wheel. Benchmarks and their leaderboards (SWE-Bench, WebArena, etc.) can serve as **validation tests** for any new agentic system – ensuring that *pk code* is evaluated against known standards and continually improved. Engaging with these resources will both inform the design and help measure progress.
+
+* **Balanced Design (Strengths vs. Limits):** Finally, designing a powerful CLI agent will require balancing aggressiveness with reliability. The research shows agents can be extremely effective, but also that naive agents can flail or hallucinate. Combining the *strengths* – broad tool use, self-correction, planning – while mitigating the *limitations* – error propagation, context management, safety – is key. For instance, a practical system might run the agent in a loop but have a watchdog to stop it if it’s looping with no progress. It might use hybrid approaches (API when available, browser when not) to maximize efficiency. And it will likely need a way to surface uncertainties or ask for help when truly stuck, rather than blindly thrashing. The cutting-edge frameworks we’ve surveyed provide many ideas on how to achieve this blend.
+
+In conclusion, the convergence of coding agents and browsing agents is giving rise to **truly versatile AI assistants**. Leveraging the architectures (generalist vs. multi-agent), tools (headless browsers, virtual machines), and strategies (ReAct, planning, Reflexion) from recent research will be instrumental in building a next-generation CLI tool like *pk code*. Such a tool, informed by these frameworks, could autonomously conduct deep research on the web, write and run code to analyze data, and synthesize findings – essentially *“turning thoughts into actions”* as these agentic AIs aspire to do. The technology is still evolving, but the foundations laid in 2023–2025 make it an exciting and attainable goal to have an agent that is both a skilled software developer and an insightful internet researcher in one.
+
+**Sources:**
+
+* Soni *et al.* (2025), *Coding Agents with Multimodal Browsing are Generalist Problem Solvers*
+* Zhou *et al.* (2023), *WebArena: A Realistic Web Environment for Building Autonomous Agents*
+* Yueqi *et al.* (2024), *Beyond Browsing: API-Based Web Agents*
+* Tizkova (2025), *How Manus Uses E2B to Provide Agents With Virtual Computers*
+* TechCrunch (2025), *Browser Use… powering Manus*
+* Huang *et al.* (2024), *AgentCoder: Multi-Agent Code Generation with Testing*
+* Shinn *et al.* (2023), *Reflexion: Language Agents with Verbal RL (self-reflection)*
+* Wang *et al.* (2023), *Plan-and-Solve Prompting: Improving Chain-of-Thought*
+* SWE-Bench Team (2024), *SWE-Bench: Can LMs Resolve Real GitHub Issues?*
+* Xue *et al.* (2025), *An Illusion of Progress? Assessing the State of Web Agents*

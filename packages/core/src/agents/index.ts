@@ -82,3 +82,16 @@ export {
   AgentPromptGenerator,
   createPromptGenerator,
 } from './prompt-generator.js';
+
+// Export ReAct framework
+export type {
+  ReActResponse,
+  ReActAction,
+  ReActCycle,
+  ReActPromptConfig,
+} from './react-framework.js';
+export {
+  ReActFramework,
+  createReActFramework,
+  REACT_SYSTEM_PROMPT,
+} from './react-framework.js';

@@ -1,0 +1,43 @@
+# Task ID: 47
+# Title: Implement `pk config browser` Command for Chrome Path Setup
+# Status: done
+# Dependencies: None
+# Priority: high
+# Description: Create the `pk config browser` command to allow users to configure the path to their Chrome user data directory.
+# Details:
+Implement an interactive command using a library like `inquirer`. The command should attempt to automatically detect the default Chrome user data directory for the user's operating system (Windows, macOS, Linux). If detection fails or the user prefers, it must provide an option for manual path entry.
+
+# Test Strategy:
+Execute `pk config browser` on different operating systems to test auto-detection. Test the manual entry flow. Verify that the command handles user cancellation (e.g., Ctrl+C) gracefully. Ensure the command interface is clear and user-friendly.
+
+# Subtasks:
+## 1. Implement OS-specific Chrome path detection logic [cancelled]
+### Dependencies: None
+### Description: Create functions to automatically detect the default Chrome user data directory for Windows, macOS, and Linux operating systems using platform-specific path conventions.
+### Details:
+Implement detection functions for each OS: Windows (%LOCALAPPDATA%\Google\Chrome\User Data), macOS (~/Library/Application Support/Google/Chrome), and Linux (~/.config/google-chrome). Handle cases where Chrome is not installed or paths don't exist. Use Node.js fs module to verify path existence.
+
+## 2. Set up inquirer interactive prompt interface [done]
+### Dependencies: 47.1
+### Description: Configure inquirer to present users with auto-detected Chrome path and options for manual entry or confirmation.
+### Details:
+Use inquirer to create an interactive prompt that shows the auto-detected Chrome path (if found) and asks for confirmation. Provide options to use detected path, enter custom path, or cancel. Include input validation for custom paths to ensure they exist and are accessible.
+
+## 3. Integrate with existing config system for path storage [done]
+### Dependencies: 47.2
+### Description: Connect the browser command to the existing configuration system to persist the Chrome user data directory path.
+### Details:
+Use the existing config infrastructure from packages/cli/src/config/config.ts to store the browser path setting. Add a new config key for browser path storage. Ensure the path is saved securely and can be retrieved by other parts of the system.
+
+## 4. Add browser subcommand to CLI command structure [done]
+### Dependencies: 47.3
+### Description: Create the 'browser' subcommand under the existing 'config' command in the CLI architecture.
+### Details:
+Add the browser subcommand to packages/cli/src/commands/config.ts or create a separate config/browser.ts file. Ensure proper command registration and help text. Follow existing CLI patterns and conventions used in other config subcommands.
+
+## 5. Implement comprehensive error handling and user feedback [done]
+### Dependencies: 47.1, 47.2, 47.3, 47.4
+### Description: Add robust error handling for all failure scenarios including permission issues, invalid paths, and system-specific edge cases.
+### Details:
+Handle scenarios like: insufficient permissions to access Chrome directory, Chrome not installed, custom path doesn't exist, path is not a directory, and system-specific access issues. Provide clear, actionable error messages for each case. Ensure graceful handling of user cancellation.
+

@@ -1,0 +1,49 @@
+# Task ID: 62
+# Title: Fix TypeScript Build Compilation Errors
+# Status: pending
+# Dependencies: None
+# Priority: high
+# Description: Resolve all TypeScript compilation errors preventing successful npm run build. Main issues include type mismatches, import path problems, and syntax errors.
+# Details:
+Key errors to fix: 1) agent-orchestrator.ts: GenerateContentParameters and GenerateContentResponse type issues, 2) Missing properties in Artifact creation, 3) Invalid TaskStatus types, 4) Import path corrections for embeddingIndex.ts, 5) Syntax errors in CLI agent.ts file
+
+# Test Strategy:
+Run npm run build successfully without TypeScript errors
+
+# Subtasks:
+## 1. Fix GenerateContentParameters type mismatch in agent-orchestrator.ts [pending]
+### Dependencies: None
+### Description: Fix the error where 'prompt' property doesn't exist in GenerateContentParameters type at line 490
+### Details:
+Update the generateContent call to use the correct parameter structure for the API
+
+## 2. Fix GenerateContentResponse duration property error [pending]
+### Dependencies: None
+### Description: Fix the error where 'duration' property doesn't exist on GenerateContentResponse type at line 506
+### Details:
+Update the response handling to use available properties or provide a fallback value
+
+## 3. Fix incomplete Artifact object creation [pending]
+### Dependencies: None
+### Description: Fix missing required properties (name, metadata, dependencies, createdBy, tags) in Artifact creation at line 598
+### Details:
+Add the missing properties to match the Artifact type definition
+
+## 4. Fix invalid TaskStatus type assignment [pending]
+### Dependencies: None
+### Description: Fix the error where 'timeout' is not assignable to TaskStatus type at line 603
+### Details:
+Update the status value to use a valid TaskStatus enum value
+
+## 5. Fix embeddingIndex.ts import path errors [pending]
+### Dependencies: None
+### Description: Fix incorrect import paths for embeddingIndex.ts that are causing module resolution errors
+### Details:
+Correct the import paths to properly reference the embeddingIndex module and ensure all related imports are accessible
+
+## 6. Fix CLI agent.ts syntax errors [pending]
+### Dependencies: None
+### Description: Fix syntax errors in CLI agent.ts file including unterminated string literals and missing semicolons
+### Details:
+Clean up the syntax errors around lines 383, 485, and 523 in the agent command file
+
