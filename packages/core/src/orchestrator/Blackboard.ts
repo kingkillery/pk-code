@@ -147,8 +147,8 @@ export interface BlackboardQuery {
   /** Search notes */
   notes?: {
     author?: string[];
-    category?: ('info' | 'warning' | 'error' | 'question' | 'suggestion' | 'decision')[];
-    priority?: ('low' | 'medium' | 'high' | 'critical')[];
+    category?: Array<'info' | 'warning' | 'error' | 'question' | 'suggestion' | 'decision'>;
+    priority?: Array<'low' | 'medium' | 'high' | 'critical'>;
     targetAgents?: string[];
     unreadBy?: string;
     requiresAck?: boolean;

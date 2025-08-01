@@ -100,7 +100,7 @@ export class MemoryService {
       // Convert content to Messages format required by mem0ai
       const messages = [{
         role: 'user' as const,
-        content: content,
+        content,
       }];
 
       await this.memory.add(messages, {

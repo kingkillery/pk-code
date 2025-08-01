@@ -11,7 +11,7 @@ const BROWSER_AGENT_PID_FILE = path.join('.taskmaster', 'browser-agent.pid');
 const GLOBAL_SETTINGS_FILE = path.join(os.homedir(), '.pk', 'settings.json');
 
 // Helper function to read global settings
-async function getGlobalSettings(): Promise<any> {
+async function getGlobalSettings(): Promise<Record<string, unknown>> {
   if (fs.existsSync(GLOBAL_SETTINGS_FILE)) {
     try {
       const data = fs.readFileSync(GLOBAL_SETTINGS_FILE, 'utf8');
@@ -30,7 +30,6 @@ import {
   parseAgentFromFile,
   agentCommands,
 } from '../ui/commands/agentCommands.js';
-import { AgentRunner } from '../agent/AgentRunner.js';
 
 function showAgentHelp(errorMessage?: string) {
   if (errorMessage) {
@@ -190,7 +189,7 @@ async function handleListAgents(): Promise<void> {
             }
           }
         }
-      } catch (e) {
+      } catch (_e) {
         // Ignore parsing errors
       }
       
@@ -256,7 +255,7 @@ async function handleShowAgent(agentName: string): Promise<void> {
           }
         }
       }
-    } catch (e) {
+    } catch (_e) {
       // Ignore parsing errors
     }
     
@@ -292,7 +291,7 @@ async function handleShowAgent(agentName: string): Promise<void> {
             promptContent = contentLines.slice(frontmatterEndIndex + 1).join('\n').trim();
           }
         }
-      } catch (e) {
+      } catch (_e) {
         // Fallback to original content if parsing fails
       }
       
@@ -318,7 +317,7 @@ async function handleShowAgent(agentName: string): Promise<void> {
 async function handleCreateAgent(): Promise<void> {
   // Import the interactive creation component
   const { handleCreateAgentCommandCLI } = await import('./create-agent-cli.js');
-  handleCreateAgentCommandCLI();
+  void handleCreateAgentCommandCLI();
 }
 
 async function handleDeleteAgent(agentName: string): Promise<void> {

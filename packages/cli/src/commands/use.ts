@@ -14,7 +14,6 @@ import {
 } from '@pk-code/core';
 
 import { 
-  AgentOrchestrator, 
   createAgentOrchestrator,
   OrchestrationMode
 } from '@pk-code/core';
@@ -88,7 +87,7 @@ export async function handleUseCommand(
     // Create orchestrator for automatic agent selection
     const orchestrator = createAgentOrchestrator(
       registry,
-      async (agent) => {
+      async (_agent) => {
         // Create content generator using the existing system
         const version = process.env.CLI_VERSION || process.version;
         const httpOptions = {

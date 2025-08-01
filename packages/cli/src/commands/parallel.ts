@@ -51,7 +51,7 @@ export class ParallelTaskExecutor {
     
     // Execute tasks with concurrency control
     const taskQueue = [...this.tasks];
-    const runningTasks: Promise<void>[] = [];
+    const runningTasks: Array<Promise<void>> = [];
     
     while (taskQueue.length > 0 || runningTasks.length > 0) {
       // Start new tasks up to concurrency limit

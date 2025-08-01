@@ -55,7 +55,6 @@ vi.mock('child_process', async (importOriginal) => {
   };
 });
 
-"""
 // Mock net module for port checking
 vi.mock('net', () => ({
   createServer: vi.fn(() => {
@@ -165,7 +164,6 @@ describe('Browser Agent Error Handling', () => {
     expect(fs.unlinkSync).toHaveBeenCalledWith(expect.stringContaining('browser-agent.pid'));
   });
 });
-""
 
 // Mock console methods to avoid noise in tests
 const mockConsoleLog = vi.spyOn(console, 'log').mockImplementation(() => {});

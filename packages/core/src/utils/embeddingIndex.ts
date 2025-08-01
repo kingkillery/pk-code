@@ -276,7 +276,7 @@ else:
     });
   }
 
-  async search(query: string, topK: number = 5): Promise<{ filePath: string; content: string; score: number }[]> {
+  async search(query: string, topK: number = 5): Promise<Array<{ filePath: string; content: string; score: number }>> {
     if (!fs.existsSync(this.indexPath)) {
       throw new Error('FAISS index not found. Please build the index first.');
     }
