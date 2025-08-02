@@ -65,12 +65,19 @@ export class ParallelTaskExecutor {
       if (runningTasks.length > 0) {
         await Promise.race(runningTasks);
         // Remove completed tasks
+        const completedIndices: number[] = [];
         for (let i = runningTasks.length - 1; i >= 0; i--) {
           const task = runningTasks[i];
-          if (await this.isPromiseResolved(task)) {
-            runningTasks.splice(i, 1);
+          // Check if promise is resolved without awaiting in the condition
+          const isResolved = await this.isPromiseResolved(task);
+          if (isResolved) {
+            completedIndices.push(i);
           }
         }
+        // Remove completed tasks (splice returns an array but we ignore it)
+        completedIndices.forEach(index => {
+          void runningTasks.splice(index, 1);
+        });
       }
     }
     
@@ -265,7 +272,7 @@ export async function handleParallelCommand(argv: CliArgs): Promise<void> {
   
   // Setup cleanup on process termination
   const cleanup = () => {
-    executor.cleanup().then(() => process.exit(0));
+    void executor.cleanup().then(() => process.exit(0));
   };
   
   process.on('SIGINT', cleanup);

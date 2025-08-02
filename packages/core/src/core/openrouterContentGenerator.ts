@@ -393,12 +393,8 @@ export class OpenRouterContentGenerator extends OpenAIContentGenerator {
   private async generateContentWithProvider(
     request: GenerateContentParameters,
   ): Promise<GenerateContentResponse> {
-    try {
-      // The provider routing is handled by the patched client
-      return await super.generateContent(request);
-    } catch (error) {
-      throw error;
-    }
+    // The provider routing is handled by the patched client
+    return await super.generateContent(request);
   }
 
   /**
@@ -407,12 +403,8 @@ export class OpenRouterContentGenerator extends OpenAIContentGenerator {
   private async generateContentStreamWithProvider(
     request: GenerateContentParameters,
   ): Promise<AsyncGenerator<GenerateContentResponse>> {
-    try {
-      // The provider routing is handled by the patched client
-      return await super.generateContentStream(request);
-    } catch (error) {
-      throw error;
-    }
+    // The provider routing is handled by the patched client
+    return await super.generateContentStream(request);
   }
 
   /**

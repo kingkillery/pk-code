@@ -148,7 +148,7 @@ export async function handleCreateAgentCommandCLI(): Promise<void> {
     console.log(`${index + 1}. ${domain.label}`);
   });
   
-  const domainIndex = parseInt(await promptUser('Enter domain number: ')) - 1;
+  const domainIndex = parseInt(await promptUser('Enter domain number: '), 10) - 1;
   const selectedDomain = domains[domainIndex] || domains[0]; // Default to first if invalid
 
   // Step 5: AI-Powered Prompt Generation
@@ -234,7 +234,7 @@ Your expertise in ${config.keywords.join(', ')} makes you uniquely qualified to 
     console.log(`${index + 1}. ${provider.label}`);
   });
   
-  const providerIndex = parseInt(await promptUser('Enter provider number: ')) - 1;
+  const providerIndex = parseInt(await promptUser('Enter provider number: '), 10) - 1;
   config.provider = providers[providerIndex]?.value || 'openrouter';
 
   // Step 7: Model selection
@@ -245,7 +245,7 @@ Your expertise in ${config.keywords.join(', ')} makes you uniquely qualified to 
       console.log(`${index + 1}. ${model.label}`);
     });
     
-    const modelIndex = parseInt(await promptUser('Enter model number: ')) - 1;
+    const modelIndex = parseInt(await promptUser('Enter model number: '), 10) - 1;
     config.model = providerModels[modelIndex]?.value || DEFAULT_OPENROUTER_MODEL;
   }
 
@@ -258,7 +258,7 @@ Your expertise in ${config.keywords.join(', ')} makes you uniquely qualified to 
   const toolsInput = await promptUser('Enter tool numbers: ');
   const toolIndices = toolsInput
     .split(',')
-    .map(t => parseInt(t.trim()) - 1)
+    .map(t => parseInt(t.trim(), 10) - 1)
     .filter(i => !isNaN(i) && i >= 0 && i < availableTools.length);
   
   config.tools = toolIndices.map(i => availableTools[i].value);
@@ -269,7 +269,7 @@ Your expertise in ${config.keywords.join(', ')} makes you uniquely qualified to 
     console.log(`${index + 1}. ${color.label}`);
   });
   
-  const colorIndex = parseInt(await promptUser('Enter color number: ')) - 1;
+  const colorIndex = parseInt(await promptUser('Enter color number: '), 10) - 1;
   config.color = colors[colorIndex]?.value || 'blue';
 
   // Step 10: Temperature
@@ -281,7 +281,7 @@ Your expertise in ${config.keywords.join(', ')} makes you uniquely qualified to 
 
   // Step 11: Max tokens
   const tokensInput = await promptUser('Enter max tokens (100-10000, default 4000): ');
-  const tokens = parseInt(tokensInput);
+  const tokens = parseInt(tokensInput, 10);
   if (!isNaN(tokens) && tokens >= 100 && tokens <= 10000) {
     config.maxTokens = tokens;
   }
