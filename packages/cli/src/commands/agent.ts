@@ -359,7 +359,7 @@ async function handleDeleteAgent(agentName: string): Promise<void> {
 // Helper function to check for browser-use MCP server configuration
 async function getBrowserMcpConfig(): Promise<{ hasConfig: boolean; configSource: string }> {
   const globalSettings = await getGlobalSettings();
-  if (globalSettings.mcpServers && globalSettings.mcpServers['browser-use']) {
+  if (globalSettings.mcpServers && typeof globalSettings.mcpServers === 'object' && globalSettings.mcpServers !== null && 'browser-use' in globalSettings.mcpServers) {
     return { hasConfig: true, configSource: 'global' };
   }
 
@@ -412,7 +412,7 @@ async function checkBrowserUseInstallation(): Promise<boolean> {
 async function getChromeConfig(): Promise<{ chromePath: string | null }> {
   const globalSettings = await getGlobalSettings();
   return {
-    chromePath: globalSettings.chromePath || null,
+    chromePath: (typeof globalSettings.chromePath === 'string' ? globalSettings.chromePath : null),
   };
 }
 
@@ -424,7 +424,7 @@ async function getBrowserConfig(): Promise<any> {
 
   if (configSource === 'global') {
     const globalSettings = await getGlobalSettings();
-    return globalSettings.mcpServers['browser-use'];
+    return (globalSettings.mcpServers as any)?.['browser-use'] || null;
   } else {
     const mcpConfigFile = path.resolve('.mcp.json');
     const data = fs.readFileSync(mcpConfigFile, 'utf8');
