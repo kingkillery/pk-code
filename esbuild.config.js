@@ -30,7 +30,6 @@ esbuild
     external: [
       'fast-uri',
       'highlight.js',
-      'lowlight',
       'hast',
       '@types/hast',
       'keytar',
