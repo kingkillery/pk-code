@@ -4,7 +4,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { GenerateContentParameters, GenerateContentResponse } from '@google/genai';
+import type { GenerateContentResponse } from '@google/genai';
+import { getResponseText, getFunctionCalls } from '../utils/generateContentResponseUtilities.js';
 import type { ParsedAgent } from './types.js';
 
 /**
@@ -140,6 +141,24 @@ export class ReActFramework {
    * Parse a response into ReAct format
    */
   parseResponse(response: GenerateContentResponse): ReActResponse {
+    // 1) Prefer structured tool/function calls (e.g., GPT-* function/tool calls mapped to functionCall parts)
+    const functionCalls = getFunctionCalls(response);
+    if (functionCalls && functionCalls.length > 0) {
+      const firstCall = functionCalls[0];
+      const thoughtText =
+        getResponseText(response) || `Selecting tool: ${firstCall.name}`;
+      return {
+        thought: thoughtText.trim(),
+        action: {
+          type: 'tool',
+          name: String(firstCall.name),
+          parameters: (firstCall.args as Record<string, unknown>) || {},
+        },
+        raw: JSON.stringify(functionCalls[0]),
+      };
+    }
+
+    // 2) Otherwise, attempt to parse JSON from the textual response (common for Qwen-Code JSON output)
     const text = this.extractResponseText(response);
     
     try {
@@ -159,8 +178,8 @@ export class ReActFramework {
         action,
         raw: text,
       };
-    } catch (error) {
-      // Fallback: try to extract structured content from non-JSON response
+    } catch (_error) {
+      // 3) Fallback: try to extract structured content from non-JSON response
       return this.extractFromUnstructuredResponse(text);
     }
   }
@@ -168,51 +187,53 @@ export class ReActFramework {
   /**
    * Validate and normalize action object
    */
-  private validateAction(action: any): ReActAction {
-    if (!action.type) {
+  private validateAction(action: unknown): ReActAction {
+    if (typeof action !== 'object' || action === null || !('type' in action)) {
       throw new Error('Action must have a type');
     }
 
-    switch (action.type) {
+    const a = action as Record<string, unknown>;
+
+    switch (a.type) {
       case 'tool':
-        if (!action.name) {
+        if (!a.name) {
           throw new Error('Tool action must have a name');
         }
         return {
           type: 'tool',
-          name: String(action.name),
-          parameters: action.parameters || {},
+          name: String(a.name),
+          parameters: (a.parameters as Record<string, unknown>) || {},
         };
       
       case 'response':
-        if (!action.content) {
+        if (!a.content) {
           throw new Error('Response action must have content');
         }
         return {
           type: 'response',
-          content: String(action.content),
+          content: String(a.content),
         };
       
       case 'clarification':
-        if (!action.question) {
+        if (!a.question) {
           throw new Error('Clarification action must have a question');
         }
         return {
           type: 'clarification',
-          question: String(action.question),
+          question: String(a.question),
         };
       
       case 'error':
-        if (!action.message) {
+        if (!a.message) {
           throw new Error('Error action must have a message');
         }
         return {
           type: 'error',
-          message: String(action.message),
+          message: String(a.message),
         };
       
       default:
-        throw new Error(`Unknown action type: ${action.type}`);
+        throw new Error(`Unknown action type: ${String(a.type)}`);
     }
   }
 
@@ -225,7 +246,6 @@ export class ReActFramework {
     const thought = thoughtMatch ? thoughtMatch[1].trim() : 'Processing request...';
 
     // Look for action patterns
-    const actionMatch = text.match(/(?:action|doing|executing):\s*(.+?)(?:\n|$)/i);
     
     // Try to detect tool calls
     const toolMatch = text.match(/(?:calling|using|executing)\s+tool:\s*(\w+)/i);

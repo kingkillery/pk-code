@@ -91,7 +91,7 @@ export class SearchIndexTool extends BaseTool<
 
   async execute(
     params: SearchIndexToolParams,
-    signal: AbortSignal,
+    _signal: AbortSignal,
   ): Promise<ToolResult> {
     const validationError = this.validateToolParams(params);
     if (validationError) {

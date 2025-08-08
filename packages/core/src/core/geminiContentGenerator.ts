@@ -13,7 +13,6 @@ import type {
   EmbedContentResponse,
   CountTokensParameters,
   CountTokensResponse,
-  Part,
 } from '@google/genai';
 
 export class GeminiContentGenerator {
@@ -45,7 +44,7 @@ export class GeminiContentGenerator {
   }
 
   async embedContent(
-    request: EmbedContentParameters & { contents: string | unknown },
+    _request: EmbedContentParameters & { contents: string | unknown },
   ): Promise<EmbedContentResponse> {
     try {
       // Mock embedding values (768 dimensions for gemini-embedding-001)

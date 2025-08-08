@@ -3,13 +3,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 
 // Mock orchestrator for testing phase transitions
 class MockOrchestrator {
   private currentPhase: string = 'init';
   private metadata: { task_id?: string; start_timestamp?: string } = {};
-  private phaseResults: Record<string, any> = {};
+  private phaseResults: Record<string, unknown> = {};
 
   // Phase 0 - Metadata
   initializeMetadata(task_id?: string) {
@@ -224,7 +224,7 @@ describe('Orchestrator Phase Transitions', () => {
       expect(result.output).toHaveProperty('pareto');
       expect(Array.isArray(result.output.pareto)).toBe(true);
       
-      result.output.pareto.forEach((item: any) => {
+      result.output.pareto.forEach((item: { path: unknown; reason: unknown }) => {
         expect(item).toHaveProperty('path');
         expect(item).toHaveProperty('reason');
         expect(typeof item.path).toBe('string');
@@ -253,7 +253,7 @@ describe('Orchestrator Phase Transitions', () => {
       const result = await orchestrator.executeExecution();
       
       expect(Array.isArray(result.steps)).toBe(true);
-      result.steps.forEach((step: any) => {
+      result.steps.forEach((step: { thought?: unknown; action?: unknown; observation?: unknown }) => {
         expect(step).toHaveProperty('thought');
         expect(step).toHaveProperty('action');
         expect(step).toHaveProperty('observation');

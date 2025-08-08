@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { TaskStatus, TaskWithStatus } from './TaskPlanner.js';
+import type { TaskStatus } from './TaskPlanner.js';
 
 /**
  * Artifact stored in the blackboard

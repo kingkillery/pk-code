@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { RunPdbTestTool } from './runPdbTest.js';
 import { Config } from '../config/config.js';
 
@@ -47,7 +47,7 @@ describe('RunPdbTestTool', () => {
 (Pdb) c
       `;
 
-      const result = (tool as any).parsePdbOutput(stdout, '');
+      const result = (tool as unknown as { parsePdbOutput: (stdout: string, stderr: string) => { stackTrace: string; locals: string; summary: string } }).parsePdbOutput(stdout, '');
       
       expect(result.stackTrace).toContain('/path/to/test.py');
       expect(result.stackTrace).toContain('assert False');
@@ -58,14 +58,14 @@ describe('RunPdbTestTool', () => {
     it('should detect test failures', () => {
       const stderr = 'FAILED test_something.py::test_function - AssertionError';
       
-      const result = (tool as any).parsePdbOutput('', stderr);
+      const result = (tool as unknown as { parsePdbOutput: (stdout: string, stderr: string) => { stackTrace: string; locals: string; summary: string } }).parsePdbOutput('', stderr);
       
       expect(result.summary).toContain('Test failure detected');
       expect(result.summary).toContain('AssertionError');
     });
 
     it('should handle empty output gracefully', () => {
-      const result = (tool as any).parsePdbOutput('', '');
+      const result = (tool as unknown as { parsePdbOutput: (stdout: string, stderr: string) => { stackTrace: string; locals: string; summary: string } }).parsePdbOutput('', '');
       
       expect(result.summary).toBe('No specific issues detected');
       expect(result.stackTrace).toBe('No stack trace captured');

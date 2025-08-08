@@ -1,3 +1,4 @@
+/* eslint-env node */
 /**
  * @license
  * Copyright 2025 Google LLC
@@ -209,7 +210,7 @@ else:
                 try {
                     fs.unlinkSync(scriptPath);
                 }
-                catch (e) {
+                catch (_e) {
                     // Ignore cleanup errors
                 }
                 if (code === 0) {
@@ -286,7 +287,7 @@ print(json.dumps(results))
                 try {
                     fs.unlinkSync(scriptPath);
                 }
-                catch (e) {
+                catch (_e) {
                     // Ignore cleanup errors
                 }
                 if (code === 0) {

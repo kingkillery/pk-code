@@ -257,7 +257,7 @@ else:
         // Clean up script file
         try {
           fs.unlinkSync(scriptPath);
-        } catch (e) {
+        } catch (_e) {
           // Ignore cleanup errors
         }
 
@@ -343,7 +343,7 @@ print(json.dumps(results))
         // Clean up script file
         try {
           fs.unlinkSync(scriptPath);
-        } catch (e) {
+        } catch (_e) {
           // Ignore cleanup errors
         }
 

@@ -404,7 +404,7 @@ async function checkBrowserUseInstallation(): Promise<boolean> {
     // Check if browser-use is installed by trying to resolve its package.json
     require.resolve('browser-use/package.json');
     return true;
-  } catch (error) {
+  } catch (_error) {
     return false;
   }
 }

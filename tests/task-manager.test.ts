@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { createTaskManager, TaskCompletionCriteria } from '../packages/core/src/orchestrator/taskManager';
+import { createTaskManager } from '../packages/core/src/orchestrator/taskManager';
 
 describe('Task Manager', () => {
   let taskManager;

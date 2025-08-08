@@ -109,7 +109,7 @@ export class TaskPlanner {
    * Decompose a user query into a DAG of tasks
    */
   async decomposeQuery(request: DecompositionRequest): Promise<DecompositionResult> {
-    const { query, availableAgents, context, preferences } = request;
+    const { query, availableAgents: _availableAgents, context, preferences } = request;
 
     // Analyze query complexity and determine decomposition strategy
     const strategy = this.determineDecompositionStrategy(query, context);
@@ -159,7 +159,7 @@ export class TaskPlanner {
   /**
    * Determine the best decomposition strategy based on query analysis
    */
-  private determineDecompositionStrategy(query: string, context?: DecompositionRequest['context']): string {
+  private determineDecompositionStrategy(query: string, _context?: DecompositionRequest['context']): string {
     const queryLower = query.toLowerCase();
 
     // MVP/Application development patterns
@@ -188,7 +188,7 @@ export class TaskPlanner {
   /**
    * Decompose MVP development requests
    */
-  private decomposeMVPDevelopment(query: string, context?: DecompositionRequest['context']): {
+  private decomposeMVPDevelopment(query: string, _context?: DecompositionRequest['context']): {
     tasks: Task[];
     reasoning: string;
     confidence: number;
@@ -296,7 +296,7 @@ export class TaskPlanner {
   /**
    * Decompose analysis tasks
    */
-  private decomposeAnalysisTask(query: string, context?: DecompositionRequest['context']): {
+  private decomposeAnalysisTask(query: string, _context?: DecompositionRequest['context']): {
     tasks: Task[];
     reasoning: string;
     confidence: number;
@@ -359,7 +359,7 @@ export class TaskPlanner {
   /**
    * Decompose refactoring tasks
    */
-  private decomposeRefactoringTask(query: string, context?: DecompositionRequest['context']): {
+  private decomposeRefactoringTask(query: string, _context?: DecompositionRequest['context']): {
     tasks: Task[];
     reasoning: string;
     confidence: number;
@@ -422,7 +422,7 @@ export class TaskPlanner {
   /**
    * Decompose feature development tasks
    */
-  private decomposeFeatureDevelopment(query: string, context?: DecompositionRequest['context']): {
+  private decomposeFeatureDevelopment(query: string, _context?: DecompositionRequest['context']): {
     tasks: Task[];
     reasoning: string;
     confidence: number;
@@ -485,7 +485,7 @@ export class TaskPlanner {
   /**
    * Decompose generic tasks
    */
-  private decomposeGenericTask(query: string, context?: DecompositionRequest['context']): {
+  private decomposeGenericTask(query: string, _context?: DecompositionRequest['context']): {
     tasks: Task[];
     reasoning: string;
     confidence: number;

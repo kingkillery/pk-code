@@ -21,7 +21,6 @@ import { Blackboard } from '../orchestrator/Blackboard.js';
 import { 
   ReActFramework, 
   createReActFramework,
-  type ReActResponse,
   type ReActCycle,
   type ReActPromptConfig 
 } from './react-framework.js';
@@ -496,7 +495,7 @@ export class AgentOrchestrator {
       );
       const apiDuration = Date.now() - apiStartTime;
 
-      // Parse ReAct response
+      // Parse ReAct response (model-aware: supports function calls and JSON)
       const reactResponse = this.reactFramework.parseResponse(response);
 
       if (reactResponse.action.type !== 'error') {
@@ -542,7 +541,7 @@ export class AgentOrchestrator {
   /**
    * Decompose a request into a DAG of tasks and schedule agents
    */
-  async planAndExecuteTasks(query: string, options?: Partial<OrchestrationOptions>): Promise<void> {
+  async planAndExecuteTasks(query: string, _options?: Partial<OrchestrationOptions>): Promise<void> {
     // Decompose query into tasks
     const decompositionRequest: DecompositionRequest = {
       query,

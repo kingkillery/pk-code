@@ -13,7 +13,7 @@ export const statusCommand: SlashCommand = {
   description: 'Display comprehensive session status and token usage',
   
   action: async (context: CommandContext, _args: string) => {
-    const { config, settings } = context.services;
+    const { config } = context.services;
     const { stats } = context.session;
     
     if (!config) {

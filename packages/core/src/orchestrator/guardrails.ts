@@ -15,7 +15,7 @@ export interface PhaseTransition {
   from: OrchestratorPhase;
   to: OrchestratorPhase;
   timestamp: string;
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
 }
 
 export enum OrchestratorPhase {
@@ -30,7 +30,7 @@ export interface GuardrailMessage {
   phase: OrchestratorPhase;
   message: string;
   timestamp: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -90,7 +90,7 @@ export class GuardrailManager {
   /**
    * Generate guardrail message after tool calls
    */
-  generateToolCallGuardrail(toolName: string, phase: OrchestratorPhase, result: any): GuardrailMessage | null {
+  generateToolCallGuardrail(toolName: string, phase: OrchestratorPhase, result: unknown): GuardrailMessage | null {
     if (!this.config.enabled || !this.config.toolCallValidation) {
       return null;
     }
@@ -107,15 +107,15 @@ export class GuardrailManager {
         : 'Command failed. Review error output and adjust approach.'
     };
 
-    // Sub-agent specific guardrails
-    const subAgentGuardrails: Record<string, string> = {
-      'pk-debugger': 'After debugger analysis: Use read_files to examine the source files mentioned in the stack trace for context and understanding.',
-      'pk-planner': 'After strategic planning: Use search_codebase or read_files to gather architectural context for the revised plan.'
-    };
-
     const message = toolGuardrails[toolName];
     if (!message) {
       return null;
+    }
+
+    let metaResult: { success: boolean; exitCode?: unknown } | null = null;
+    if (result && typeof result === 'object') {
+      const r = result as { success?: unknown; exitCode?: unknown };
+      metaResult = { success: Boolean(r.success), exitCode: r.exitCode };
     }
 
     const guardrailMessage: GuardrailMessage = {
@@ -125,7 +125,7 @@ export class GuardrailManager {
       timestamp: new Date().toISOString(),
       metadata: {
         toolName,
-        result: result ? { success: !!result.success, exitCode: result.exitCode } : null
+        result: metaResult
       }
     };
 
@@ -224,7 +224,7 @@ export class GuardrailManager {
   /**
    * Generate guardrail message after sub-agent calls
    */
-  generateSubAgentGuardrail(agentName: string, phase: OrchestratorPhase, result: any): GuardrailMessage | null {
+  generateSubAgentGuardrail(agentName: string, phase: OrchestratorPhase, result: unknown): GuardrailMessage | null {
     if (!this.config.enabled || !this.config.toolCallValidation) {
       return null;
     }
@@ -240,6 +240,12 @@ export class GuardrailManager {
       return null;
     }
 
+    let metaResult: { success: boolean; output?: unknown } | null = null;
+    if (result && typeof result === 'object') {
+      const r = result as { success?: unknown; output?: unknown };
+      metaResult = { success: Boolean(r.success), output: r.output };
+    }
+
     const guardrailMessage: GuardrailMessage = {
       type: 'tool_call',
       phase,
@@ -247,7 +253,7 @@ export class GuardrailManager {
       timestamp: new Date().toISOString(),
       metadata: {
         agentName,
-        result: result ? { success: !!result.success, output: result.output } : null
+        result: metaResult
       }
     };
 
@@ -258,7 +264,7 @@ export class GuardrailManager {
   /**
    * Generate validation message for phase outputs
    */
-  generateValidationMessage(phase: OrchestratorPhase, output: any): GuardrailMessage | null {
+  generateValidationMessage(phase: OrchestratorPhase, output: unknown): GuardrailMessage | null {
     if (!this.config.enabled) {
       return null;
     }
@@ -266,40 +272,48 @@ export class GuardrailManager {
     let validationMessage: string | null = null;
 
     switch (phase) {
-      case OrchestratorPhase.PARETO:
-        if (!output?.pareto || !Array.isArray(output.pareto)) {
+      case OrchestratorPhase.PARETO: {
+        const o = output as { pareto?: unknown[] } | null | undefined;
+        if (!o?.pareto || !Array.isArray(o.pareto)) {
           validationMessage = "Pareto phase output invalid: Must contain YAML block with 'pareto' array.";
-        } else if (output.pareto.length > 5) {
+        } else if (o.pareto.length > 5) {
           validationMessage = "Pareto phase validation: Exceeded limit of 5 files. Focus on most critical.";
         } else {
-          validationMessage = `Pareto phase validated: ${output.pareto.length} critical files identified.`;
+          validationMessage = `Pareto phase validated: ${o.pareto.length} critical files identified.`;
         }
         break;
+      }
 
-      case OrchestratorPhase.STRATEGIC:
-        if (!output?.plan?.proceed || output.plan.proceed !== '### PROCEED TO EXECUTION') {
+      case OrchestratorPhase.STRATEGIC: {
+        const o = output as { plan?: { proceed?: unknown }; tokenCount?: number } | null | undefined;
+        if (!o?.plan?.proceed || o.plan.proceed !== '### PROCEED TO EXECUTION') {
           validationMessage = "Strategic phase validation: Must end with '### PROCEED TO EXECUTION'.";
-        } else if (output.tokenCount > 350) {
+        } else if ((o.tokenCount ?? 0) > 350) {
           validationMessage = "Strategic phase validation: Exceeded 350 token limit. Consider condensing.";
         } else {
           validationMessage = "Strategic phase validated: Plan complete and ready for execution.";
         }
         break;
+      }
 
-      case OrchestratorPhase.EXECUTION:
-        if (!output?.steps || !Array.isArray(output.steps)) {
+      case OrchestratorPhase.EXECUTION: {
+        const o = output as { steps?: unknown[] } | null | undefined;
+        if (!o?.steps || !Array.isArray(o.steps)) {
           validationMessage = "Execution phase validation: Must contain steps with Thought→Action→Observation.";
         } else {
-          const hasThoughtActionObs = output.steps.every((step: any) => 
-            step.thought && step.action && step.observation
-          );
+          const hasThoughtActionObs = o.steps.every((step) => {
+            if (typeof step !== 'object' || step === null) return false;
+            const s = step as Record<string, unknown>;
+            return 'thought' in s && 'action' in s && 'observation' in s;
+          });
           if (!hasThoughtActionObs) {
             validationMessage = "Execution phase validation: Each step must have thought, action, and observation.";
           } else {
-            validationMessage = `Execution phase validated: ${output.steps.length} steps completed.`;
+            validationMessage = `Execution phase validated: ${o.steps.length} steps completed.`;
           }
         }
         break;
+      }
 
       default:
         return null;

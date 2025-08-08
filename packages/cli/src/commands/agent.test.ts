@@ -66,7 +66,7 @@ vi.mock('net', () => ({
     // Simulate port in use
     server.once.mockImplementation((event, callback) => {
       if (event === 'error') {
-        // @ts-ignore
+        // @ts-expect-error - Mock callback with EADDRINUSE error
         callback({ code: 'EADDRINUSE' });
       }
       return server;
