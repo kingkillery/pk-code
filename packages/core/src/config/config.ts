@@ -29,7 +29,8 @@ import {
 } from '../tools/memoryTool.js';
 import { TaskTool } from '../tools/task.js';
 import {
-  getGlobalAgentRegistry,
+    getGlobalAgentRegistry,
+    initializeGlobalAgentRegistry,
 } from '../agents/agent-registry.js';
 import { ParsedAgent } from '../agents/types.js';
 import { ContentGenerator } from '../core/contentGenerator.js';
@@ -657,7 +658,18 @@ export class Config {
 
     // Register Task tool for sub-agent functionality
     try {
-      const agentRegistry = getGlobalAgentRegistry(this.getWorkingDir());
+      // Ensure a global agent registry exists; initialize if needed
+      let agentRegistry;
+      try {
+        agentRegistry = getGlobalAgentRegistry(this.getWorkingDir());
+      } catch {
+        await initializeGlobalAgentRegistry(this.getWorkingDir(), {
+          includeGlobal: true,
+          validateSchema: true,
+        });
+        agentRegistry = getGlobalAgentRegistry(this.getWorkingDir());
+      }
+
       const contentGeneratorFactory = async (
         _agent: ParsedAgent,
       ): Promise<ContentGenerator> => {

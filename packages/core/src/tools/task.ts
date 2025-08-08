@@ -295,8 +295,10 @@ export class TaskTool extends BaseTool<TaskParams, ToolResult> {
         this.agentRegistry.registerAgent(virtualAgent);
       }
 
-      // Execute the task using the orchestrator
-      const result = await orchestrator.processQuery(params.prompt);
+      // Execute the task using the orchestrator. Force explicit agent invocation
+      // so the router selects the intended specialized agent, mirroring Claude Code.
+      const explicitQuery = `pk use ${params.subagent_type}: "${params.prompt}"`;
+      const result = await orchestrator.processQuery(explicitQuery);
 
       // Format the response
       const summary = `**${params.description}** (${params.subagent_type})`;
