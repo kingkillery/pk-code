@@ -95,6 +95,15 @@ export class GuardrailManager {
       return null;
     }
 
+    // Safely derive exitCode if present on result
+    let exitCode: number | undefined;
+    if (result && typeof result === 'object' && result !== null && 'exitCode' in result) {
+      const value = (result as { exitCode?: unknown }).exitCode;
+      if (typeof value === 'number') {
+        exitCode = value;
+      }
+    }
+
     // Tool-specific guardrails based on Refact.ai patterns
     const toolGuardrails: Record<string, string> = {
       'run_pdb_test': 'After debugger call: Open relevant files via read_files to examine stack trace context.',
@@ -102,7 +111,7 @@ export class GuardrailManager {
       'create_file': 'After file creation: Verify file exists and check for syntax errors.',
       'search_codebase': 'After search: Read the most relevant files found for deeper analysis.',
       'grep': 'After grep: Examine matched files to understand context and patterns.',
-      'run_command': (result?.exitCode === 0) 
+      'run_command': exitCode === 0 
         ? 'Command executed successfully. Proceed with next step.'
         : 'Command failed. Review error output and adjust approach.'
     };
