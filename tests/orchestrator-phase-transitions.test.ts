@@ -20,7 +20,7 @@ class MockOrchestrator {
   }
 
   // Phase 1 - Focus Selection (Pareto-20)
-  async executePareto(taskDescription: string) {
+  async executePareto(_taskDescription: string) {
     if (this.currentPhase !== 'metadata') {
       throw new Error('Pareto phase requires metadata initialization first');
     }

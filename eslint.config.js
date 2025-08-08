@@ -68,6 +68,27 @@ export default tseslint.config(
     },
   },
   {
+    // Ensure root src (js/ts) and tests have proper Node globals and unused-var rules
+    files: ['src/**/*.{js,ts,tsx}', 'tests/**/*.ts'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        process: 'readonly',
+        console: 'readonly',
+      },
+    },
+    rules: {
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+        },
+      ],
+    },
+  },
+  {
     // General overrides and rules for the project (TS/TSX files)
     files: ['packages/*/src/**/*.{ts,tsx}'], // Target only TS/TSX in the cli package
     languageOptions: {
