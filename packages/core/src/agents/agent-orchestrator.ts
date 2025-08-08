@@ -379,6 +379,110 @@ export class AgentOrchestrator {
       ...multiRoutingResult.secondaryAgents,
     ];
 
+    // If no agents succeeded, gracefully fall back to single-agent execution
+    if (multiExecutionResult.metadata.successfulAgents === 0) {
+      // Try routing to a single best agent and executing once
+      try {
+        const singleRouting = await this.router.routeSingleAgent(query);
+        const singleExecOptions: ExecutionOptions = {
+          ...options.execution,
+          contentGeneratorFactory: this.contentGeneratorFactory,
+        } as ExecutionOptions;
+        const singleExecResult = await this.executor.executeSingleAgent(
+          singleRouting,
+          query,
+          singleExecOptions,
+        );
+
+        const responseText = this.extractResponseText(singleExecResult);
+        const totalDuration = Date.now() - startTime;
+        const aggregationDuration = Date.now() - aggregationStart;
+
+        return {
+          query,
+          mode: OrchestrationMode.SINGLE_AGENT,
+          routing: {
+            strategy: 'single',
+            selectedAgents: [singleRouting.agent.config.name],
+            confidence: singleRouting.confidence,
+            reason: 'Fallback to single agent due to no successful multi-agent results',
+          },
+          execution: {
+            status: singleExecResult.status === 'success' ? 'success' : 'failed',
+            duration: executionDuration,
+            agentResults: [singleExecResult],
+          },
+          response: {
+            text: responseText || 'No response produced by selected agent.',
+            confidence: singleRouting.confidence,
+            alternatives: singleRouting.alternatives
+              .slice(0, 2)
+              .map((alt) => `${alt.agent.config.name}: ${alt.reason}`),
+          },
+          performance: {
+            totalDuration,
+            routingDuration,
+            executionDuration,
+            aggregationDuration,
+            overhead:
+              totalDuration - routingDuration - executionDuration - aggregationDuration,
+          },
+          metadata: {
+            timestamp: new Date(),
+            successfulAgents: singleExecResult.status === 'success' ? 1 : 0,
+            failedAgents: singleExecResult.status === 'success' ? 0 : 1,
+            aggregated: false,
+          },
+        };
+      } catch (fallbackError) {
+        // If routing also fails, return a helpful error message instead of throwing
+        const totalDuration = Date.now() - startTime;
+        const aggregationDuration = Date.now() - aggregationStart;
+        return {
+          query,
+          mode: OrchestrationMode.MULTI_AGENT,
+          routing: {
+            strategy: 'multi',
+            selectedAgents: [],
+            confidence: 0,
+            reason: 'No agents produced successful results',
+          },
+          execution: {
+            status: 'failed',
+            duration: executionDuration,
+            agentResults: [
+              ...multiExecutionResult.primaryResults,
+              ...multiExecutionResult.secondaryResults,
+            ],
+          },
+          response: {
+            text:
+              `No agent produced a successful result. ` +
+              `Try specifying a concrete agent (e.g., pk use <agent>: "<task>") ` +
+              `or simplify the request and re-run.\n` +
+              (fallbackError instanceof Error
+                ? `Fallback error: ${fallbackError.message}`
+                : ''),
+            confidence: 0,
+          },
+          performance: {
+            totalDuration,
+            routingDuration,
+            executionDuration,
+            aggregationDuration,
+            overhead:
+              totalDuration - routingDuration - executionDuration - aggregationDuration,
+          },
+          metadata: {
+            timestamp: new Date(),
+            successfulAgents: 0,
+            failedAgents: multiExecutionResult.metadata.failedAgents,
+            aggregated: false,
+          },
+        };
+      }
+    }
+
     const aggregatedResponse = await this.aggregator.aggregateResults(
       multiExecutionResult,
       query,
