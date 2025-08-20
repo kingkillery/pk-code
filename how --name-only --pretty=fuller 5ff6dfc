@@ -1,0 +1,5 @@
+* [33m5ff6dfc[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m chore(release): bump versions for alpha prerelease
+* [33m941894d[m Implement fallback to single-agent execution in AgentOrchestrator
+* [33m35a9cb7[m Enhance GuardrailManager to Safely Derive exitCode from Command Results
+* [33m76a1db7[m Remove test-parallel.js script and update related files for improved functionality
+* [33m370af81[m chore(lint): install eslint deps and adjust config; fix unused param in test to allow pre-commit hook

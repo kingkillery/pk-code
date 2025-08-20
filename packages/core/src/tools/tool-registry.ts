@@ -14,6 +14,7 @@ import { DiscoveredMCPTool } from './mcp-tool.js';
 import { parse } from 'shell-quote';
 import { MultimodalContentGenerator } from '../core/contentGenerator.js';
 import { SearchIndexTool } from './search-index.js';
+import { BrowserUseTool } from './browser-use-tool.js';
 
 type ToolParams = Record<string, unknown>;
 
@@ -140,6 +141,9 @@ export class ToolRegistry {
   private initializeBuiltInTools(): void {
     // Register the search index tool
     this.registerTool(new SearchIndexTool(this.config));
+    
+    // Register the Browser Use API tool
+    this.registerTool(new BrowserUseTool(this.config));
   }
 
   /**

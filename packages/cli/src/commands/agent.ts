@@ -399,14 +399,9 @@ async function isPortInUse(port: number): Promise<boolean> {
 
 
 
+// Rely on configured MCP command (e.g., uvx) rather than requiring a local/global Node package
 async function checkBrowserUseInstallation(): Promise<boolean> {
-  try {
-    // Check if browser-use is installed by trying to resolve its package.json
-    require.resolve('browser-use/package.json');
-    return true;
-  } catch (_error) {
-    return false;
-  }
+  return true;
 }
 
 async function getChromeConfig(): Promise<{ chromePath: string | null }> {

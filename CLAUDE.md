@@ -58,33 +58,31 @@ This project uses **Vitest** as its primary testing framework. When writing test
 
 The main branch for this project is called "main"
 
-## Browser-Use Integration
+## Browser Automation Integration
 
-The `browser-use` library is integrated into the PK Code CLI, allowing agents to interact with live web applications. This integration is achieved through the Model Context Protocol (MCP), with `browser-use` running as a separate MCP server.
+The Browser Use API is directly integrated into PK Code CLI as a built-in tool, allowing agents to interact with live web applications through cloud-based browser automation.
 
-### Enabling the Browser-Use Integration
+### Enabling Browser Automation
 
-To enable the `browser-use` integration, you must first configure the path to your browser's user data directory. This can be done by running the following command:
-
-```bash
-pk config browser
-```
-
-This command will guide you through an interactive setup process to find and save the correct path.
-
-### Starting and Stopping the Browser-Use Agent
-
-Once the `browser-use` integration has been configured, you can start and stop the `browser-use` agent using the following commands:
+To enable browser automation, set your Browser Use API key:
 
 ```bash
-# Start the browser-use agent
-pk agent start browser
-
-# Stop the browser-use agent
-pk agent stop browser
+export BROWSER_USE_API_KEY="your-api-key-here"
 ```
 
-When the `browser-use` agent is running, a set of `browser.*` tools will be available to the PK Code agent, allowing it to interact with the web browser.
+### Using Browser Automation
+
+The `browser_use` tool is automatically available and provides:
+- Cloud-based browser task execution
+- Real-time step monitoring
+- Structured JSON output
+- Task control (pause/resume/stop)
+
+Example:
+```bash
+pk
+> Use browser_use to search for the latest AI news on Google
+```
 
 ## JavaScript/TypeScript
 

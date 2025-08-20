@@ -1,6 +1,6 @@
 {
   "name": "pk-code-cli",
-  "version": "0.0.6-alpha.0",
+  "version": "0.0.7-alpha.0",
   "description": "PK Code - AI-powered coding assistant CLI with interactive terminal interface",
   "keywords": [
     "ai",
@@ -73,6 +73,7 @@
     "LICENSE"
   ],
   "devDependencies": {
+    "@types/node": "^20.11.24",
     "@types/js-yaml": "^4.0.9",
     "@types/micromatch": "^4.0.9",
     "@types/mime-types": "^3.0.1",

@@ -93,11 +93,11 @@ Execute specific tasks without entering interactive mode:
 # Code generation
 pk generate "Create a REST API endpoint for user authentication"
 
-# Code analysis
-pk analyze "What are the performance bottlenecks in this code?"
+# Code analysis (use interactive prompt or provider-specific commands)
+pk "What are the performance bottlenecks in this code?"
 
-# Documentation
-pk docs "Generate JSDoc comments for all functions in src/utils"
+# Documentation (ask directly)
+pk "Generate JSDoc comments for all functions in src/utils"
 ```
 
 ## 🔌 Supported AI Providers
@@ -146,38 +146,31 @@ pk "Convert this design mockup into React components"
 
 ## 🌐 Browser Automation
 
-PK Code can be extended with powerful browser automation capabilities, allowing the agent to interact with live websites and web applications. This is achieved by integrating with the `browser-use` Python library, which runs as a separate server that PK Code communicates with.
+PK Code includes built-in browser automation capabilities through the Browser Use API, allowing the agent to interact with live websites and web applications.
 
 ### Features
 
-- **Stateful Browser Control**: Maintain login sessions and cookies across interactions.
-- **UI Interaction**: Click, type, and read content from web pages.
-- **Visual Analysis**: Combine with vision models to understand and navigate complex UIs.
+- **Cloud-based Browser Control**: Execute browser automation tasks through the Browser Use API
+- **UI Interaction**: Click, type, and read content from web pages
+- **Structured Output**: Get results in specified JSON formats
+- **Task Monitoring**: Real-time streaming of task execution steps
+- **Task Control**: Pause, resume, or stop running tasks
 
 ### Configuration
 
-Before using the browser automation features, you need to tell PK Code where your browser's user data is stored. Run the interactive setup command:
+To use browser automation features, set your Browser Use API key:
 
 ```bash
-pk config browser
+export BROWSER_USE_API_KEY="your-api-key-here"
 ```
-
-This command will help you find and save the correct path to your browser's profile, enabling persistent sessions.
 
 ### Usage
 
-To start the browser automation agent, run:
+The browser automation tool is available as `browser_use` and can be used directly in PK Code:
 
 ```bash
-pk agent start browser
-```
-
-Once the agent is running, a new set of `browser.*` tools (e.g., `browser.navigate`, `browser.get_state`, `browser.click`) will become available within the PK Code interactive session.
-
-To stop the agent when you're done, run:
-
-```bash
-pk agent stop browser
+> pk
+> Use browser_use to go to google.com and search for AI news
 ```
 
 ### Example
@@ -257,15 +250,15 @@ export DEBUG=pk:*
 
 ### GitHub Actions
 
-Integrate PK Code into your CI/CD pipeline for automated code analysis and generation:
+Integrate PK Code into your CI/CD pipeline to run scripted prompts:
 
 ```yaml
-name: Code Analysis with PK Code
+name: PK Code Prompt
 
 on: [pull_request]
 
 jobs:
-  analyze:
+  prompt:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -277,11 +270,11 @@ jobs:
       - name: Install PK Code
         run: npm install -g pk-code-cli
 
-      - name: Analyze Code Changes
+      - name: Run prompt
         env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: |
-          pk analyze "Review the changes in this PR for potential issues"
+          pk "Review the changes in this PR for potential issues"
 ```
 
 ## 📚 Common Use Cases
@@ -377,7 +370,7 @@ npm install
 npm test
 
 # Start development
-npm run dev
+npm run start
 ```
 
 ### Running Tests

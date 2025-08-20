@@ -10,7 +10,7 @@ import { promises as fs } from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 
-const SETTINGS_FILE = path.join(os.homedir(), '.pk-code', 'settings.json');
+const SETTINGS_FILE = path.join(os.homedir(), '.pk', 'settings.json');
 
 interface ChromePathDetectionResult {
   path: string;
@@ -300,7 +300,7 @@ export async function handleConfigCommand(
 
             await saveBrowserPath(browserPath);
             console.log(
-              `✅ Browser path saved to both ~/.pk-code/settings.json and .mcp.json`,
+              `✅ Browser path saved to both ~/.pk/settings.json and .mcp.json`,
             );
             console.log(
               `✅ MCP server configuration updated for browser-use integration`,

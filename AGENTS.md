@@ -151,30 +151,30 @@ The project includes a sophisticated multi-agent system (`packages/core/src/agen
 
 ## Integration Points
 
-## Browser-Use Integration
+## Browser Automation Integration
 
-The `browser-use` library is integrated into the PK Code CLI, allowing agents to interact with live web applications. This integration is achieved through the Model Context Protocol (MCP), with `browser-use` running as a separate MCP server.
+The Browser Use API is now directly integrated into PK Code CLI as a built-in tool, allowing agents to interact with live web applications through cloud-based browser automation.
 
-### Enabling the Browser-Use Integration
+### Enabling Browser Automation
 
-To enable the `browser-use` integration, you must first configure the path to your browser's user data directory. This can be done by running the following command:
-
-```bash
-pk config browser
-```
-
-This command will guide you through an interactive setup process to find and save the correct path.
-
-### Starting and Stopping the Browser-Use Agent
-
-Once the `browser-use` integration has been configured, you can start and stop the `browser-use` agent using the following commands:
+To enable browser automation, simply set your Browser Use API key:
 
 ```bash
-# Start the browser-use agent
-pk agent start browser
-
-# Stop the browser-use agent
-pk agent stop browser
+export BROWSER_USE_API_KEY="your-api-key-here"
 ```
 
-When the `browser-use` agent is running, a set of `browser.*` tools will be available to the PK Code agent, allowing it to interact with the web browser.
+### Using Browser Automation
+
+The `browser_use` tool is automatically available in PK Code and can be used to:
+- Create browser automation tasks
+- Monitor task execution with real-time step streaming
+- Get task status and details
+- Control task execution (pause/resume/stop)
+- Get structured JSON output from web pages
+
+Example usage:
+```bash
+# Use natural language to interact with Browser Use
+pk
+> Use browser_use to go to hackernews and get the top 5 story titles
+```
