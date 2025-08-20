@@ -15,10 +15,12 @@ import { aboutCommand } from '../ui/commands/aboutCommand.js';
 import { modelCommand } from '../ui/commands/model.js';
 import { inferenceProviderCommand } from '../ui/commands/inferenceProviderCommand.js';
 import { agentCommand } from '../ui/commands/agentCommands.js';
+import { browserUseCommand } from '../ui/commands/browserUseCommand.js';
 
 const loadBuiltInCommands = async (): Promise<Command[]> => [
   aboutCommand,
   agentCommand,
+  browserUseCommand,
   authCommand,
   clearCommand,
   helpCommand,
