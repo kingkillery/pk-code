@@ -27,6 +27,29 @@ export async function handleUseCommand(
   config?: Config,
 ): Promise<string | null> {
   try {
+    // Optional dry-run: short-circuit and simulate a response without providers/registry.
+    const isDryRun = (() => {
+      const v = String(process.env.PK_DRY_RUN || '').toLowerCase();
+      return v === '1' || v === 'true' || v === 'yes';
+    })();
+    if (isDryRun) {
+      let dryAgent = agentName;
+      let dryQuery = query;
+      if (!dryQuery && dryAgent.includes(':')) {
+        const parts = dryAgent.split(':');
+        dryAgent = parts[0].trim();
+        dryQuery = parts.slice(1).join(':').trim();
+      }
+      const lines = [
+        `DRY-RUN for pk use` + (dryAgent ? ` (agent: ${dryAgent})` : ''),
+        `- Query: ${dryQuery || '(none)'}`,
+        `- No agents executed; this is a simulated response.`,
+      ];
+      const out = lines.join('\n');
+      console.log('\n' + out + '\n');
+      return out;
+    }
+
     // Initialize the global agent registry if not already done
     const projectRoot = process.cwd();
     let registry;

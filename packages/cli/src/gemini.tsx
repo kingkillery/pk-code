@@ -100,6 +100,23 @@ import { handleParallelCommand } from './commands/parallel.js';
 
 export async function main() {
   const argv = await parseArguments();
+  // Optional dry-run to simulate non-interactive prompt responses without provider access.
+  const isDryRun = (() => {
+    const v = String(process.env.PK_DRY_RUN || '').toLowerCase();
+    return v === '1' || v === 'true' || v === 'yes';
+  })();
+  if (isDryRun && argv.prompt) {
+    const prompt = argv.prompt;
+    const bullets = [
+      '- This is a dry-run response.',
+      `- Prompt: ${prompt.substring(0, 80)}${prompt.length > 80 ? '…' : ''}`,
+      '- No external providers were called.',
+    ];
+    const maybeGreeting = /hello|hi|hey/i.test(prompt) ? 'Hello! 👋' : '';
+    const output = [maybeGreeting, ...bullets].filter(Boolean).join('\n');
+    console.log(output);
+    process.exit(0);
+  }
   if (argv._[0] === 'init') {
     handleInitCommand();
     return;

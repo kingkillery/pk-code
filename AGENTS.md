@@ -13,9 +13,9 @@ The system follows a modular, provider-based architecture with clear separation 
 ### Core Package Structure
 
 - **`packages/core/`**: Central business logic, AI integrations, authentication, and tool system
-  - Authentication & configuration management
+  - Authentication  configuration management
   - AI provider integrations (OpenAI, Gemini, OpenRouter, Anthropic, Cohere)
-  - Tool registry and MCP server management
+  - Tool registry and MCP client/integration utilities
   - File discovery, git operations, telemetry
   
 - **`packages/cli/`**: Terminal user interface and command processing
@@ -24,12 +24,14 @@ The system follows a modular, provider-based architecture with clear separation 
   - Authentication dialogs and configuration management
   - Theme system and user preferences
   
-- **`packages/vscode-ide-companion/`**: VSCode extension integration
+- **`packages/vscode-ide-companion/`**: VS Code extension integration
 - **`packages/tool-registry-api/`**: Public API for third-party tool integrations
 
 ### Sub-Agent System Architecture
 
 The project includes a sophisticated multi-agent system (`packages/core/src/agents/`) with:
+
+See also: `packages/core/src/agents/ARCHITECTURE.md` for deeper orchestration details.
 
 - **Agent Router**: Keyword-based routing to specialized AI agents
 - **Agent Executor**: Concurrent, sequential, and prioritized execution with resource management
@@ -40,12 +42,8 @@ The project includes a sophisticated multi-agent system (`packages/core/src/agen
 
 ### Configuration Management
 
-**Environment Loading Priority:**
-1. Current directory `.pk/.env`
-2. Current directory `.env` 
-3. Parent directories (recursive)
-4. Home directory `.pk/.env`
-5. Home directory `.env`
+**Environment configuration:**
+- Project `.env` and user-level `~/.pk/.env` are supported. For exact precedence and resolution logic, see `packages/core/src/config/config.ts`.
 
 **Auth Type Selection:**
 1. Saved user preference
@@ -55,9 +53,9 @@ The project includes a sophisticated multi-agent system (`packages/core/src/agen
 
 ### Model Selection
 
-**Default Model**: `DEFAULT_PK_MODEL = 'pk3-coder-max'` (defined in `packages/core/src/config/models.ts`)
-
-**CLI Priority**: `OPENROUTER_MODEL || PK_MODEL || DEFAULT_PK_MODEL`
+- Default model: see `packages/core/src/config/models.ts` for `DEFAULT_PK_MODEL`.
+- Provider-specific model environment variables are respected when present, e.g. `OPENAI_MODEL`, `ANTHROPIC_MODEL`, `GOOGLE_MODEL`, `OPENROUTER_MODEL`, `COHERE_MODEL`. If none are set for the chosen provider, the default model is used.
+- Note: `PK_MODEL` is not documented for general use; prefer the provider-specific variables above.
 
 ### Build and Distribution
 
@@ -74,7 +72,7 @@ The project includes a sophisticated multi-agent system (`packages/core/src/agen
 1. Run `npm run preflight` to ensure all quality gates pass
 2. Examine existing test patterns in the relevant package
 3. Review the authentication flow if working on auth-related features
-4. Check `PK.md` for comprehensive development guidelines
+4. See `WARP.md` (repository guidance), `CLAUDE.md` (rules), and `README.md` (product usage) for comprehensive development guidance
 
 ### Common Development Tasks
 
@@ -110,7 +108,7 @@ The project includes a sophisticated multi-agent system (`packages/core/src/agen
 ### Performance Considerations
 
 **Multi-Agent System:**
-- Agent routing uses keyword-based scoring (potential bottleneck with many agents)
+- Routing uses heuristics to select specialized agents (be mindful of scalability with many agents)
 - Execution supports parallel processing with `Promise.allSettled()`
 - Circuit breaker patterns prevent cascading failures
 - Timeout management prevents hanging operations
@@ -139,13 +137,17 @@ The project includes a sophisticated multi-agent system (`packages/core/src/agen
 - Use functional programming patterns (array operators, immutability)
 - Follow React best practices (no direct state mutation, proper effect usage)
 - Use hyphens in flag names (`my-flag` not `my_flag`)
-- Minimize high-value comments only
+- Only add comments when they provide high value; avoid excessive commentary
 
 ## Development Workflow
 
 1. **Setup**: Clone repo, run `npm install` to set up workspace
-2. **Development**: Use `npm run dev` for hot reloading during development
-3. **Testing**: Run `npm run test` for individual package testing
+2. **Development**: Use `npm run start` for interactive local development, or `npm run debug` to attach a debugger
+3. **Testing**:
+   - All workspaces: `npm run test`
+   - Single test (CLI): `npx vitest run packages/cli/src/commands/agent.test.ts --config packages/cli/vitest.config.ts`
+   - Single test (Core): `npx vitest run packages/core/src/tools/grep.test.ts --config packages/core/vitest.config.ts`
+   - By name: `npx vitest run -t "AgentRunner" --config packages/cli/vitest.config.ts`
 4. **Quality Check**: Always run `npm run preflight` before submitting changes
 5. **Build**: Use `npm run build && npm run bundle` for distribution artifacts
 

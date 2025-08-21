@@ -99,7 +99,11 @@ export class ParallelTaskExecutor {
     return new Promise((resolve) => {
       // Build pk command arguments
       const pkExecutable = process.execPath; // Node.js executable
-      const pkScript = path.resolve(__dirname, '../../index.js'); // pk CLI script
+      // Allow overriding the PK script path for bundled runs
+      const overrideScript = process.env.PK_PARALLEL_PK_SCRIPT;
+      const pkScript = overrideScript
+        ? path.resolve(overrideScript)
+        : path.resolve(__dirname, '../../index.js'); // pk CLI script
       const args = [
         pkScript,
         '--prompt', task.prompt,

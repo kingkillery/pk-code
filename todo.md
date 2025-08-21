@@ -9,3 +9,7 @@ Completed items (recent):
 - Build the workspace — Use the correct package manager (pnpm/yarn/npm) to run the build across the monorepo.
 - Test a working --prompt-file run — Create a temp prompt file and run the CLI to ensure it reads the file successfully.
 
+## Release 0.0.10
+
+- GitHub Release: https://github.com/kingkillery/pk-code/releases/tag/v0.0.10
+- npm Package: https://www.npmjs.com/package/pk-code-cli/v/0.0.10
