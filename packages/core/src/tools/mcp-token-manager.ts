@@ -69,7 +69,7 @@ export class MCPTokenManager {
    */
   async getValidToken(): Promise<string> {
     // Try to get cached token
-    let cachedToken = await this.getCachedToken();
+    const cachedToken = await this.getCachedToken();
     
     if (cachedToken && this.isTokenValid(cachedToken)) {
       if (this.debugMode) {
@@ -174,18 +174,10 @@ export class MCPTokenManager {
     const provider = this.config.provider || 'custom';
     parts.push(provider);
     // Try to derive a stable endpoint identity from httpUrl/url when present
-    try {
-      // Prefer HTTP URL if available, otherwise SSE URL; fallback to server name
-      const rawUrl = (globalThis as any).__mcp_server_http_url__ as string | undefined; // not set; just for types
-      const endpoint = (this as any).endpoint as string | undefined; // none
-      const urlStr = (endpoint as string) || '';
-    } catch {
-      // ignore
-    }
     let host = '';
     try {
       // The OAuth flow is used for HTTP/SSE transports. Use the configured URLs if available.
-      const endpointUrl = (this as any).config?.['httpUrl'] || (this as any).config?.['url'];
+      const endpointUrl = this.config?.httpUrl || this.config?.url;
       if (endpointUrl) {
         const u = new URL(endpointUrl);
         host = `${u.protocol}//${u.host}${u.pathname.replace(/\/$/, '')}`;

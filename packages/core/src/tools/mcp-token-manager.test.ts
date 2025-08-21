@@ -7,14 +7,12 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { MCPTokenManager } from './mcp-token-manager.js';
 
-vi.mock('../credentials.js', async () => {
-  return {
-    // Default mocks; individual tests will override behavior
-    getCredential: vi.fn(async () => null),
-    setCredential: vi.fn(async () => {}),
-    deleteCredential: vi.fn(async () => true),
-  };
-});
+vi.mock('../credentials.js', async () => ({
+  // Default mocks; individual tests will override behavior
+  getCredential: vi.fn(async () => null),
+  setCredential: vi.fn(async () => {}),
+  deleteCredential: vi.fn(async () => true),
+}));
 
 describe('MCPTokenManager', () => {
   beforeEach(() => {
@@ -34,7 +32,7 @@ describe('MCPTokenManager', () => {
     // First call (stable key) returns null; second call (legacy key) returns token
     const legacyToken = JSON.stringify({ access_token: 'legacy' });
 
-    let calls: string[] = [];
+    const calls: string[] = [];
     vi.mocked(getCredential).mockImplementation(async (key: string) => {
       calls.push(key);
       // Stable key contains provider marker; legacy uses server name suffix
