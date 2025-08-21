@@ -196,7 +196,7 @@ export class ParallelTaskExecutor {
     }
   }
 
-  private async isPromiseResolved(promise: Promise<any>): Promise<boolean> {
+  private async isPromiseResolved(promise: Promise<void>): Promise<boolean> {
     try {
       await Promise.race([
         promise,

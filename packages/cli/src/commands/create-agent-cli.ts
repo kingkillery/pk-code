@@ -168,7 +168,7 @@ export async function handleCreateAgentCommandCLI(): Promise<void> {
           description: config.description,
           keywords: config.keywords,
           tools: config.tools.map((t) => ({ name: t })),
-          domain: selectedDomain.value as any,
+          domain: selectedDomain.value,
         };
 
         generatedPrompt = await promptGenerator.generateSystemPrompt(request);

@@ -12,7 +12,13 @@ export type TaskCompletionCriteria = 'TASK COMPLETE' | 'BLOCKED';
 
 export interface TaskCompletion {
   criteria: TaskCompletionCriteria[];
-  validate(output: any): TaskCompletionCriteria | null;
+  validate(output: unknown): TaskCompletionCriteria | null;
+}
+
+interface ValidationShape {
+  testsPassed?: boolean;
+  todoItems?: unknown;
+  blockers?: unknown;
 }
 
 export class TaskManager {
@@ -44,12 +50,13 @@ export class TaskManager {
   setCompletionCriteria(criteria: TaskCompletionCriteria[]): void {
     this.completion = {
       criteria,
-      validate(output: any): TaskCompletionCriteria | null {
-        if (output?.testsPassed && !output?.todoItems) {
+      validate(output: unknown): TaskCompletionCriteria | null {
+        const o = output as ValidationShape;
+        if (o?.testsPassed && !o?.todoItems) {
           return 'TASK COMPLETE';
         }
 
-        if (output?.blockers) {
+        if (o?.blockers) {
           return 'BLOCKED';
         }
 
@@ -61,7 +68,7 @@ export class TaskManager {
   /**
    * Validate task completion based on criteria
    */
-  validateCompletion(output: any): TaskCompletionCriteria | null {
+  validateCompletion(output: unknown): TaskCompletionCriteria | null {
     if (!this.completion) {
       throw new Error('Task completion criteria not set.');
     }

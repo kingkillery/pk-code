@@ -147,7 +147,6 @@ describe('memoryCommand', () => {
         services: {
           config: {
             refreshMemory: mockRefreshMemory,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
           } as any,
         },
       });

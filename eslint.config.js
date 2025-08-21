@@ -224,6 +224,18 @@ export default tseslint.config(
       ],
     },
   },
+  // Allow explicit any in tests to keep them ergonomic
+  {
+    files: [
+      '**/*.test.{ts,tsx}',
+      '**/*.spec.{ts,tsx}',
+      'packages/**/__tests__/**/*.{ts,tsx}',
+      'packages/**/tests/**/*.{ts,tsx}',
+    ],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
+    },
+  },
   // Custom eslint rules for this repo
   {
     files: ['packages/**/*.{js,jsx,ts,tsx}'],

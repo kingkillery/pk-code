@@ -1,0 +1,6 @@
+# Mirror of ESLint ignores for formatting
+.venv/
+bundle/
+dist/
+build/
+coverage/

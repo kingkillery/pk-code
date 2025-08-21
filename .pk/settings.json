@@ -1,10 +1,14 @@
 {
   "mcpServers": {
     "Notion": {
-      "url": "https://mcp.notion.com/mcp",
-      "headers": {
-        "Authorization": "Bearer ${NOTION_API_KEY}",
-        "Content-Type": "application/json"
+      "httpUrl": "https://mcp.notion.com/mcp",
+      "oauth": {
+        "provider": "notion",
+        "clientId": "256d872b-594c-806a-92eb-00372162e475",
+        "authorizationUrl": "https://api.notion.com/v1/oauth/authorize",
+        "tokenUrl": "https://api.notion.com/v1/oauth/token",
+        "scopes": ["read_content", "update_content", "insert_content"],
+        "redirectUri": "http://localhost:3030/oauth/callback"
       }
     }
   }

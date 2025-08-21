@@ -103,7 +103,7 @@ async function startBrowserAgent(): Promise<{ success: boolean; message: string 
   let browserConfig = await getBrowserConfig();
   if (!browserConfig) {
     const globalSettings = await getGlobalSettings();
-    const userDataDir = (globalSettings as any)?.['browser-use']?.['userDataDir'];
+    const userDataDir = (globalSettings as Record<string, unknown>)?.['browser-use']?.['userDataDir'];
     if (process.platform === 'win32') {
       browserConfig = {
         command: 'cmd',

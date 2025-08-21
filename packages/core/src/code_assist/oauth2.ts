@@ -217,7 +217,10 @@ async function authWithWeb(client: OAuth2Client): Promise<OauthWebLogin> {
           reject(new Error('Unexpected request: ' + req.url));
         }
         // acquire the code from the querystring, and close the web server.
-        const qs = new url.URL(req.url!, 'http://localhost:3000').searchParams;
+        // Parse the incoming request using the actual port the temporary server
+        // is listening on. Using a hard-coded base (e.g., :3000) breaks when a
+        // random available port was chosen above.
+        const qs = new url.URL(req.url!, `http://localhost:${port}`).searchParams;
         if (qs.get('error')) {
           res.writeHead(HTTP_REDIRECT, { Location: SIGN_IN_FAILURE_URL });
           res.end();

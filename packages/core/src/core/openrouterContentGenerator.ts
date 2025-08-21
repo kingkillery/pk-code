@@ -249,7 +249,7 @@ export class OpenRouterContentGenerator extends OpenAIContentGenerator {
         };
 
         // Create a new client with the fallback model
-        (this as any).client = new OpenAI({
+        (this as unknown as { client: OpenAI }).client = new OpenAI({
           apiKey,
           baseURL: 'https://openrouter.ai/api/v1',
           timeout: timeoutConfig.timeout,
@@ -373,18 +373,25 @@ export class OpenRouterContentGenerator extends OpenAIContentGenerator {
     );
 
     // Override the create method to add provider field to request body
-    this.client.chat.completions.create = ((params: any, options?: any) => {
+    this.client.chat.completions.create = ((
+      params: OpenAI.Chat.Completions.ChatCompletionCreateParams,
+      options?: OpenAI.RequestOptions,
+    ) => {
       // Add OpenRouter provider routing to the request body
       const enhancedParams = {
         ...params,
         provider: {
-          only: [this.preferredProvider],
+          only: [
+            this.preferredProvider,
+          ],
         },
       };
-
-      // Call the original method with enhanced parameters
-      return originalCreate(enhancedParams, options);
-    }) as any;
+      
+      return originalCreate(
+        enhancedParams as OpenAI.Chat.Completions.ChatCompletionCreateParams,
+        options,
+      );
+    }) as typeof this.client.chat.completions.create;
   }
 
   /**

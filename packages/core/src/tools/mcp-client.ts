@@ -27,6 +27,7 @@ import {
 } from '@google/genai';
 import { sanitizeParameters, ToolRegistry } from './tool-registry.js';
 import { MultimodalContentGenerator } from '../core/contentGenerator.js';
+import { OAuthMCPTransport, requiresOAuth } from './mcp-oauth-transport.js';
 
 export const MCP_DEFAULT_TIMEOUT_MSEC = 10 * 60 * 1000; // default to 10 minutes
 
@@ -391,6 +392,11 @@ export function createTransport(
   mcpServerConfig: MCPServerConfig,
   debugMode: boolean,
 ): Transport {
+  // Check if OAuth is configured
+  if (requiresOAuth(mcpServerConfig)) {
+    return new OAuthMCPTransport(mcpServerName, mcpServerConfig, debugMode);
+  }
+
   if (mcpServerConfig.httpUrl) {
     const transportOptions: StreamableHTTPClientTransportOptions = {};
     if (mcpServerConfig.headers) {

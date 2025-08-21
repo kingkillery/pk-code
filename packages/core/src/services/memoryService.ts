@@ -5,6 +5,7 @@
  */
 
 import { MemoryClient } from 'mem0ai';
+import type { Memory as Mem0Memory } from 'mem0ai';
 import { Config } from '../config/config.js';
 
 export interface MemoryEntry {
@@ -27,6 +28,15 @@ export interface MemoryServiceConfig {
   sessionId: string;
   // Optional: custom mem0 configuration
   mem0Config?: Record<string, unknown>;
+}
+
+interface Mem0ClientOptions {
+  apiKey: string;
+  host?: string;
+  organizationName?: string;
+  projectName?: string;
+  organizationId?: string;
+  projectId?: string;
 }
 
 /**
@@ -64,7 +74,8 @@ export class MemoryService {
 
     try {
       // Initialize mem0 with configuration
-      this.memory = new MemoryClient(this.config.mem0Config as any);
+      const options = this.config.mem0Config as unknown as Mem0ClientOptions;
+      this.memory = new MemoryClient(options);
       this.initialized = true;
       
       if (this.pkConfig.getDebugMode()) {
@@ -132,7 +143,12 @@ export class MemoryService {
       });
 
       // Search returns Array<Memory> directly, not wrapped in results
-      const searchResults: SearchResult[] = results.map((result: any) => ({
+      const searchResults: SearchResult[] = results.map((result: {
+        id?: string;
+        memory?: string;
+        score?: number;
+        metadata?: Record<string, unknown>;
+      }) => ({
         id: result.id || '',
         memory: result.memory || '',
         score: result.score || 0,
@@ -180,7 +196,7 @@ export class MemoryService {
   /**
    * Cache embedding queries to reduce API calls
    */
-  async cacheEmbeddingQuery(query: string, results: any[]): Promise<void> {
+  async cacheEmbeddingQuery(query: string, results: Array<Record<string, unknown>>): Promise<void> {
     const cacheEntry = `Embedding search for "${query}" returned ${results.length} results: ${
       results.slice(0, 3).map(r => r.filePath).join(', ')
     }`;
@@ -231,12 +247,27 @@ export class MemoryService {
         user_id: this.config.userId,
       });
 
-      return results.map((result: any) => ({
-        id: result.id,
-        memory: result.memory,
-        timestamp: result.metadata?.timestamp,
-        metadata: result.metadata,
-      }));
+      return results.map((result: Mem0Memory) => {
+        const rawMetadata = (result as { metadata?: unknown }).metadata;
+        const metadata =
+          rawMetadata && typeof rawMetadata === 'object'
+            ? (rawMetadata as Record<string, unknown>)
+            : undefined;
+        let timestamp: number | undefined;
+        if (
+          metadata &&
+          Object.prototype.hasOwnProperty.call(metadata, 'timestamp') &&
+          typeof (metadata as { timestamp?: unknown }).timestamp === 'number'
+        ) {
+          timestamp = (metadata as { timestamp?: number }).timestamp;
+        }
+        return {
+          id: result.id,
+          memory: result.memory ?? '',
+          timestamp,
+          metadata,
+        };
+      });
     } catch (error) {
       console.warn('[MemoryService] Failed to get all memories:', error);
       return [];

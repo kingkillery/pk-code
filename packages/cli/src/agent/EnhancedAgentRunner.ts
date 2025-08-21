@@ -1,4 +1,5 @@
 import { AgentConfig, createCodeAssistContentGenerator, AuthType } from '@pk-code/core';
+import { Config } from '@pk-code/core/src/config/config.js';
 
 export type AgentStatus = 'pending' | 'running' | 'success' | 'error';
 
@@ -13,7 +14,7 @@ export class EnhancedAgentRunner {
     this.sessionId = sessionId || Math.random().toString(36).substring(2, 15);
   }
 
-  async run(query: string, config: any): Promise<{output: string, sessionId: string}> {
+  async run(query: string, config: Config): Promise<{output: string, sessionId: string}> {
     this.status = 'running';
     this.latestOutput = `Agent "${this.agent.name}" is running with isolated context...`;
     

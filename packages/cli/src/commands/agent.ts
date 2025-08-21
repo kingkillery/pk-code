@@ -382,8 +382,8 @@ async function getBrowserMcpConfig(): Promise<{ hasConfig: boolean; configSource
 async function isPortInUse(port: number): Promise<boolean> {
   return new Promise((resolve) => {
     const server = net.createServer();
-    server.once('error', (err: any) => {
-      if (err.code === 'EADDRINUSE') {
+    server.once('error', (err: NodeJS.ErrnoException | { code?: unknown }) => {
+      if (err && typeof err === 'object' && 'code' in err && err.code === 'EADDRINUSE') {
         resolve(true);
       } else {
         resolve(false);
@@ -405,7 +405,7 @@ async function checkBrowserUseInstallation(): Promise<boolean> {
 }
 
 
-async function getBrowserConfig(): Promise<any> {
+async function getBrowserConfig(): Promise<Record<string, unknown> | null> {
   const { hasConfig, configSource } = await getBrowserMcpConfig();
   if (!hasConfig) {
     return null;
@@ -413,7 +413,7 @@ async function getBrowserConfig(): Promise<any> {
 
   if (configSource === 'global') {
     const globalSettings = await getGlobalSettings();
-    return (globalSettings.mcpServers as any)?.['browser-use'] || null;
+    return (globalSettings.mcpServers as Record<string, unknown>)?.['browser-use'] || null;
   } else {
     const mcpConfigFile = path.resolve('.mcp.json');
     const data = fs.readFileSync(mcpConfigFile, 'utf8');
@@ -450,7 +450,7 @@ async function startBrowserAgent() {
   if (!browserConfig) {
     // Synthesize a default configuration to avoid blocking startup
     const settings = await getGlobalSettings();
-    const userDataDir = (settings as any)?.['browser-use']?.['userDataDir'];
+    const userDataDir = (settings as Record<string, unknown>)?.['browser-use']?.['userDataDir'];
     if (process.platform === 'win32') {
       browserConfig = {
         command: 'cmd',
