@@ -167,12 +167,14 @@ export class OAuthMCPTransport implements Transport {
   }
 
   private isAuthError(error: Error): boolean {
-    const errorMessage = error.message?.toLowerCase() || '';
+    const msg = (error?.message || '').toLowerCase();
+    // Be conservative: only treat clear auth failures as auth errors.
     return (
-      errorMessage.includes('401') ||
-      errorMessage.includes('unauthorized') ||
-      errorMessage.includes('authentication') ||
-      errorMessage.includes('token')
+      msg.includes('401') ||
+      msg.includes('unauthorized') ||
+      msg.includes('forbidden') || // some servers may return 403 on expired tokens
+      msg.includes('invalid_token') ||
+      msg.includes('invalid token')
     );
   }
 

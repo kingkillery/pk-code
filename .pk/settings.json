@@ -10,6 +10,10 @@
         "scopes": ["read_content", "update_content", "insert_content"],
         "redirectUri": "http://localhost:3030/oauth/callback"
       }
+    },
+    "notionMCP": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://mcp.notion.com/mcp"]
     }
   }
 }

@@ -51,12 +51,17 @@ export class MCPTokenManager {
   private config: OAuthConfig;
   private debugMode: boolean;
   private tokenCacheKey: string;
+  private legacyTokenCacheKey: string;
 
   constructor(serverName: string, config: OAuthConfig, debugMode: boolean = false) {
     this.serverName = serverName;
     this.config = this.resolveProviderConfig(config);
     this.debugMode = debugMode;
-    this.tokenCacheKey = `mcp_oauth_${serverName}`;
+    // Use a stable cache key derived from provider + endpoint + clientId (if present)
+    // This avoids reauth when a user renames the server in settings.
+    this.tokenCacheKey = this.buildStableCacheKey();
+    // Keep a legacy key for migration (prior versions used the raw server name)
+    this.legacyTokenCacheKey = `mcp_oauth_${serverName}`;
   }
 
   /**
@@ -64,7 +69,7 @@ export class MCPTokenManager {
    */
   async getValidToken(): Promise<string> {
     // Try to get cached token
-    const cachedToken = await this.getCachedToken();
+    let cachedToken = await this.getCachedToken();
     
     if (cachedToken && this.isTokenValid(cachedToken)) {
       if (this.debugMode) {
@@ -116,9 +121,21 @@ export class MCPTokenManager {
 
   private async getCachedToken(): Promise<TokenData | null> {
     try {
+      // Try stable key first
       const tokenString = await getCredential(this.tokenCacheKey);
       if (tokenString) {
         return JSON.parse(tokenString);
+      }
+      // Fallback: migrate legacy key if present
+      const legacyTokenString = await getCredential(this.legacyTokenCacheKey);
+      if (legacyTokenString) {
+        if (this.debugMode) {
+          console.debug(`[MCP Token Manager] Migrating legacy token key for ${this.serverName}`);
+        }
+        // Persist under stable key and remove legacy entry
+        await setCredential(this.tokenCacheKey, legacyTokenString);
+        await deleteCredential(this.legacyTokenCacheKey);
+        return JSON.parse(legacyTokenString);
       }
     } catch (error) {
       if (this.debugMode) {
@@ -150,6 +167,39 @@ export class MCPTokenManager {
     
     // If no expiry, assume it's valid
     return true;
+  }
+
+  private buildStableCacheKey(): string {
+    const parts: string[] = ['mcp_oauth'];
+    const provider = this.config.provider || 'custom';
+    parts.push(provider);
+    // Try to derive a stable endpoint identity from httpUrl/url when present
+    try {
+      // Prefer HTTP URL if available, otherwise SSE URL; fallback to server name
+      const rawUrl = (globalThis as any).__mcp_server_http_url__ as string | undefined; // not set; just for types
+      const endpoint = (this as any).endpoint as string | undefined; // none
+      const urlStr = (endpoint as string) || '';
+    } catch {
+      // ignore
+    }
+    let host = '';
+    try {
+      // The OAuth flow is used for HTTP/SSE transports. Use the configured URLs if available.
+      const endpointUrl = (this as any).config?.['httpUrl'] || (this as any).config?.['url'];
+      if (endpointUrl) {
+        const u = new URL(endpointUrl);
+        host = `${u.protocol}//${u.host}${u.pathname.replace(/\/$/, '')}`;
+      }
+    } catch {
+      // ignore parsing failures
+    }
+    if (host) parts.push(host);
+    if (this.config.clientId) parts.push(`cid:${this.config.clientId}`);
+    // Join and sanitize to a keytar-friendly account name
+    const raw = parts.join('|');
+    // Keep it readable but safe
+    const safe = raw.replace(/[^a-zA-Z0-9:_|./-]/g, '_');
+    return safe;
   }
 
   private async refreshToken(refreshToken: string): Promise<TokenData> {
