@@ -72,12 +72,6 @@ async function getBrowserConfig(): Promise<BrowserConfig | null> {
   }
 }
 
-async function getChromeConfig(): Promise<{ chromePath: string | null }> {
-  const globalSettings = await getGlobalSettings();
-  return {
-    chromePath: (typeof globalSettings.chromePath === 'string' ? globalSettings.chromePath : null),
-  };
-}
 
 async function isBrowserAgentRunning(): Promise<boolean> {
   if (!fs.existsSync(BROWSER_AGENT_PID_FILE)) {

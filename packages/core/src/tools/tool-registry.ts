@@ -142,8 +142,13 @@ export class ToolRegistry {
     // Register the search index tool
     this.registerTool(new SearchIndexTool(this.config));
     
-    // Register the Browser Use API tool
-    this.registerTool(new BrowserUseTool(this.config));
+    // Register the Browser Use API tool only if local browser is not preferred
+    // This prevents conflicts when using the local browser-use MCP server
+    if (!process.env.PK_PREFER_LOCAL_BROWSER) {
+      this.registerTool(new BrowserUseTool(this.config));
+    } else if (this.config.getDebugMode()) {
+      console.debug('[Browser] Skipping cloud BrowserUseTool registration - local browser preferred');
+    }
   }
 
   /**

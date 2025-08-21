@@ -404,12 +404,6 @@ async function checkBrowserUseInstallation(): Promise<boolean> {
   return true;
 }
 
-async function getChromeConfig(): Promise<{ chromePath: string | null }> {
-  const globalSettings = await getGlobalSettings();
-  return {
-    chromePath: (typeof globalSettings.chromePath === 'string' ? globalSettings.chromePath : null),
-  };
-}
 
 async function getBrowserConfig(): Promise<any> {
   const { hasConfig, configSource } = await getBrowserMcpConfig();

@@ -310,6 +310,11 @@ The CLI automatically loads environment variables from an `.env` file. The loadi
 - **`CODE_ASSIST_ENDPOINT`**:
   - Specifies the endpoint for the code assist server.
   - This is useful for development and testing.
+- **`PK_PREFER_LOCAL_BROWSER`**:
+  - Set to `1` or `true` to prefer the local browser-use MCP server over the cloud Browser Use API.
+  - When set, automatically excludes the cloud `browser_use` tool and prevents cloud API authentication errors.
+  - Use this when running `/browser-use local` to ensure only the local browser agent is used.
+  - Example: `export PK_PREFER_LOCAL_BROWSER=1`
 
 ## Command-Line Arguments
 
