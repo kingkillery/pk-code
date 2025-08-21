@@ -7,6 +7,7 @@
 import yargs from 'yargs/yargs';
 import { hideBin } from 'yargs/helpers';
 import process from 'node:process';
+import fs from 'node:fs/promises';
 import {
   Config,
   loadServerHierarchicalMemory,
@@ -44,6 +45,7 @@ export interface CliArgs {
   debug: boolean | undefined;
   prompt: string | undefined;
   promptInteractive: string | undefined;
+  promptFile?: string | undefined;
   parallel: string | undefined;
   parallelTasks: number | undefined;
   allFiles: boolean | undefined;
@@ -88,10 +90,14 @@ export async function parseArguments(): Promise<CliArgs> {
         process.env.GEMINI_MODEL ||
         DEFAULT_GEMINI_MODEL,
     })
-    .option('prompt', {
+.option('prompt', {
       alias: 'p',
       type: 'string',
       description: 'Prompt. Appended to input on stdin (if any).',
+    })
+    .option('prompt-file', {
+      type: 'string',
+      description: 'Path to a file containing the prompt (useful for long or quote-heavy text).',
     })
     .option('prompt-interactive', {
       alias: 'i',
@@ -288,11 +294,17 @@ export async function parseArguments(): Promise<CliArgs> {
     .help()
     .alias('h', 'help')
     .strict()
-    .check((argv) => {
+.check((argv) => {
       if (argv.prompt && argv.promptInteractive) {
         throw new Error(
           'Cannot use both --prompt (-p) and --prompt-interactive (-i) together',
         );
+      }
+      if ((argv as any).promptFile && argv.prompt) {
+        throw new Error('Cannot use both --prompt (-p) and --prompt-file together');
+      }
+      if ((argv as any).promptFile && argv.promptInteractive) {
+        throw new Error('Cannot use both --prompt-interactive (-i) and --prompt-file together');
       }
       return true;
     });
@@ -424,13 +436,28 @@ export async function loadCliConfig(
 
   const sandboxConfig = await loadSandboxConfig(settings, argv);
 
+  // Resolve question/prompt from flags (support --prompt-file)
+  let resolvedQuestion = argv.promptInteractive || argv.prompt || '';
+  if (argv.promptFile) {
+    try {
+      resolvedQuestion = await fs.readFile(argv.promptFile, 'utf8');
+      if (!resolvedQuestion || resolvedQuestion.trim().length === 0) {
+        logger.warn(
+          `The prompt file "${argv.promptFile}" is empty. Proceeding with an empty prompt.`,
+        );
+      }
+    } catch (err) {
+      throw new Error(`Failed to read --prompt-file "${argv.promptFile}": ${String(err)}`);
+    }
+  }
+
   return new Config({
     sessionId,
     embeddingModel: DEFAULT_GEMINI_EMBEDDING_MODEL,
     sandbox: sandboxConfig,
     targetDir: process.cwd(),
     debugMode,
-    question: argv.promptInteractive || argv.prompt || '',
+    question: resolvedQuestion,
     fullContext: argv.allFiles || argv.all_files || false,
     coreTools: settings.coreTools || undefined,
     excludeTools,

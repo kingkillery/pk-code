@@ -19,9 +19,23 @@ These commands are run directly from your terminal.
       - **Description:** Lists all configured providers.
       - **Usage:** `pk config list`
 
-- **`pk generate <prompt>`**
+- **`pk generate \u003cprompt\u003e`**
   - **Description:** Generates code from a prompt using the configured provider.
   - **Usage:** `pk generate "create a react component that displays a button"`
+
+- **Non-interactive prompt flags**
+  - `-p, --prompt` String prompt. Appended to stdin if provided.
+  - `--prompt-file` Path to a file containing the prompt. Useful for long or quote-heavy text and Windows PowerShell.
+  - `-i, --prompt-interactive` Execute the provided prompt, then remain in interactive mode.
+  - Mutual exclusivity: Do not combine `--prompt-file` with `-p/--prompt` or `-i/--prompt-interactive`.
+  - Verify your setup (safe no-op): `pk --prompt-file prompt.txt --list-extensions`
+  - PowerShell examples:
+    - Here-string (safe for quotes and angle brackets):
+      `pk --prompt @'\nSystem for Judging "Interesting" AI Posts\n- criterion 1\n- criterion 2\n'@`
+    - File-based prompt:
+      `Set-Content -Path prompt.txt -Value @'\nSystem for Judging "Interesting" AI Posts\n- criterion 1\n- criterion 2\n'@ ; pk --prompt-file prompt.txt`
+    - Single-quoted inline (short prompts only):
+      `pk --prompt 'Short "quoted" prompt with > and < safely wrapped'`
 
 Slash commands provide meta-level control over the CLI itself.
 

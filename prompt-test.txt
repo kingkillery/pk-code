@@ -1,0 +1,4 @@
+System for Judging "Interesting" AI Posts
+- criterion 1
+- criterion 2
+

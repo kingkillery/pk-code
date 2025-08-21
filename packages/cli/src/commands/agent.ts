@@ -448,18 +448,30 @@ async function startBrowserAgent() {
     return;
   }
 
-  const { chromePath } = await getChromeConfig();
-  if (!chromePath || !fs.existsSync(chromePath)) {
-    console.error('Error: Chrome executable path is not configured or is invalid.');
-    console.error('Please run "pk config browser" to set the correct path to your Chrome/Chromium executable.');
-    return;
-  }
+  // Do not require a globally configured Chrome executable path.
+  // The browser-use CLI handles Chromium/Chrome resolution. We only need
+  // the MCP server configuration (and optional user data dir via env).
 
-  const browserConfig = await getBrowserConfig();
+  let browserConfig = await getBrowserConfig();
   if (!browserConfig) {
-    console.error('Error: browser-use MCP server configuration not found.');
-    console.error('Please run "pk config browser" to set up browser configuration.');
-    return;
+    // Synthesize a default configuration to avoid blocking startup
+    const settings = await getGlobalSettings();
+    const userDataDir = (settings as any)?.['browser-use']?.['userDataDir'];
+    if (process.platform === 'win32') {
+      browserConfig = {
+        command: 'cmd',
+        args: ['/c', 'uvx', '--from', 'browser-use[cli]', 'browser-use', '--mcp'],
+        env: userDataDir ? { BROWSER_USE_USER_DATA_DIR: String(userDataDir) } : {},
+        port: 3001,
+      };
+    } else {
+      browserConfig = {
+        command: 'bash',
+        args: ['-lc', 'uvx --from browser-use[cli] browser-use --mcp'],
+        env: userDataDir ? { BROWSER_USE_USER_DATA_DIR: String(userDataDir) } : {},
+        port: 3001,
+      };
+    }
   }
 
   const port = browserConfig.port || 3001;

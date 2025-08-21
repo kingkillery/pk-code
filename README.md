@@ -21,7 +21,15 @@ PK Code is a powerful AI-driven command-line interface that transforms how devel
 - [Node.js 20+](https://nodejs.org/en/download)
 - Your preferred AI provider API key
 
-### Installation
+## Installation
+
+## Verify installation
+
+- Check the installed version on npm:
+  - npm view pk-code-cli version
+- Confirm the CLI shows the new flag and runs with a file prompt (safe no-op):
+  - echo "Test" > prompt.txt (or use PowerShell Set-Content)
+  - pk --prompt-file prompt.txt --list-extensions
 
 #### From npm (Recommended)
 

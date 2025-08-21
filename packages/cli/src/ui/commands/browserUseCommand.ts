@@ -9,13 +9,14 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import { spawn } from 'child_process';
-import { exec } from 'child_process';
-import { promisify } from 'util';
-
-const execAsync = promisify(exec);
 const BROWSER_AGENT_PID_FILE = path.join('.taskmaster', 'browser-agent.pid');
 
-async function getGlobalSettings(): Promise<any> {
+interface GlobalSettings {
+  mcpServers?: Record<string, unknown>;
+  chromePath?: string;
+}
+
+async function getGlobalSettings(): Promise<GlobalSettings> {
   try {
     const settingsPath = path.join(os.homedir(), '.pk', 'settings.json');
     const data = await fs.promises.readFile(settingsPath, 'utf8');
@@ -47,7 +48,14 @@ async function getBrowserMcpConfig(): Promise<{ hasConfig: boolean; configSource
   return { hasConfig: false, configSource: '' };
 }
 
-async function getBrowserConfig(): Promise<any> {
+interface BrowserConfig {
+  command: string;
+  args?: string[];
+  env?: Record<string, string>;
+  port?: number;
+}
+
+async function getBrowserConfig(): Promise<BrowserConfig | null> {
   const { hasConfig, configSource } = await getBrowserMcpConfig();
   if (!hasConfig) {
     return null;
@@ -55,7 +63,7 @@ async function getBrowserConfig(): Promise<any> {
 
   if (configSource === 'global') {
     const globalSettings = await getGlobalSettings();
-    return (globalSettings.mcpServers as any)?.['browser-use'] || null;
+    return globalSettings.mcpServers?.['browser-use'] as BrowserConfig || null;
   } else {
     const mcpConfigFile = path.resolve('.mcp.json');
     const data = fs.readFileSync(mcpConfigFile, 'utf8');
@@ -93,22 +101,30 @@ async function startBrowserAgent(): Promise<{ success: boolean; message: string 
     return { success: true, message: 'Browser agent is already running' };
   }
 
-  // Check Chrome configuration
-  const { chromePath } = await getChromeConfig();
-  if (!chromePath || !fs.existsSync(chromePath)) {
-    return { 
-      success: false, 
-      message: 'Chrome path not configured. Please run "pk config browser" first to set up your Chrome/Chromium path.'
-    };
-  }
+  // No longer require a globally configured Chrome executable path.
+  // The browser-use CLI will manage Chromium/Chrome discovery itself, and
+  // we rely on `.mcp.json` (or global settings) for any needed user data dir.
 
-  // Check browser config
-  const browserConfig = await getBrowserConfig();
+  // Check browser config; if missing, synthesize a sensible default so we can start automatically
+  let browserConfig = await getBrowserConfig();
   if (!browserConfig) {
-    return { 
-      success: false, 
-      message: 'Browser-use MCP server not configured. Please run "pk config browser" to set up browser configuration.'
-    };
+    const globalSettings = await getGlobalSettings();
+    const userDataDir = (globalSettings as any)?.['browser-use']?.['userDataDir'];
+    if (process.platform === 'win32') {
+      browserConfig = {
+        command: 'cmd',
+        args: ['/c', 'uvx', '--from', 'browser-use[cli]', 'browser-use', '--mcp'],
+        env: userDataDir ? { BROWSER_USE_USER_DATA_DIR: String(userDataDir) } : {},
+        port: 3001,
+      };
+    } else {
+      browserConfig = {
+        command: 'bash',
+        args: ['-lc', 'uvx --from browser-use[cli] browser-use --mcp'],
+        env: userDataDir ? { BROWSER_USE_USER_DATA_DIR: String(userDataDir) } : {},
+        port: 3001,
+      };
+    }
   }
 
   // Create .taskmaster directory if it doesn't exist
@@ -118,7 +134,7 @@ async function startBrowserAgent(): Promise<{ success: boolean; message: string 
   }
 
   // Start the agent
-  const spawnOptions: any = {
+  const spawnOptions: Parameters<typeof spawn>[2] = {
     detached: true,
     stdio: 'ignore',
     env: { ...process.env, ...browserConfig.env },
