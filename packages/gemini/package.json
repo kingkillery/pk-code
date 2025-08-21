@@ -10,7 +10,7 @@
     "test": "echo \"No tests specified\" && exit 0"
   },
   "dependencies": {
-    "@pk-code/core": "0.0.3-alpha",
+    "@pk-code/core": "file:../core",
     "@google/genai": "^1.11.0"
   },
   "devDependencies": {

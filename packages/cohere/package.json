@@ -10,7 +10,7 @@
     "test": "echo \"No tests specified\" && exit 0"
   },
   "dependencies": {
-    "@pk-code/core": "0.0.3-alpha",
+    "@pk-code/core": "file:../core",
     "cohere-ai": "^7.0.0"
   },
   "devDependencies": {
