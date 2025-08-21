@@ -1,6 +1,8 @@
-# Testing Browser Use API Integration in PK Code
+# Testing Browser Use Integration in PK Code
 
-## Setup
+PK Code supports two modes of browser automation: Cloud API and Local MCP Server.
+
+## Cloud API Mode Setup
 
 1. Set your Browser Use API key as an environment variable:
    ```powershell
@@ -10,6 +12,27 @@
 2. Run PK Code:
    ```powershell
    pk
+   ```
+
+## Local Browser Mode Setup
+
+1. Set the environment variable to prefer local browser:
+   ```powershell
+   $env:PK_PREFER_LOCAL_BROWSER = "1"
+   ```
+
+2. Run PK Code:
+   ```powershell
+   pk
+   ```
+
+3. Start the local browser agent:
+   ```
+   /browser-use local
+   ```
+   Or use the agent command:
+   ```powershell
+   pk agent start browser
    ```
 
 ## Test Commands
@@ -70,6 +93,8 @@ Example natural language requests:
 
 ## Troubleshooting
 
+### Cloud API Mode Issues
+
 If you see an error about the API key not being configured:
 1. Make sure you've set the BROWSER_USE_API_KEY environment variable
 2. Restart PK Code after setting the environment variable
@@ -78,3 +103,32 @@ If tasks fail:
 1. Check that your API key is valid
 2. Ensure you have sufficient credits in your Browser Use account
 3. Check the error messages returned by the tool for specific issues
+
+### Local Browser Mode Issues
+
+If you see 401 authentication errors when using local browser:
+1. Make sure you've set `PK_PREFER_LOCAL_BROWSER=1`
+2. This prevents the cloud API from being called
+
+If the local browser agent won't start:
+1. Check if port 3001 is already in use
+2. Ensure you have browser-use CLI installed: `pip install browser-use[cli]`
+3. Check if there's a stale PID file: `.taskmaster/browser-agent.pid`
+
+To stop the local browser agent:
+```powershell
+pk agent stop browser
+```
+
+### Choosing Between Modes
+
+- **Use Cloud API when:**
+  - You need reliable browser automation in production
+  - You want to avoid local resource consumption
+  - You're running in CI/CD environments
+
+- **Use Local Browser when:**
+  - You don't have a Browser Use API key
+  - You're developing/testing browser automation
+  - You need to interact with local/internal websites
+  - You want to see the browser actions visually

@@ -154,11 +154,13 @@ pk "Convert this design mockup into React components"
 
 ## 🌐 Browser Automation
 
-PK Code includes built-in browser automation capabilities through the Browser Use API, allowing the agent to interact with live websites and web applications.
+PK Code supports browser automation through two methods: the cloud-based Browser Use API and a local browser-use MCP server, providing flexibility for different use cases.
 
 ### Features
 
+- **Dual Mode Support**: Choose between cloud API or local browser automation
 - **Cloud-based Browser Control**: Execute browser automation tasks through the Browser Use API
+- **Local Browser Agent**: Run browser automation locally via MCP integration
 - **UI Interaction**: Click, type, and read content from web pages
 - **Structured Output**: Get results in specified JSON formats
 - **Task Monitoring**: Real-time streaming of task execution steps
@@ -166,29 +168,61 @@ PK Code includes built-in browser automation capabilities through the Browser Us
 
 ### Configuration
 
-To use browser automation features, set your Browser Use API key:
+#### Cloud API Mode (Default)
+
+To use cloud-based browser automation, set your Browser Use API key:
 
 ```bash
 export BROWSER_USE_API_KEY="your-api-key-here"
 ```
 
-### Usage
+#### Local Browser Mode
 
-The browser automation tool is available as `browser_use` and can be used directly in PK Code:
+For local browser automation without cloud dependencies:
+
+```bash
+# Prevent cloud API conflicts when using local browser
+export PK_PREFER_LOCAL_BROWSER=1
+
+# Start the local browser agent
+pk
+> /browser-use local
+```
+
+### Usage Examples
+
+#### Cloud API Usage
 
 ```bash
 > pk
 > Use browser_use to go to google.com and search for AI news
 ```
 
-### Example
+#### Local Browser Agent Usage
 
 ```bash
+# Set environment variable to prefer local browser
+export PK_PREFER_LOCAL_BROWSER=1
+
+# Start PK Code
 > pk
-> agent start browser
-Browser agent started...
+> /browser-use local
+Local browser agent is ready!
 > Navigate to https://github.com/kingkillery/pk-code and tell me how many open issues there are.
 ```
+
+### Environment Variables
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `BROWSER_USE_API_KEY` | API key for cloud Browser Use service | For cloud mode |
+| `PK_PREFER_LOCAL_BROWSER` | Set to `1` to disable cloud API and use local browser only | For local mode |
+
+### Troubleshooting
+
+- **Authentication errors**: If you see 401 errors when using local browser, ensure `PK_PREFER_LOCAL_BROWSER=1` is set
+- **Port conflicts**: The local browser agent uses port 3001 by default
+- **Agent management**: Use `pk agent stop browser` to stop the local browser agent
 
 ## 🔌 MCP Server Integration
 

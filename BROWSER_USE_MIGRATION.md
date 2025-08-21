@@ -38,6 +38,8 @@ The Browser Use API is now integrated directly as a built-in tool in PK Code:
 - ✅ Seamless integration with other PK Code tools
 
 ### Usage
+
+#### Cloud API Mode (Default)
 ```bash
 # Set API key
 export BROWSER_USE_API_KEY="your-api-key"
@@ -49,6 +51,43 @@ pk
 > Use browser_use to search Google for AI news
 ```
 
+#### Local Browser Mode (MCP Server)
+```bash
+# Prevent cloud API conflicts
+export PK_PREFER_LOCAL_BROWSER=1
+
+# Run PK Code
+pk
+
+# Start local browser agent
+> /browser-use local
+
+# Use local browser automation
+> Navigate to google.com and search for AI news
+```
+
+## Dual Mode Support
+
+PK Code now supports both cloud and local browser automation:
+
+1. **Cloud Mode**: Direct Browser Use API integration (default)
+   - Requires: `BROWSER_USE_API_KEY`
+   - Tool name: `browser_use`
+   - No additional setup needed
+
+2. **Local Mode**: Browser-use MCP server
+   - Requires: `PK_PREFER_LOCAL_BROWSER=1`
+   - Start with: `/browser-use local` or `pk agent start browser`
+   - Uses local browser instance
+
+### Environment Variable: PK_PREFER_LOCAL_BROWSER
+
+When set to `1` or `true`, this variable:
+- Disables the cloud `browser_use` tool registration
+- Prevents cloud API authentication errors
+- Ensures only local MCP browser tools are available
+- Useful for development or when cloud API is not available
+
 ## Configuration Cleanup Complete
 
-All MCP server configurations and related files for browser-use have been successfully removed. The Browser Use API now operates as a native, hardcoded tool within PK Code, providing a cleaner and more efficient integration.
+The Browser Use API operates as a native tool within PK Code while maintaining backward compatibility with the local MCP server approach, providing flexibility for different use cases.

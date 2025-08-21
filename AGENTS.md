@@ -153,30 +153,81 @@ See also: `packages/core/src/agents/ARCHITECTURE.md` for deeper orchestration de
 
 ## Integration Points
 
+### MCP (Model Context Protocol) Servers
+- Tools can be discovered from MCP servers
+- Configuration via `mcpServers` in settings.json or `.mcp.json`
+- Support for stdio, SSE, HTTP streaming, and WebSocket transports
+- Automatic tool discovery and registration
+
 ## Browser Automation Integration
 
-The Browser Use API is now directly integrated into PK Code CLI as a built-in tool, allowing agents to interact with live web applications through cloud-based browser automation.
+PK Code supports browser automation through two distinct methods: the cloud-based Browser Use API and the local browser-use MCP server. This dual approach provides flexibility for different use cases and environments.
 
-### Enabling Browser Automation
+### Cloud Browser Use API (Default)
 
-To enable browser automation, simply set your Browser Use API key:
+The Browser Use API is directly integrated as a built-in tool, allowing agents to interact with live web applications through cloud-based browser automation.
 
+**Enabling:**
 ```bash
 export BROWSER_USE_API_KEY="your-api-key-here"
 ```
 
-### Using Browser Automation
-
-The `browser_use` tool is automatically available in PK Code and can be used to:
+**Features:**
 - Create browser automation tasks
 - Monitor task execution with real-time step streaming
 - Get task status and details
 - Control task execution (pause/resume/stop)
 - Get structured JSON output from web pages
 
-Example usage:
+### Local Browser Use MCP Server
+
+For local browser automation without cloud dependencies, use the browser-use CLI MCP integration.
+
+**Starting the local browser agent:**
 ```bash
-# Use natural language to interact with Browser Use
+# Interactive mode
 pk
-> Use browser_use to go to hackernews and get the top 5 story titles
+> /browser-use local
+
+# Or via agent command
+pk agent start browser
+```
+
+**Preventing Cloud API Conflicts:**
+
+When using the local browser agent, set the `PK_PREFER_LOCAL_BROWSER` environment variable to prevent cloud API authentication errors:
+
+```bash
+# Windows (PowerShell)
+$env:PK_PREFER_LOCAL_BROWSER = "1"
+
+# Linux/Mac
+export PK_PREFER_LOCAL_BROWSER=1
+```
+
+This environment variable:
+- Prevents the cloud `browser_use` tool from being registered
+- Automatically excludes it from the available tools list
+- Ensures only the local MCP browser tools are available
+- Avoids authentication errors from the cloud API
+
+### Browser Automation Best Practices
+
+1. **Choose the right mode**: Use cloud API for production/CI environments, local MCP for development
+2. **Resource management**: Local browser automation consumes system resources; monitor usage
+3. **Error handling**: Implement proper timeouts and error recovery for browser tasks
+4. **Security**: Never expose API keys in code; use environment variables
+5. **Testing**: Mock browser interactions in unit tests; use real browser for integration tests
+
+### Example Usage
+
+```bash
+# Cloud API usage (requires BROWSER_USE_API_KEY)
+pk
+> Use browser_use to navigate to hackernews and get the top 5 story titles
+
+# Local MCP usage (requires PK_PREFER_LOCAL_BROWSER=1)
+pk
+> /browser-use local
+> Navigate to google.com and search for AI news
 ```
