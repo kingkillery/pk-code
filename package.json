@@ -1,7 +1,7 @@
 {
   "name": "pk-code-cli",
   "version": "0.0.13",
-  "description": "PK Code - AI-powered coding assistant CLI with interactive terminal interface",
+  "description": "PK Code — a developer-first AI coding CLI to generate, edit, and review code from your terminal. Includes an interactive TUI, repo-aware context, and sensible defaults for daily workflows.",
   "keywords": [
     "ai",
     "cli",
@@ -73,11 +73,11 @@
     "LICENSE"
   ],
   "devDependencies": {
-    "@types/node": "^20.11.24",
     "@types/js-yaml": "^4.0.9",
     "@types/micromatch": "^4.0.9",
     "@types/mime-types": "^3.0.1",
     "@types/minimatch": "^5.1.2",
+    "@types/node": "^20.11.24",
     "@types/semver": "^7.7.0",
     "@types/shell-quote": "^1.7.5",
     "@types/uuid": "^10.0.0",
@@ -104,7 +104,6 @@
     "yargs": "^18.0.0"
   },
   "dependencies": {
-    "lowlight": "^3.3.0",
     "@google/genai": "^1.11.0",
     "@opentelemetry/api": "^1.9.0",
     "@opentelemetry/api-logs": "^0.203.0",
@@ -128,6 +127,7 @@
     "ignore": "^7.0.5",
     "ink-text-input": "^6.0.0",
     "keytar": "^7.9.0",
+    "lowlight": "^3.3.0",
     "mem0ai": "^2.1.36",
     "openai": "^5.10.2",
     "simple-git": "^3.28.0",

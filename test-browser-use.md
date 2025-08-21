@@ -2,6 +2,10 @@
 
 PK Code supports two modes of browser automation: Cloud API and Local MCP Server.
 
+## Live Progress Streaming
+
+Browser tasks support incremental progress streaming. When you include `waitForCompletion: true`, the `browser_use` tool emits live step updates that appear in the UI while the task runs. Cancellation is immediate and will not retry in-flight requests triggered by the user.
+
 ## Cloud API Mode Setup
 
 1. Set your Browser Use API key as an environment variable:
@@ -37,7 +41,7 @@ PK Code supports two modes of browser automation: Cloud API and Local MCP Server
 
 ## Test Commands
 
-Once PK Code is running, you can test the Browser Use integration with these commands:
+Once PK Code is running, you can test the Browser Use integration with these commands. When using `waitForCompletion: true`, you will see live progress streamed in the UI as the task runs:
 
 ### 1. Create a simple browser automation task:
 ```

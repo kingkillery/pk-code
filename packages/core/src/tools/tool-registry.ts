@@ -15,6 +15,7 @@ import { parse } from 'shell-quote';
 import { MultimodalContentGenerator } from '../core/contentGenerator.js';
 import { SearchIndexTool } from './search-index.js';
 import { BrowserUseTool } from './browser-use-tool.js';
+import { FlowPkTool } from './flowpk-tool.js';
 
 type ToolParams = Record<string, unknown>;
 
@@ -149,6 +150,9 @@ export class ToolRegistry {
     } else if (this.config.getDebugMode()) {
       console.debug('[Browser] Skipping cloud BrowserUseTool registration - local browser preferred');
     }
+
+    // Register FlowPK tool (delegates to BrowserUseTool under the hood)
+    this.registerTool(new FlowPkTool(this.config));
   }
 
   /**
