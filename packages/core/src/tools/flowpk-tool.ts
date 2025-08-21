@@ -76,7 +76,7 @@ export class FlowPkTool extends BaseTool<FlowPkParams, ToolResult> {
     // Users can later refine to explicit NAVIGATE/CLICK/TYPE/etc.
     return [
       `# Auto-generated from one-liner`,
-      `NOTE "${text.replace(/\"/g, '"')}"`,
+      `NOTE "${text.replace(/\\"/g, '"')}"`,
       `# Add explicit steps as needed (NAVIGATE, WAIT_FOR, CLICK, TYPE, EXTRACT, IF/WHILE, etc.)`,
     ].join('\n');
   }
@@ -100,7 +100,7 @@ export class FlowPkTool extends BaseTool<FlowPkParams, ToolResult> {
         push(`Set variable: ${line.slice(4)}`);
       } else if (upper.startsWith('NAVIGATE ')) {
         const arg = line.slice('NAVIGATE'.length).trim();
-        push(`Navigate to ${arg.replace(/^[\"']|[\"']$/g, '')}.`);
+        push(`Navigate to ${arg.replace(/^['"]|['"]$/g, '')}.`);
       } else if (upper.startsWith('CLICK ')) {
         const sel = line.slice('CLICK'.length).trim();
         push(`Click element matching ${sel}.`);
@@ -153,7 +153,6 @@ export class FlowPkTool extends BaseTool<FlowPkParams, ToolResult> {
     signal: AbortSignal,
     updateOutput?: (output: string) => void,
   ): Promise<ToolResult> {
-    const action = params.action;
     const wait = params.waitForCompletion ?? true;
     const poll = params.pollInterval ?? 2;
 
