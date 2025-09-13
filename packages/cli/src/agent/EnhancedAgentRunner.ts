@@ -1,4 +1,8 @@
-import { AgentConfig, createCodeAssistContentGenerator, AuthType } from '@pk-code/core';
+import {
+  AgentConfig,
+  createCodeAssistContentGenerator,
+  AuthType,
+} from '@pk-code/core';
 import { Config } from '@pk-code/core/src/config/config.js';
 
 export type AgentStatus = 'pending' | 'running' | 'success' | 'error';
@@ -14,10 +18,13 @@ export class EnhancedAgentRunner {
     this.sessionId = sessionId || Math.random().toString(36).substring(2, 15);
   }
 
-  async run(query: string, config: Config): Promise<{output: string, sessionId: string}> {
+  async run(
+    query: string,
+    config: Config,
+  ): Promise<{ output: string; sessionId: string }> {
     this.status = 'running';
     this.latestOutput = `Agent "${this.agent.name}" is running with isolated context...`;
-    
+
     try {
       // Create isolated content generator for this agent
       const version = process.env.CLI_VERSION || process.version;
@@ -62,28 +69,29 @@ export class EnhancedAgentRunner {
 
       this.status = 'success';
       this.latestOutput = responseText;
-      
+
       return {
         output: responseText,
-        sessionId: this.sessionId
+        sessionId: this.sessionId,
       };
     } catch (error) {
       this.status = 'error';
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       this.latestOutput = `Error during agent execution: ${errorMessage}`;
-      
+
       return {
         output: this.latestOutput,
-        sessionId: this.sessionId
+        sessionId: this.sessionId,
       };
     }
   }
-  
-  getStatus(): { status: AgentStatus, output: string, sessionId: string } {
+
+  getStatus(): { status: AgentStatus; output: string; sessionId: string } {
     return {
       status: this.status,
       output: this.latestOutput,
-      sessionId: this.sessionId
+      sessionId: this.sessionId,
     };
   }
 }

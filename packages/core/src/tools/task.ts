@@ -264,9 +264,9 @@ export class TaskTool extends BaseTool<TaskParams, ToolResult> {
       // Find appropriate agent for the subagent type
       const subagentInfo =
         SUBAGENT_TYPES[params.subagent_type as keyof typeof SUBAGENT_TYPES];
-      const matchingAgents = this.agentRegistry.findAgents(
-        [...subagentInfo.keywords],
-      );
+      const matchingAgents = this.agentRegistry.findAgents([
+        ...subagentInfo.keywords,
+      ]);
 
       if (matchingAgents.length === 0) {
         // Create a virtual agent if no specific agent is found

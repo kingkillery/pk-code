@@ -48,13 +48,18 @@ export class MemoryService {
   private config: MemoryServiceConfig;
   private initialized = false;
 
-  constructor(private pkConfig: Config, memoryConfig: Partial<MemoryServiceConfig> = {}) {
+  constructor(
+    private pkConfig: Config,
+    memoryConfig: Partial<MemoryServiceConfig> = {},
+  ) {
     // Prepare mem0 configuration with API key from environment
-    const defaultMem0Config = process.env.MEM0_API_KEY ? {
-      apiKey: process.env.MEM0_API_KEY,
-    } : {
-      apiKey: 'dummy-key', // Required by MemoryClient but will fail gracefully
-    };
+    const defaultMem0Config = process.env.MEM0_API_KEY
+      ? {
+          apiKey: process.env.MEM0_API_KEY,
+        }
+      : {
+          apiKey: 'dummy-key', // Required by MemoryClient but will fail gracefully
+        };
 
     this.config = {
       enabled: process.env.MEM0_ENABLED === 'true' || false,
@@ -77,7 +82,7 @@ export class MemoryService {
       const options = this.config.mem0Config as unknown as Mem0ClientOptions;
       this.memory = new MemoryClient(options);
       this.initialized = true;
-      
+
       if (this.pkConfig.getDebugMode()) {
         console.debug('[MemoryService] Initialized with config:', {
           enabled: this.config.enabled,
@@ -94,9 +99,12 @@ export class MemoryService {
   /**
    * Store a memory entry for later retrieval
    */
-  async addMemory(content: string, metadata: Record<string, unknown> = {}): Promise<void> {
+  async addMemory(
+    content: string,
+    metadata: Record<string, unknown> = {},
+  ): Promise<void> {
     if (!this.config.enabled) return;
-    
+
     await this.initialize();
     if (!this.memory) return;
 
@@ -109,10 +117,12 @@ export class MemoryService {
       };
 
       // Convert content to Messages format required by mem0ai
-      const messages = [{
-        role: 'user' as const,
-        content,
-      }];
+      const messages = [
+        {
+          role: 'user' as const,
+          content,
+        },
+      ];
 
       await this.memory.add(messages, {
         user_id: this.config.userId,
@@ -120,7 +130,10 @@ export class MemoryService {
       });
 
       if (this.pkConfig.getDebugMode()) {
-        console.debug('[MemoryService] Added memory:', { content, metadata: enrichedMetadata });
+        console.debug('[MemoryService] Added memory:', {
+          content,
+          metadata: enrichedMetadata,
+        });
       }
     } catch (error) {
       console.warn('[MemoryService] Failed to add memory:', error);
@@ -132,7 +145,7 @@ export class MemoryService {
    */
   async searchMemories(query: string, limit = 5): Promise<SearchResult[]> {
     if (!this.config.enabled) return [];
-    
+
     await this.initialize();
     if (!this.memory) return [];
 
@@ -143,20 +156,25 @@ export class MemoryService {
       });
 
       // Search returns Array<Memory> directly, not wrapped in results
-      const searchResults: SearchResult[] = results.map((result: {
-        id?: string;
-        memory?: string;
-        score?: number;
-        metadata?: Record<string, unknown>;
-      }) => ({
-        id: result.id || '',
-        memory: result.memory || '',
-        score: result.score || 0,
-        metadata: result.metadata || {},
-      }));
+      const searchResults: SearchResult[] = results.map(
+        (result: {
+          id?: string;
+          memory?: string;
+          score?: number;
+          metadata?: Record<string, unknown>;
+        }) => ({
+          id: result.id || '',
+          memory: result.memory || '',
+          score: result.score || 0,
+          metadata: result.metadata || {},
+        }),
+      );
 
       if (this.pkConfig.getDebugMode()) {
-        console.debug('[MemoryService] Search results:', { query, count: searchResults.length });
+        console.debug('[MemoryService] Search results:', {
+          query,
+          count: searchResults.length,
+        });
       }
 
       return searchResults;
@@ -169,14 +187,17 @@ export class MemoryService {
   /**
    * Store task-specific context for long-term persistence
    */
-  async addTaskContext(taskId: string, context: {
-    description?: string;
-    approach?: string;
-    challenges?: string;
-    solutions?: string;
-    filesPaths?: string[];
-    status?: string;
-  }): Promise<void> {
+  async addTaskContext(
+    taskId: string,
+    context: {
+      description?: string;
+      approach?: string;
+      challenges?: string;
+      solutions?: string;
+      filesPaths?: string[];
+      status?: string;
+    },
+  ): Promise<void> {
     const contextString = [
       context.description && `Task: ${context.description}`,
       context.approach && `Approach: ${context.approach}`,
@@ -184,7 +205,9 @@ export class MemoryService {
       context.solutions && `Solutions: ${context.solutions}`,
       context.filesPaths?.length && `Files: ${context.filesPaths.join(', ')}`,
       context.status && `Status: ${context.status}`,
-    ].filter(Boolean).join('\n');
+    ]
+      .filter(Boolean)
+      .join('\n');
 
     await this.addMemory(contextString, {
       type: 'task_context',
@@ -196,10 +219,14 @@ export class MemoryService {
   /**
    * Cache embedding queries to reduce API calls
    */
-  async cacheEmbeddingQuery(query: string, results: Array<Record<string, unknown>>): Promise<void> {
-    const cacheEntry = `Embedding search for "${query}" returned ${results.length} results: ${
-      results.slice(0, 3).map(r => r.filePath).join(', ')
-    }`;
+  async cacheEmbeddingQuery(
+    query: string,
+    results: Array<Record<string, unknown>>,
+  ): Promise<void> {
+    const cacheEntry = `Embedding search for "${query}" returned ${results.length} results: ${results
+      .slice(0, 3)
+      .map((r) => r.filePath)
+      .join(', ')}`;
 
     await this.addMemory(cacheEntry, {
       type: 'embedding_cache',
@@ -238,7 +265,7 @@ export class MemoryService {
    */
   async getAllMemories(): Promise<MemoryEntry[]> {
     if (!this.config.enabled) return [];
-    
+
     await this.initialize();
     if (!this.memory) return [];
 
@@ -279,7 +306,7 @@ export class MemoryService {
    */
   async clearAllMemories(): Promise<void> {
     if (!this.config.enabled) return;
-    
+
     await this.initialize();
     if (!this.memory) return;
 
@@ -289,7 +316,10 @@ export class MemoryService {
       });
 
       if (this.pkConfig.getDebugMode()) {
-        console.debug('[MemoryService] Cleared all memories for user:', this.config.userId);
+        console.debug(
+          '[MemoryService] Cleared all memories for user:',
+          this.config.userId,
+        );
       }
     } catch (error) {
       console.warn('[MemoryService] Failed to clear memories:', error);

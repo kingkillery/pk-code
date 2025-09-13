@@ -97,6 +97,7 @@ import { handleCreateAgentCommand } from './commands/create-agent.js';
 
 import { handleParallelCommand } from './commands/parallel.js';
 
+import { handleMemoryCommand } from './commands/memory.js';
 
 export async function main() {
   const argv = await parseArguments();
@@ -137,6 +138,21 @@ export async function main() {
   if (argv._[0] === 'create-agent') {
     handleCreateAgentCommand();
     return;
+  }
+  if (argv._[0] === 'memory') {
+    const config = await loadCliConfig(
+      settings.merged,
+      extensions,
+      sessionId,
+      argv,
+    );
+    await config.initialize();
+    await handleMemoryCommand(
+      config,
+      argv._[1] as string,
+      argv._.slice(2) as string[],
+    );
+    process.exit(0);
   }
 
   // Handle parallel command

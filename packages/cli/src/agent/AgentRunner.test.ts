@@ -61,14 +61,14 @@ describe('AgentRunner', () => {
     it('should handle multiple concurrent runs', async () => {
       // Start first run
       const firstRun = agentRunner.run();
-      
+
       // Check first run state
       expect(agentRunner.status).toBe('running');
       expect(agentRunner.latestOutput).toBe('Agent is running...');
-      
+
       // Start second run while first is still running
       const secondRun = agentRunner.run();
-      
+
       // Both should complete successfully
       await Promise.all([firstRun, secondRun]);
       expect(agentRunner.status).toBe('success');
@@ -80,16 +80,16 @@ describe('AgentRunner', () => {
     it('should transition from pending to running to success', async () => {
       // Initially pending
       expect(agentRunner.status).toBe('pending');
-      
+
       // Run the agent
       const runPromise = agentRunner.run();
-      
+
       // Should be running
       expect(agentRunner.status).toBe('running');
-      
+
       // Wait for completion
       await runPromise;
-      
+
       // Should be success
       expect(agentRunner.status).toBe('success');
     });

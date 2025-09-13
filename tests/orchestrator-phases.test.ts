@@ -10,23 +10,41 @@ import { Orchestrator } from 'path-to-orchestrator-implementation';
 vi.mock('path-to-orchestrator-implementation', () => ({
   Orchestrator: class {
     async phasePareto() {
-      return { status: 'success', phase: 'pareto', details: 'Mock Pareto phase details' };
+      return {
+        status: 'success',
+        phase: 'pareto',
+        details: 'Mock Pareto phase details',
+      };
     }
     async phaseStrategic() {
-      return { status: 'success', phase: 'strategic', details: 'Mock Strategic phase details' };
+      return {
+        status: 'success',
+        phase: 'strategic',
+        details: 'Mock Strategic phase details',
+      };
     }
     async phaseExecution() {
-      return { status: 'success', phase: 'execution', details: 'Mock Execution phase details' };
+      return {
+        status: 'success',
+        phase: 'execution',
+        details: 'Mock Execution phase details',
+      };
     }
     async validateTransition(fromPhase, toPhase) {
       if (fromPhase === 'pareto' && toPhase === 'strategic') {
-        return { status: 'success', message: 'Transition from Pareto to Strategic successful' };
+        return {
+          status: 'success',
+          message: 'Transition from Pareto to Strategic successful',
+        };
       } else if (fromPhase === 'strategic' && toPhase === 'execution') {
-        return { status: 'success', message: 'Transition from Strategic to Execution successful' };
+        return {
+          status: 'success',
+          message: 'Transition from Strategic to Execution successful',
+        };
       }
       return { status: 'failure', message: 'Invalid phase transition' };
     }
-  }
+  },
 }));
 
 describe('Orchestrator Phase Transitions with Validation', () => {
@@ -35,13 +53,20 @@ describe('Orchestrator Phase Transitions with Validation', () => {
   it('should validate transition from Pareto to Strategic', async () => {
     const result = await orchestrator.validateTransition('pareto', 'strategic');
     expect(result.status).toBe('success');
-    expect(result.message).toBe('Transition from Pareto to Strategic successful');
+    expect(result.message).toBe(
+      'Transition from Pareto to Strategic successful',
+    );
   });
 
   it('should validate transition from Strategic to Execution', async () => {
-    const result = await orchestrator.validateTransition('strategic', 'execution');
+    const result = await orchestrator.validateTransition(
+      'strategic',
+      'execution',
+    );
     expect(result.status).toBe('success');
-    expect(result.message).toBe('Transition from Strategic to Execution successful');
+    expect(result.message).toBe(
+      'Transition from Strategic to Execution successful',
+    );
   });
 
   it('should fail on invalid transition', async () => {
@@ -50,507 +75,6 @@ describe('Orchestrator Phase Transitions with Validation', () => {
     expect(result.message).toBe('Invalid phase transition');
   });
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 describe('Orchestrator Phase Transitions', () => {
   const orchestrator = new Orchestrator();
@@ -573,4 +97,3 @@ describe('Orchestrator Phase Transitions', () => {
     expect(result.phase).toBe('execution');
   });
 });
-

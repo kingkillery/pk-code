@@ -47,7 +47,7 @@ export function safeJsonParse<T = unknown>(
   options: SafeJsonParseOptions = {},
 ): SafeJsonParseResult<T> {
   const { maxSize, context } = options;
-  
+
   try {
     // Check for empty or whitespace-only input
     if (!jsonString || typeof jsonString !== 'string') {
@@ -134,7 +134,7 @@ export async function safeJsonParseResponse<T = unknown>(
 
     // Get response text
     const text = await response.text();
-    
+
     // Use the string parsing function
     return safeJsonParse<T>(text, {
       ...options,

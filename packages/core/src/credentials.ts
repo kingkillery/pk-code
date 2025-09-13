@@ -20,7 +20,9 @@ type CredentialStore = {
 let cachedStore: CredentialStore | null = null;
 
 function shouldDisableSecureStore(): boolean {
-  const v = String(process.env.PK_DISABLE_SECURE_STORE || process.env.NO_KEYTAR || '').toLowerCase();
+  const v = String(
+    process.env.PK_DISABLE_SECURE_STORE || process.env.NO_KEYTAR || '',
+  ).toLowerCase();
   return v === '1' || v === 'true' || v === 'yes';
 }
 
@@ -37,7 +39,9 @@ async function getFileStore(): Promise<CredentialStore> {
     try {
       const raw = await fs.readFile(credPath, 'utf-8');
       const parsed = JSON.parse(raw);
-      return parsed && typeof parsed === 'object' ? (parsed as Record<string, string>) : {};
+      return parsed && typeof parsed === 'object'
+        ? (parsed as Record<string, string>)
+        : {};
     } catch {
       return {};
     }

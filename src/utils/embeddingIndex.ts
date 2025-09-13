@@ -37,7 +37,7 @@ export class EmbeddingIndex {
     this.config = config;
     this.indexPath = path.join(indexDir, 'embeddings.index');
     this.metadataPath = path.join(indexDir, 'metadata.json');
-    
+
     // Ensure index directory exists
     if (!fs.existsSync(indexDir)) {
       fs.mkdirSync(indexDir, { recursive: true });
@@ -52,7 +52,11 @@ export class EmbeddingIndex {
       if (!apiKey) {
         throw new Error('OpenAI API key not configured');
       }
-      this.contentGenerator = new OpenAIContentGenerator(apiKey, 'text-embedding-3-large', this.config);
+      this.contentGenerator = new OpenAIContentGenerator(
+        apiKey,
+        'text-embedding-3-large',
+        this.config,
+      );
     }
     return this.contentGenerator;
   }
@@ -60,9 +64,11 @@ export class EmbeddingIndex {
   private loadMetadata(): void {
     try {
       if (fs.existsSync(this.metadataPath)) {
-        const metadata: IndexMetadata = JSON.parse(fs.readFileSync(this.metadataPath, 'utf-8'));
+        const metadata: IndexMetadata = JSON.parse(
+          fs.readFileSync(this.metadataPath, 'utf-8'),
+        );
         this.documents.clear();
-        metadata.documents.forEach(doc => {
+        metadata.documents.forEach((doc) => {
           this.documents.set(doc.id, doc);
         });
         this.dimension = metadata.dimension;
@@ -77,7 +83,7 @@ export class EmbeddingIndex {
       documents: Array.from(this.documents.values()),
       dimension: this.dimension,
       version: '1.0.0',
-      lastUpdated: Date.now()
+      lastUpdated: Date.now(),
     };
 
     fs.writeFileSync(this.metadataPath, JSON.stringify(metadata, null, 2));
@@ -86,13 +92,13 @@ export class EmbeddingIndex {
   private async getEmbedding(text: string): Promise<number[]> {
     const generator = await this.getContentGenerator();
     const response = await generator.embedContent({
-      contents: [{ parts: [{ text }] }]
+      contents: [{ parts: [{ text }] }],
     });
-    
+
     if (!response.embeddings || response.embeddings.length === 0) {
       throw new Error('Failed to generate embedding');
     }
-    
+
     return response.embeddings[0].values || [];
   }
 
@@ -101,7 +107,7 @@ export class EmbeddingIndex {
     let hash = 0;
     for (let i = 0; i < content.length; i++) {
       const char = content.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash; // Convert to 32-bit integer
     }
     return hash.toString();
@@ -110,7 +116,9 @@ export class EmbeddingIndex {
   async addOrUpdateDocument(filePath: string, content: string): Promise<void> {
     const docId = filePath;
     const hash = this.generateHash(content);
-    const lastModified = fs.existsSync(filePath) ? fs.statSync(filePath).mtime.getTime() : Date.now();
+    const lastModified = fs.existsSync(filePath)
+      ? fs.statSync(filePath).mtime.getTime()
+      : Date.now();
 
     // Check if document already exists and hasn't changed
     const existingDoc = this.documents.get(docId);
@@ -123,7 +131,7 @@ export class EmbeddingIndex {
       filePath,
       lastModified,
       content,
-      hash
+      hash,
     };
 
     this.documents.set(docId, metadata);
@@ -132,20 +140,43 @@ export class EmbeddingIndex {
 
   async buildIndex(rootPath: string): Promise<void> {
     console.log('Building embedding index for repository...');
-    
-    const supportedExtensions = ['.ts', '.js', '.tsx', '.jsx', '.py', '.java', '.cpp', '.c', '.h', '.md', '.txt', '.json', '.yaml', '.yml'];
+
+    const supportedExtensions = [
+      '.ts',
+      '.js',
+      '.tsx',
+      '.jsx',
+      '.py',
+      '.java',
+      '.cpp',
+      '.c',
+      '.h',
+      '.md',
+      '.txt',
+      '.json',
+      '.yaml',
+      '.yml',
+    ];
     const filesToIndex: string[] = [];
 
     const walkDirectory = (dir: string) => {
       const entries = fs.readdirSync(dir);
-      
+
       for (const entry of entries) {
         const fullPath = path.join(dir, entry);
         const stat = fs.statSync(fullPath);
-        
+
         if (stat.isDirectory()) {
           // Skip common directories that shouldn't be indexed
-          if (!['node_modules', '.git', 'dist', 'build', '.embedding-index'].includes(entry)) {
+          if (
+            ![
+              'node_modules',
+              '.git',
+              'dist',
+              'build',
+              '.embedding-index',
+            ].includes(entry)
+          ) {
             walkDirectory(fullPath);
           }
         } else if (stat.isFile()) {
@@ -177,9 +208,11 @@ export class EmbeddingIndex {
           } catch (error) {
             console.warn(`Failed to index file ${filePath}:`, error);
           }
-        })
+        }),
       );
-      console.log(`Processed batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(filesToIndex.length / batchSize)}`);
+      console.log(
+        `Processed batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(filesToIndex.length / batchSize)}`,
+      );
     }
 
     // Build FAISS index using Python subprocess
@@ -233,12 +266,15 @@ else:
     print("No embeddings generated")
 `;
 
-    const scriptPath = path.join(path.dirname(this.indexPath), 'build_index.py');
+    const scriptPath = path.join(
+      path.dirname(this.indexPath),
+      'build_index.py',
+    );
     fs.writeFileSync(scriptPath, pythonScript);
 
     return new Promise((resolve, reject) => {
       const pythonProcess = spawn('python', [scriptPath], {
-        stdio: ['pipe', 'pipe', 'pipe']
+        stdio: ['pipe', 'pipe', 'pipe'],
       });
 
       let stdout = '';
@@ -265,7 +301,9 @@ else:
           resolve();
         } else {
           console.error('FAISS index build failed:', stderr);
-          reject(new Error(`Python process exited with code ${code}: ${stderr}`));
+          reject(
+            new Error(`Python process exited with code ${code}: ${stderr}`),
+          );
         }
       });
 
@@ -275,14 +313,17 @@ else:
     });
   }
 
-  async search(query: string, topK: number = 5): Promise<{ filePath: string; content: string; score: number }[]> {
+  async search(
+    query: string,
+    topK: number = 5,
+  ): Promise<{ filePath: string; content: string; score: number }[]> {
     if (!fs.existsSync(this.indexPath)) {
       throw new Error('FAISS index not found. Please build the index first.');
     }
 
     // Generate embedding for query
     const queryEmbedding = await this.getEmbedding(query);
-    
+
     // Create Python script to search FAISS index
     const pythonScript = `
 import json
@@ -319,12 +360,15 @@ for i, (distance, idx) in enumerate(zip(distances[0], indices[0])):
 print(json.dumps(results))
 `;
 
-    const scriptPath = path.join(path.dirname(this.indexPath), 'search_index.py');
+    const scriptPath = path.join(
+      path.dirname(this.indexPath),
+      'search_index.py',
+    );
     fs.writeFileSync(scriptPath, pythonScript);
 
     return new Promise((resolve, reject) => {
       const pythonProcess = spawn('python', [scriptPath], {
-        stdio: ['pipe', 'pipe', 'pipe']
+        stdio: ['pipe', 'pipe', 'pipe'],
       });
 
       let stdout = '';
@@ -367,7 +411,9 @@ print(json.dumps(results))
   getIndexStats(): { documentCount: number; lastUpdated: number } {
     return {
       documentCount: this.documents.size,
-      lastUpdated: Math.max(...Array.from(this.documents.values()).map(doc => doc.lastModified))
+      lastUpdated: Math.max(
+        ...Array.from(this.documents.values()).map((doc) => doc.lastModified),
+      ),
     };
   }
 }

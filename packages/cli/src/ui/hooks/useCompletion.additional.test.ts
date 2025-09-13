@@ -64,14 +64,7 @@ describe('useCompletion - Additional Tests', () => {
   describe('Edge cases and error handling', () => {
     it('should handle empty command list gracefully', () => {
       const { result } = renderHook(() =>
-        useCompletion(
-          '/',
-          testCwd,
-          true,
-          [],
-          mockCommandContext,
-          mockConfig,
-        ),
+        useCompletion('/', testCwd, true, [], mockCommandContext, mockConfig),
       );
 
       expect(result.current.suggestions).toHaveLength(0);
@@ -213,14 +206,7 @@ describe('useCompletion - Additional Tests', () => {
       ]);
 
       const { result } = renderHook(() =>
-        useCompletion(
-          '@',
-          testCwd,
-          true,
-          [],
-          mockCommandContext,
-          mockConfig,
-        ),
+        useCompletion('@', testCwd, true, [], mockCommandContext, mockConfig),
       );
 
       await act(async () => {
@@ -239,14 +225,7 @@ describe('useCompletion - Additional Tests', () => {
       vi.mocked(glob).mockResolvedValue([`${testCwd}/${longFileName}`]);
 
       const { result } = renderHook(() =>
-        useCompletion(
-          '@a',
-          testCwd,
-          true,
-          [],
-          mockCommandContext,
-          mockConfig,
-        ),
+        useCompletion('@a', testCwd, true, [], mockCommandContext, mockConfig),
       );
 
       await act(async () => {

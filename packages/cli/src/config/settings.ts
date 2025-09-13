@@ -70,6 +70,7 @@ export interface Settings {
   checkpointing?: CheckpointingSettings;
   autoConfigureMaxOldSpaceSize?: boolean;
   enableOpenAILogging?: boolean;
+  defaultModel?: string;
 
   // Git-aware file filtering settings
   fileFiltering?: {

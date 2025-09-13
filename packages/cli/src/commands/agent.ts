@@ -17,7 +17,9 @@ async function getGlobalSettings(): Promise<Record<string, unknown>> {
       const data = fs.readFileSync(GLOBAL_SETTINGS_FILE, 'utf8');
       return JSON.parse(data);
     } catch (error) {
-      console.warn(`Warning: Failed to parse ${GLOBAL_SETTINGS_FILE}: ${error}`);
+      console.warn(
+        `Warning: Failed to parse ${GLOBAL_SETTINGS_FILE}: ${error}`,
+      );
       return {};
     }
   }
@@ -182,7 +184,9 @@ async function handleListAgents(): Promise<void> {
           const yamlMatch = agent.systemPrompt?.match(/---\n([\s\S]*?)\n---/);
           if (yamlMatch && yamlMatch[1]) {
             const yamlLines = yamlMatch[1].split('\n');
-            const colorLine = yamlLines.find(line => line.startsWith('color:'));
+            const colorLine = yamlLines.find((line) =>
+              line.startsWith('color:'),
+            );
             if (colorLine) {
               const color = colorLine.split(':')[1].trim();
               colorIndicator = ` (${color})`;
@@ -192,12 +196,13 @@ async function handleListAgents(): Promise<void> {
       } catch (_e) {
         // Ignore parsing errors
       }
-      
+
       // Get tools info
-      const toolsInfo = agent.tools && agent.tools.length > 0 
-        ? ` [${agent.tools.map((t: { name: string }) => t.name).join(', ')}]` 
-        : ' [all tools]';
-      
+      const toolsInfo =
+        agent.tools && agent.tools.length > 0
+          ? ` [${agent.tools.map((t: { name: string }) => t.name).join(', ')}]`
+          : ' [all tools]';
+
       console.log(`- ${agent.name}${colorIndicator}${toolsInfo}`);
     }
     console.log('\nFor more details, use `pk agent show <agent-name>`.');
@@ -240,7 +245,7 @@ async function handleShowAgent(agentName: string): Promise<void> {
     console.log(`
 🤖 Agent: ${agent.name}
 `);
-    
+
     // Extract color from YAML frontmatter if available
     let color = 'default';
     try {
@@ -249,7 +254,7 @@ async function handleShowAgent(agentName: string): Promise<void> {
         const yamlMatch = agent.systemPrompt?.match(/---\n([\s\S]*?)\n---/);
         if (yamlMatch && yamlMatch[1]) {
           const yamlLines = yamlMatch[1].split('\n');
-          const colorLine = yamlLines.find(line => line.startsWith('color:'));
+          const colorLine = yamlLines.find((line) => line.startsWith('color:'));
           if (colorLine) {
             color = colorLine.split(':')[1].trim();
           }
@@ -258,7 +263,7 @@ async function handleShowAgent(agentName: string): Promise<void> {
     } catch (_e) {
       // Ignore parsing errors
     }
-    
+
     console.log(`  Description: ${agent.description || 'No description'}`);
     console.log(`  Color: ${color}`);
     console.log(`  Keywords: ${(agent.keywords || []).join(', ')}`);
@@ -270,11 +275,16 @@ async function handleShowAgent(agentName: string): Promise<void> {
     );
     if (agent.examples && agent.examples.length > 0) {
       console.log('\n  Examples:');
-      agent.examples.forEach((example: { input: string; output: string; description?: string }, index: number) => {
-        console.log(`    ${index + 1}. ${example.description || 'Example'}:`);
-        console.log(`       Input: ${example.input}`);
-        console.log(`       Output: ${example.output}`);
-      });
+      agent.examples.forEach(
+        (
+          example: { input: string; output: string; description?: string },
+          index: number,
+        ) => {
+          console.log(`    ${index + 1}. ${example.description || 'Example'}:`);
+          console.log(`       Input: ${example.input}`);
+          console.log(`       Output: ${example.output}`);
+        },
+      );
     }
     if (agent.systemPrompt) {
       // Extract just the system prompt content, not the full markdown with frontmatter
@@ -284,24 +294,32 @@ async function handleShowAgent(agentName: string): Promise<void> {
         if (contentLines.length > 0 && contentLines[0].startsWith('---')) {
           // Find the end of the frontmatter
           let frontmatterEndIndex = 1;
-          while (frontmatterEndIndex < contentLines.length && contentLines[frontmatterEndIndex] !== '---') {
+          while (
+            frontmatterEndIndex < contentLines.length &&
+            contentLines[frontmatterEndIndex] !== '---'
+          ) {
             frontmatterEndIndex++;
           }
           if (frontmatterEndIndex < contentLines.length) {
-            promptContent = contentLines.slice(frontmatterEndIndex + 1).join('\n').trim();
+            promptContent = contentLines
+              .slice(frontmatterEndIndex + 1)
+              .join('\n')
+              .trim();
           }
         }
       } catch (_e) {
         // Fallback to original content if parsing fails
       }
-      
+
       if (promptContent) {
         console.log('\n---\nSystem Prompt:');
         // Limit the output to prevent overwhelming the terminal
         const lines = promptContent.split('\n');
         if (lines.length > 50) {
           console.log(lines.slice(0, 50).join('\n'));
-          console.log(`\n... (showing first 50 lines, ${lines.length - 50} more lines available)`);
+          console.log(
+            `\n... (showing first 50 lines, ${lines.length - 50} more lines available)`,
+          );
         } else {
           console.log(promptContent);
         }
@@ -357,9 +375,17 @@ async function handleDeleteAgent(agentName: string): Promise<void> {
 }
 
 // Helper function to check for browser-use MCP server configuration
-async function getBrowserMcpConfig(): Promise<{ hasConfig: boolean; configSource: string }> {
+async function getBrowserMcpConfig(): Promise<{
+  hasConfig: boolean;
+  configSource: string;
+}> {
   const globalSettings = await getGlobalSettings();
-  if (globalSettings.mcpServers && typeof globalSettings.mcpServers === 'object' && globalSettings.mcpServers !== null && 'browser-use' in globalSettings.mcpServers) {
+  if (
+    globalSettings.mcpServers &&
+    typeof globalSettings.mcpServers === 'object' &&
+    globalSettings.mcpServers !== null &&
+    'browser-use' in globalSettings.mcpServers
+  ) {
     return { hasConfig: true, configSource: 'global' };
   }
 
@@ -383,7 +409,12 @@ async function isPortInUse(port: number): Promise<boolean> {
   return new Promise((resolve) => {
     const server = net.createServer();
     server.once('error', (err: NodeJS.ErrnoException | { code?: unknown }) => {
-      if (err && typeof err === 'object' && 'code' in err && err.code === 'EADDRINUSE') {
+      if (
+        err &&
+        typeof err === 'object' &&
+        'code' in err &&
+        err.code === 'EADDRINUSE'
+      ) {
         resolve(true);
       } else {
         resolve(false);
@@ -397,13 +428,10 @@ async function isPortInUse(port: number): Promise<boolean> {
   });
 }
 
-
-
 // Rely on configured MCP command (e.g., uvx) rather than requiring a local/global Node package
 async function checkBrowserUseInstallation(): Promise<boolean> {
   return true;
 }
-
 
 async function getBrowserConfig(): Promise<Record<string, unknown> | null> {
   const { hasConfig, configSource } = await getBrowserMcpConfig();
@@ -413,7 +441,10 @@ async function getBrowserConfig(): Promise<Record<string, unknown> | null> {
 
   if (configSource === 'global') {
     const globalSettings = await getGlobalSettings();
-    return (globalSettings.mcpServers as Record<string, unknown>)?.['browser-use'] || null;
+    return (
+      (globalSettings.mcpServers as Record<string, unknown>)?.['browser-use'] ||
+      null
+    );
   } else {
     const mcpConfigFile = path.resolve('.mcp.json');
     const data = fs.readFileSync(mcpConfigFile, 'utf8');
@@ -427,10 +458,14 @@ async function startBrowserAgent() {
     const pid = parseInt(fs.readFileSync(BROWSER_AGENT_PID_FILE, 'utf8'), 10);
     try {
       process.kill(pid, 0);
-      console.log(`Browser agent is already running with PID: ${pid}. To stop it, run "pk agent stop browser".`);
+      console.log(
+        `Browser agent is already running with PID: ${pid}. To stop it, run "pk agent stop browser".`,
+      );
       return;
     } catch (_error) {
-      console.warn('Found stale PID file from a previous session. Removing it.');
+      console.warn(
+        'Found stale PID file from a previous session. Removing it.',
+      );
       fs.unlinkSync(BROWSER_AGENT_PID_FILE);
     }
   }
@@ -450,19 +485,32 @@ async function startBrowserAgent() {
   if (!browserConfig) {
     // Synthesize a default configuration to avoid blocking startup
     const settings = await getGlobalSettings();
-    const userDataDir = (settings as Record<string, unknown>)?.['browser-use']?.['userDataDir'];
+    const userDataDir = (settings as Record<string, unknown>)?.[
+      'browser-use'
+    ]?.['userDataDir'];
     if (process.platform === 'win32') {
       browserConfig = {
         command: 'cmd',
-        args: ['/c', 'uvx', '--from', 'browser-use[cli]', 'browser-use', '--mcp'],
-        env: userDataDir ? { BROWSER_USE_USER_DATA_DIR: String(userDataDir) } : {},
+        args: [
+          '/c',
+          'uvx',
+          '--from',
+          'browser-use[cli]',
+          'browser-use',
+          '--mcp',
+        ],
+        env: userDataDir
+          ? { BROWSER_USE_USER_DATA_DIR: String(userDataDir) }
+          : {},
         port: 3001,
       };
     } else {
       browserConfig = {
         command: 'bash',
         args: ['-lc', 'uvx --from browser-use[cli] browser-use --mcp'],
-        env: userDataDir ? { BROWSER_USE_USER_DATA_DIR: String(userDataDir) } : {},
+        env: userDataDir
+          ? { BROWSER_USE_USER_DATA_DIR: String(userDataDir) }
+          : {},
         port: 3001,
       };
     }
@@ -470,8 +518,12 @@ async function startBrowserAgent() {
 
   const port = browserConfig.port || 3001;
   if (await isPortInUse(port)) {
-    console.error(`Error: Port ${port} is already in use. The browser agent requires this port.`);
-    console.error('Please stop the process using this port or configure a different port for the browser agent.');
+    console.error(
+      `Error: Port ${port} is already in use. The browser agent requires this port.`,
+    );
+    console.error(
+      'Please stop the process using this port or configure a different port for the browser agent.',
+    );
     return;
   }
 
@@ -486,14 +538,20 @@ async function startBrowserAgent() {
     env: { ...process.env, ...browserConfig.env },
   };
 
-  const child = spawn(browserConfig.command, browserConfig.args || [], spawnOptions);
+  const child = spawn(
+    browserConfig.command,
+    browserConfig.args || [],
+    spawnOptions,
+  );
   child.unref();
 
   if (child.pid) {
     fs.writeFileSync(BROWSER_AGENT_PID_FILE, String(child.pid));
     console.log(`Browser agent started successfully with PID: ${child.pid}.`);
   } else {
-    console.error('Failed to start the browser agent. Please check your configuration and try again.');
+    console.error(
+      'Failed to start the browser agent. Please check your configuration and try again.',
+    );
   }
 }
 
@@ -514,19 +572,23 @@ async function stopBrowserAgent() {
     } else {
       process.kill(pid, 'SIGTERM');
       // Add a small delay to allow graceful shutdown before sending SIGKILL
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
       process.kill(pid, 'SIGKILL');
     }
     console.log(`Browser agent with PID ${pid} stopped successfully.`);
   } catch (error) {
     if (error instanceof Error && error.message.includes('ESRCH')) {
       // Process not found, clean up the stale PID file
-      console.warn(`Stale PID file found for a non-existent process (PID: ${pid}). Cleaning up.`);
+      console.warn(
+        `Stale PID file found for a non-existent process (PID: ${pid}). Cleaning up.`,
+      );
     } else {
       // On Windows, taskkill might fail if the process is already gone.
       // On other platforms, process.kill will throw an error.
       if (!/not found/i.test((error as Error).message)) {
-        console.error(`Error stopping browser agent: ${(error as Error).message}`);
+        console.error(
+          `Error stopping browser agent: ${(error as Error).message}`,
+        );
       }
     }
   } finally {
@@ -536,15 +598,14 @@ async function stopBrowserAgent() {
   }
 }
 
-
-
-
 async function handleRunAgents(agentNames: string[]): Promise<void> {
   const projectRoot = process.cwd();
   const agentsDir = getAgentsDir(projectRoot);
 
   // Import the enhanced agent runner
-  const { EnhancedAgentRunner } = await import('../agent/EnhancedAgentRunner.js');
+  const { EnhancedAgentRunner } = await import(
+    '../agent/EnhancedAgentRunner.js'
+  );
 
   const runners = await Promise.all(
     agentNames.map(async (agentName) => {
@@ -554,7 +615,7 @@ async function handleRunAgents(agentNames: string[]): Promise<void> {
 
       for (const ext of possibleExtensions) {
         const testPath = path.join(agentsDir, baseFileName + ext);
-         
+
         try {
           await fs.promises.access(testPath);
           filePath = testPath;

@@ -16,6 +16,7 @@ import { MultimodalContentGenerator } from '../core/contentGenerator.js';
 import { SearchIndexTool } from './search-index.js';
 import { BrowserUseTool } from './browser-use-tool.js';
 import { FlowPkTool } from './flowpk-tool.js';
+import { TodoToolWrapper } from './todo-tool-wrapper.js';
 
 type ToolParams = Record<string, unknown>;
 
@@ -142,17 +143,22 @@ export class ToolRegistry {
   private initializeBuiltInTools(): void {
     // Register the search index tool
     this.registerTool(new SearchIndexTool(this.config));
-    
+
     // Register the Browser Use API tool only if local browser is not preferred
     // This prevents conflicts when using the local browser-use MCP server
     if (!process.env.PK_PREFER_LOCAL_BROWSER) {
       this.registerTool(new BrowserUseTool(this.config));
     } else if (this.config.getDebugMode()) {
-      console.debug('[Browser] Skipping cloud BrowserUseTool registration - local browser preferred');
+      console.debug(
+        '[Browser] Skipping cloud BrowserUseTool registration - local browser preferred',
+      );
     }
 
     // Register FlowPK tool (delegates to BrowserUseTool under the hood)
     this.registerTool(new FlowPkTool(this.config));
+
+    // Register Todo tool for task management
+    this.registerTool(new TodoToolWrapper(this.config));
   }
 
   /**

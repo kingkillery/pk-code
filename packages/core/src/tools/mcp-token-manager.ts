@@ -9,10 +9,14 @@ import * as http from 'node:http';
 import * as net from 'node:net';
 import * as url from 'node:url';
 import open from 'open';
-import { getCredential, setCredential, deleteCredential } from '../credentials.js';
+import {
+  getCredential,
+  setCredential,
+  deleteCredential,
+} from '../credentials.js';
 
 export interface OAuthConfig {
-  provider: 'notion' | 'custom';
+  provider: 'custom';
   clientId?: string;
   clientSecret?: string;
   authorizationUrl?: string;
@@ -31,17 +35,7 @@ interface TokenData {
 }
 
 // Provider-specific OAuth configurations
-const OAUTH_PROVIDERS = {
-  notion: {
-    authorizationUrl: 'https://api.notion.com/v1/oauth/authorize',
-    tokenUrl: 'https://api.notion.com/v1/oauth/token',
-    scopes: ['read_content', 'update_content', 'insert_content'],
-    // Notion requires a client ID and secret from an integration
-    // These would need to be registered with Notion
-    clientId: process.env.NOTION_OAUTH_CLIENT_ID,
-    clientSecret: process.env.NOTION_OAUTH_CLIENT_SECRET,
-  },
-};
+const _OAUTH_PROVIDERS = {};
 
 /**
  * Manages OAuth tokens for MCP servers
@@ -53,7 +47,11 @@ export class MCPTokenManager {
   private tokenCacheKey: string;
   private legacyTokenCacheKey: string;
 
-  constructor(serverName: string, config: OAuthConfig, debugMode: boolean = false) {
+  constructor(
+    serverName: string,
+    config: OAuthConfig,
+    debugMode: boolean = false,
+  ) {
     this.serverName = serverName;
     this.config = this.resolveProviderConfig(config);
     this.debugMode = debugMode;
@@ -70,10 +68,12 @@ export class MCPTokenManager {
   async getValidToken(): Promise<string> {
     // Try to get cached token
     const cachedToken = await this.getCachedToken();
-    
+
     if (cachedToken && this.isTokenValid(cachedToken)) {
       if (this.debugMode) {
-        console.debug(`[MCP Token Manager] Using cached token for ${this.serverName}`);
+        console.debug(
+          `[MCP Token Manager] Using cached token for ${this.serverName}`,
+        );
       }
       return cachedToken.access_token;
     }
@@ -81,12 +81,17 @@ export class MCPTokenManager {
     // Try to refresh if we have a refresh token
     if (cachedToken?.refresh_token) {
       try {
-        const refreshedToken = await this.refreshToken(cachedToken.refresh_token);
+        const refreshedToken = await this.refreshToken(
+          cachedToken.refresh_token,
+        );
         await this.cacheToken(refreshedToken);
         return refreshedToken.access_token;
       } catch (error) {
         if (this.debugMode) {
-          console.debug(`[MCP Token Manager] Refresh failed for ${this.serverName}:`, error);
+          console.debug(
+            `[MCP Token Manager] Refresh failed for ${this.serverName}:`,
+            error,
+          );
         }
       }
     }
@@ -106,16 +111,6 @@ export class MCPTokenManager {
   }
 
   private resolveProviderConfig(config: OAuthConfig): OAuthConfig {
-    if (config.provider === 'notion') {
-      const providerDefaults = OAUTH_PROVIDERS.notion;
-      return {
-        ...providerDefaults,
-        ...config,
-        clientId: config.clientId || providerDefaults.clientId,
-        clientSecret: config.clientSecret || providerDefaults.clientSecret,
-        scopes: config.scopes || providerDefaults.scopes,
-      };
-    }
     return config;
   }
 
@@ -130,7 +125,9 @@ export class MCPTokenManager {
       const legacyTokenString = await getCredential(this.legacyTokenCacheKey);
       if (legacyTokenString) {
         if (this.debugMode) {
-          console.debug(`[MCP Token Manager] Migrating legacy token key for ${this.serverName}`);
+          console.debug(
+            `[MCP Token Manager] Migrating legacy token key for ${this.serverName}`,
+          );
         }
         // Persist under stable key and remove legacy entry
         await setCredential(this.tokenCacheKey, legacyTokenString);
@@ -148,9 +145,9 @@ export class MCPTokenManager {
   private async cacheToken(token: TokenData): Promise<void> {
     // Calculate expiry time if not provided
     if (!token.expires_at && token.expires_in) {
-      token.expires_at = Date.now() + (token.expires_in * 1000);
+      token.expires_at = Date.now() + token.expires_in * 1000;
     }
-    
+
     await setCredential(this.tokenCacheKey, JSON.stringify(token));
   }
 
@@ -158,13 +155,13 @@ export class MCPTokenManager {
     if (!token.access_token) {
       return false;
     }
-    
+
     // Check expiry with 5 minute buffer
     if (token.expires_at) {
       const bufferMs = 5 * 60 * 1000; // 5 minutes
-      return token.expires_at > (Date.now() + bufferMs);
+      return token.expires_at > Date.now() + bufferMs;
     }
-    
+
     // If no expiry, assume it's valid
     return true;
   }
@@ -177,7 +174,8 @@ export class MCPTokenManager {
     let host = '';
     try {
       // The OAuth flow is used for HTTP/SSE transports. Use the configured URLs if available.
-      const endpointUrl = this.config?.httpUrl || this.config?.url;
+      const endpointUrl =
+        this.config?.tokenUrl || this.config?.authorizationUrl;
       if (endpointUrl) {
         const u = new URL(endpointUrl);
         host = `${u.protocol}//${u.host}${u.pathname.replace(/\/$/, '')}`;
@@ -223,7 +221,7 @@ export class MCPTokenManager {
       throw new Error(`Token refresh failed: ${response.statusText}`);
     }
 
-    return await response.json() as TokenData;
+    return (await response.json()) as TokenData;
   }
 
   private async initiateOAuthFlow(): Promise<TokenData> {
@@ -232,7 +230,9 @@ export class MCPTokenManager {
     }
 
     if (!this.config.clientId) {
-      throw new Error(`OAuth client ID not configured. Please set ${this.serverName.toUpperCase()}_OAUTH_CLIENT_ID environment variable`);
+      throw new Error(
+        `OAuth client ID not configured. Please set ${this.serverName.toUpperCase()}_OAUTH_CLIENT_ID environment variable`,
+      );
     }
 
     // Determine redirect URI and callback port
@@ -241,7 +241,11 @@ export class MCPTokenManager {
     if (this.config.redirectUri) {
       const u = new URL(this.config.redirectUri);
       // If no explicit port, infer from protocol
-      callbackPort = u.port ? Number(u.port) : (u.protocol === 'https:' ? 443 : 80);
+      callbackPort = u.port
+        ? Number(u.port)
+        : u.protocol === 'https:'
+          ? 443
+          : 80;
       redirectUri = this.config.redirectUri;
     } else {
       callbackPort = await this.getAvailablePort();
@@ -258,15 +262,11 @@ export class MCPTokenManager {
     authUrl.searchParams.append('redirect_uri', redirectUri);
     authUrl.searchParams.append('response_type', 'code');
     authUrl.searchParams.append('state', state);
-    // Notion requires owner=user for OAuth authorization
-    if (this.config.provider === 'notion') {
-      authUrl.searchParams.append('owner', 'user');
-    }
-    
+
     // Add PKCE parameters for security
     authUrl.searchParams.append('code_challenge', codeChallenge);
     authUrl.searchParams.append('code_challenge_method', 'S256');
-    
+
     if (this.config.scopes && this.config.scopes.length > 0) {
       authUrl.searchParams.append('scope', this.config.scopes.join(' '));
     }
@@ -284,12 +284,15 @@ export class MCPTokenManager {
     return await this.exchangeCodeForToken(authCode, redirectUri, codeVerifier);
   }
 
-  private async waitForCallback(port: number, expectedState: string): Promise<string> {
+  private async waitForCallback(
+    port: number,
+    expectedState: string,
+  ): Promise<string> {
     return new Promise((resolve, reject) => {
       const server = http.createServer(async (req, res) => {
         try {
           const parsedUrl = new url.URL(req.url!, `http://localhost:${port}`);
-          
+
           if (parsedUrl.pathname !== '/oauth/callback') {
             res.writeHead(404);
             res.end('Not found');
@@ -345,12 +348,15 @@ export class MCPTokenManager {
       });
 
       server.listen(port);
-      
+
       // Timeout after 5 minutes
-      setTimeout(() => {
-        server.close();
-        reject(new Error('OAuth callback timeout'));
-      }, 5 * 60 * 1000);
+      setTimeout(
+        () => {
+          server.close();
+          reject(new Error('OAuth callback timeout'));
+        },
+        5 * 60 * 1000,
+      );
     });
   }
 
@@ -383,11 +389,13 @@ export class MCPTokenManager {
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`Token exchange failed: ${response.statusText} - ${errorText}`);
+      throw new Error(
+        `Token exchange failed: ${response.statusText} - ${errorText}`,
+      );
     }
 
-    const tokenData = await response.json() as unknown as Partial<TokenData>;
-    
+    const tokenData = (await response.json()) as unknown as Partial<TokenData>;
+
     // Ensure we have the expected token structure
     if (!tokenData.access_token) {
       throw new Error('Invalid token response: missing access_token');
@@ -413,9 +421,6 @@ export class MCPTokenManager {
   }
 
   private generateCodeChallenge(verifier: string): string {
-    return crypto
-      .createHash('sha256')
-      .update(verifier)
-      .digest('base64url');
+    return crypto.createHash('sha256').update(verifier).digest('base64url');
   }
 }

@@ -26,7 +26,8 @@ export class RunPdbTestTool extends BaseTool<RunPdbTestParams, ToolResult> {
         properties: {
           testPath: {
             type: Type.STRING,
-            description: 'Path to the test file to run with PDB (relative to project root)',
+            description:
+              'Path to the test file to run with PDB (relative to project root)',
           },
         },
         required: ['testPath'],
@@ -38,7 +39,7 @@ export class RunPdbTestTool extends BaseTool<RunPdbTestParams, ToolResult> {
 
   async execute({ testPath }: RunPdbTestParams): Promise<ToolResult> {
     const fullPath = path.resolve(testPath);
-    
+
     return new Promise<ToolResult>((resolve) => {
       // Use pytest with PDB for better test debugging
       const child = spawn('python', ['-m', 'pytest', '--pdb', '-s', fullPath], {
@@ -87,7 +88,10 @@ export class RunPdbTestTool extends BaseTool<RunPdbTestParams, ToolResult> {
     });
   }
 
-  private parsePdbOutput(stdout: string, stderr: string): {
+  private parsePdbOutput(
+    stdout: string,
+    stderr: string,
+  ): {
     summary: string;
     stackTrace: string;
     locals: string;
@@ -103,10 +107,14 @@ export class RunPdbTestTool extends BaseTool<RunPdbTestParams, ToolResult> {
 
     for (const line of lines) {
       // Look for test failures or errors
-      if (line.includes('FAILED') || line.includes('ERROR') || line.includes('AssertionError')) {
+      if (
+        line.includes('FAILED') ||
+        line.includes('ERROR') ||
+        line.includes('AssertionError')
+      ) {
         summary = `Test failure detected: ${line.trim()}`;
       }
-      
+
       // Extract stack traces (lines starting with '>' or containing file paths)
       if (line.includes('->') || line.match(/^\s*File "/)) {
         stackTrace += line + '\n';

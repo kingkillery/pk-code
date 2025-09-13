@@ -9,12 +9,12 @@ import {
   setOpenAIModel,
   setOpenRouterModel,
   validateOpenRouterModel,
-  validateGeminiModel,
   getAvailableOpenAIModels,
   getAvailableOpenRouterModels,
   getAvailableGeminiModels,
 } from '../../config/auth.js';
 import { type Command } from './types.js';
+import { SettingScope } from '../../config/settings.js';
 
 export const modelCommand: Command = {
   name: 'model',
@@ -123,6 +123,15 @@ export const modelCommand: Command = {
 
       config.setModel(newModel);
 
+      // Save the model as the default for future sessions
+      if (context.services.settings) {
+        context.services.settings.setValue(
+          SettingScope.User,
+          'defaultModel',
+          newModel,
+        );
+      }
+
       // For OpenRouter, refresh the content generator to pick up the new model
       if (authType === 'openrouter') {
         try {
@@ -136,7 +145,7 @@ export const modelCommand: Command = {
       return {
         type: 'message',
         messageType: 'info',
-        content: `Switched model to: ${newModel}`,
+        content: `Switched model to: ${newModel} (saved as default)`,
       };
     } catch (error) {
       return {

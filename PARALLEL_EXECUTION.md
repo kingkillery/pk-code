@@ -27,21 +27,25 @@ The parallel execution feature allows users to run multiple prompts simultaneous
 ### Key Features
 
 #### 1. Concurrency Control
+
 - Configurable maximum number of parallel tasks
 - Semaphore-based task scheduling
 - Prevents system overload while maximizing throughput
 
 #### 2. Process Management
+
 - Each task spawns a separate `pk` process
 - Isolated execution environments
 - Proper cleanup on termination or errors
 
 #### 3. Output Management
+
 - Real-time progress tracking
 - Separate output files for each task
 - Comprehensive execution summary
 
 #### 4. Error Handling
+
 - Individual task failure doesn't affect others
 - Detailed error reporting
 - Graceful cleanup on interruption
@@ -77,11 +81,11 @@ class ParallelTaskExecutor {
   private maxConcurrency: number;
   private results: Map<string, ParallelTaskResult>;
   private tempDir: string;
-  
-  async execute(): Promise<ParallelTaskResult[]>
-  private async executeTask(task: ParallelTaskConfig): Promise<void>
-  private printSummary(results: ParallelTaskResult[]): void
-  private cleanup(): Promise<void>
+
+  async execute(): Promise<ParallelTaskResult[]>;
+  private async executeTask(task: ParallelTaskConfig): Promise<void>;
+  private printSummary(results: ParallelTaskResult[]): void;
+  private cleanup(): Promise<void>;
 }
 ```
 
@@ -113,6 +117,7 @@ interface ParallelTaskResult {
 ### Process Spawning
 
 Each task spawns a new `pk` process with:
+
 - Isolated working directory
 - Environment variables for task identification
 - Redirected stdout/stderr to separate files
@@ -121,6 +126,7 @@ Each task spawns a new `pk` process with:
 ### Concurrency Management
 
 The executor uses a semaphore pattern to control concurrency:
+
 1. Tasks wait for available execution slots
 2. Maximum concurrency is configurable
 3. Completed tasks release their slots for waiting tasks

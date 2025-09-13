@@ -26,9 +26,17 @@ async function getGlobalSettings(): Promise<GlobalSettings> {
   }
 }
 
-async function getBrowserMcpConfig(): Promise<{ hasConfig: boolean; configSource: string }> {
+async function getBrowserMcpConfig(): Promise<{
+  hasConfig: boolean;
+  configSource: string;
+}> {
   const globalSettings = await getGlobalSettings();
-  if (globalSettings.mcpServers && typeof globalSettings.mcpServers === 'object' && globalSettings.mcpServers !== null && 'browser-use' in globalSettings.mcpServers) {
+  if (
+    globalSettings.mcpServers &&
+    typeof globalSettings.mcpServers === 'object' &&
+    globalSettings.mcpServers !== null &&
+    'browser-use' in globalSettings.mcpServers
+  ) {
     return { hasConfig: true, configSource: 'global' };
   }
 
@@ -63,7 +71,9 @@ async function getBrowserConfig(): Promise<BrowserConfig | null> {
 
   if (configSource === 'global') {
     const globalSettings = await getGlobalSettings();
-    return globalSettings.mcpServers?.['browser-use'] as BrowserConfig || null;
+    return (
+      (globalSettings.mcpServers?.['browser-use'] as BrowserConfig) || null
+    );
   } else {
     const mcpConfigFile = path.resolve('.mcp.json');
     const data = fs.readFileSync(mcpConfigFile, 'utf8');
@@ -72,12 +82,11 @@ async function getBrowserConfig(): Promise<BrowserConfig | null> {
   }
 }
 
-
 async function isBrowserAgentRunning(): Promise<boolean> {
   if (!fs.existsSync(BROWSER_AGENT_PID_FILE)) {
     return false;
   }
-  
+
   const pid = parseInt(fs.readFileSync(BROWSER_AGENT_PID_FILE, 'utf8'), 10);
   try {
     process.kill(pid, 0);
@@ -89,7 +98,10 @@ async function isBrowserAgentRunning(): Promise<boolean> {
   }
 }
 
-async function startBrowserAgent(): Promise<{ success: boolean; message: string }> {
+async function startBrowserAgent(): Promise<{
+  success: boolean;
+  message: string;
+}> {
   // Check if already running
   if (await isBrowserAgentRunning()) {
     return { success: true, message: 'Browser agent is already running' };
@@ -103,19 +115,32 @@ async function startBrowserAgent(): Promise<{ success: boolean; message: string 
   let browserConfig = await getBrowserConfig();
   if (!browserConfig) {
     const globalSettings = await getGlobalSettings();
-    const userDataDir = (globalSettings as Record<string, unknown>)?.['browser-use']?.['userDataDir'];
+    const userDataDir = (globalSettings as Record<string, unknown>)?.[
+      'browser-use'
+    ]?.['userDataDir'];
     if (process.platform === 'win32') {
       browserConfig = {
         command: 'cmd',
-        args: ['/c', 'uvx', '--from', 'browser-use[cli]', 'browser-use', '--mcp'],
-        env: userDataDir ? { BROWSER_USE_USER_DATA_DIR: String(userDataDir) } : {},
+        args: [
+          '/c',
+          'uvx',
+          '--from',
+          'browser-use[cli]',
+          'browser-use',
+          '--mcp',
+        ],
+        env: userDataDir
+          ? { BROWSER_USE_USER_DATA_DIR: String(userDataDir) }
+          : {},
         port: 3001,
       };
     } else {
       browserConfig = {
         command: 'bash',
         args: ['-lc', 'uvx --from browser-use[cli] browser-use --mcp'],
-        env: userDataDir ? { BROWSER_USE_USER_DATA_DIR: String(userDataDir) } : {},
+        env: userDataDir
+          ? { BROWSER_USE_USER_DATA_DIR: String(userDataDir) }
+          : {},
         port: 3001,
       };
     }
@@ -134,14 +159,21 @@ async function startBrowserAgent(): Promise<{ success: boolean; message: string 
     env: { ...process.env, ...browserConfig.env },
   };
 
-  const child = spawn(browserConfig.command, browserConfig.args || [], spawnOptions);
+  const child = spawn(
+    browserConfig.command,
+    browserConfig.args || [],
+    spawnOptions,
+  );
   child.unref();
 
   if (child.pid) {
     fs.writeFileSync(BROWSER_AGENT_PID_FILE, String(child.pid));
     // Wait a moment for the agent to start
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    return { success: true, message: `Browser agent started with PID ${child.pid}` };
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    return {
+      success: true,
+      message: `Browser agent started with PID ${child.pid}`,
+    };
   } else {
     return { success: false, message: 'Failed to start the browser agent' };
   }
@@ -154,7 +186,8 @@ export const browserUseCommand: Command = {
   subCommands: [
     {
       name: 'api',
-      description: 'Use the Browser Use API integration (requires BROWSER_USE_API_KEY).',
+      description:
+        'Use the Browser Use API integration (requires BROWSER_USE_API_KEY).',
       action: async () =>
         process.env.BROWSER_USE_API_KEY
           ? {
@@ -177,7 +210,7 @@ export const browserUseCommand: Command = {
       action: async () => {
         // Try to start the browser agent automatically
         const result = await startBrowserAgent();
-        
+
         if (result.success) {
           return {
             type: 'message',
@@ -195,4 +228,3 @@ export const browserUseCommand: Command = {
     },
   ],
 };
-

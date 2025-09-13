@@ -13,10 +13,7 @@ import {
   AuthType,
 } from '@pk-code/core';
 
-import { 
-  createAgentOrchestrator,
-  OrchestrationMode
-} from '@pk-code/core';
+import { createAgentOrchestrator, OrchestrationMode } from '@pk-code/core';
 
 /**
  * Handle the 'use' command to execute a specific agent with a query
@@ -70,14 +67,14 @@ export async function handleUseCommand(
       const parts = agentName.split(':');
       const actualAgentName = parts[0].trim();
       const actualQuery = parts.slice(1).join(':').trim();
-      
+
       // Find the agent by name
       const agent = registry.getAgent(actualAgentName);
       if (!agent) {
         console.error(`Agent "${actualAgentName}" not found.`);
         return null;
       }
-      
+
       return await executeAgent(agent, actualQuery, config);
     }
 
@@ -106,29 +103,26 @@ export async function handleUseCommand(
 
     // If no specific agent found, use automatic delegation based on query analysis
     console.log('No specific agent requested. Using automatic delegation...');
-    
-    // Create orchestrator for automatic agent selection
-    const orchestrator = createAgentOrchestrator(
-      registry,
-      async (_agent) => {
-        // Create content generator using the existing system
-        const version = process.env.CLI_VERSION || process.version;
-        const httpOptions = {
-          headers: {
-            'User-Agent': `PK-Code-CLI/${version} (${process.platform}; ${process.arch})`,
-          },
-        };
 
-        if (!config) {
-          throw new Error('Config required for content generation');
-        }
-        return await createCodeAssistContentGenerator(
-          httpOptions,
-          AuthType.LOGIN_WITH_GOOGLE,
-          config,
-        );
+    // Create orchestrator for automatic agent selection
+    const orchestrator = createAgentOrchestrator(registry, async (_agent) => {
+      // Create content generator using the existing system
+      const version = process.env.CLI_VERSION || process.version;
+      const httpOptions = {
+        headers: {
+          'User-Agent': `PK-Code-CLI/${version} (${process.platform}; ${process.arch})`,
+        },
+      };
+
+      if (!config) {
+        throw new Error('Config required for content generation');
       }
-    );
+      return await createCodeAssistContentGenerator(
+        httpOptions,
+        AuthType.LOGIN_WITH_GOOGLE,
+        config,
+      );
+    });
 
     // Process query with automatic orchestration
     const result = await orchestrator.processQuery(query, {

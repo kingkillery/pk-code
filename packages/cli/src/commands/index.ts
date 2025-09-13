@@ -10,3 +10,4 @@ export { handleInitCommand } from './init.js';
 export { handleUseCommand, parseUseCommandSyntax } from './use.js';
 export { handleCreateAgentCommand } from './create-agent.js';
 export { handleAgentCommand } from './agent.js';
+export { handleMemoryCommand } from './memory.js';

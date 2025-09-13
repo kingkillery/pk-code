@@ -33,9 +33,10 @@ if (!existsSync(join(root, 'node_modules'))) {
 // build all workspaces/packages, excluding vscode-ide-companion by default
 execSync('npm run generate', { stdio: 'inherit', cwd: root });
 // Use npm workspace filtering to skip VSCode extension unless explicitly requested
-const buildCmd = process.env.BUILD_ALL === '1'
-  ? 'npm run build --workspaces'
-  : 'npm run build --workspaces --workspace=@pk-code/core --workspace=@pk-code/cli --workspace=@pk-code/tool-registry-api --workspace=@pk-code/openrouter --workspace=@pk-code/openai --workspace=@pk-code/gemini --workspace=@pk-code/anthropic --workspace=@pk-code/cohere';
+const buildCmd =
+  process.env.BUILD_ALL === '1'
+    ? 'npm run build --workspaces'
+    : 'npm run build --workspaces --workspace=@pk-code/core --workspace=@pk-code/cli --workspace=@pk-code/tool-registry-api --workspace=@pk-code/openrouter --workspace=@pk-code/openai --workspace=@pk-code/gemini --workspace=@pk-code/anthropic --workspace=@pk-code/cohere';
 execSync(buildCmd, { stdio: 'inherit', cwd: root });
 
 // also build container image if sandboxing is enabled

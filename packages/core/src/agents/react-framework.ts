@@ -5,7 +5,10 @@
  */
 
 import type { GenerateContentResponse } from '@google/genai';
-import { getResponseText, getFunctionCalls } from '../utils/generateContentResponseUtilities.js';
+import {
+  getResponseText,
+  getFunctionCalls,
+} from '../utils/generateContentResponseUtilities.js';
 import type { ParsedAgent } from './types.js';
 
 /**
@@ -23,7 +26,7 @@ export interface ReActResponse {
 /**
  * ReAct action types
  */
-export type ReActAction = 
+export type ReActAction =
   | { type: 'tool'; name: string; parameters: Record<string, unknown> }
   | { type: 'response'; content: string }
   | { type: 'clarification'; question: string }
@@ -99,7 +102,7 @@ export class ReActFramework {
     private readonly config: ReActPromptConfig = {
       strictJson: true,
       includeExamples: true,
-    }
+    },
   ) {}
 
   /**
@@ -108,7 +111,7 @@ export class ReActFramework {
   enhancePrompt(
     originalPrompt: string,
     agent: ParsedAgent,
-    availableTools?: string[]
+    availableTools?: string[],
   ): string {
     const parts: string[] = [];
 
@@ -117,12 +120,16 @@ export class ReActFramework {
 
     // Add custom instructions if provided
     if (this.config.customInstructions) {
-      parts.push(`\nAdditional Instructions:\n${this.config.customInstructions}`);
+      parts.push(
+        `\nAdditional Instructions:\n${this.config.customInstructions}`,
+      );
     }
 
     // Add available tools information
     if (availableTools && availableTools.length > 0) {
-      parts.push(`\nAvailable Tools:\n${availableTools.map(t => `- ${t}`).join('\n')}`);
+      parts.push(
+        `\nAvailable Tools:\n${availableTools.map((t) => `- ${t}`).join('\n')}`,
+      );
     }
 
     // Add examples if configured
@@ -160,11 +167,11 @@ export class ReActFramework {
 
     // 2) Otherwise, attempt to parse JSON from the textual response (common for Qwen-Code JSON output)
     const text = this.extractResponseText(response);
-    
+
     try {
       // Try to parse as JSON
       const parsed = JSON.parse(text);
-      
+
       // Validate required fields
       if (!parsed.thought || !parsed.action) {
         throw new Error('Missing required fields: thought and action');
@@ -172,7 +179,7 @@ export class ReActFramework {
 
       // Validate action structure
       const action = this.validateAction(parsed.action);
-      
+
       return {
         thought: String(parsed.thought).trim(),
         action,
@@ -204,7 +211,7 @@ export class ReActFramework {
           name: String(a.name),
           parameters: (a.parameters as Record<string, unknown>) || {},
         };
-      
+
       case 'response':
         if (!a.content) {
           throw new Error('Response action must have content');
@@ -213,7 +220,7 @@ export class ReActFramework {
           type: 'response',
           content: String(a.content),
         };
-      
+
       case 'clarification':
         if (!a.question) {
           throw new Error('Clarification action must have a question');
@@ -222,7 +229,7 @@ export class ReActFramework {
           type: 'clarification',
           question: String(a.question),
         };
-      
+
       case 'error':
         if (!a.message) {
           throw new Error('Error action must have a message');
@@ -231,7 +238,7 @@ export class ReActFramework {
           type: 'error',
           message: String(a.message),
         };
-      
+
       default:
         throw new Error(`Unknown action type: ${String(a.type)}`);
     }
@@ -242,13 +249,19 @@ export class ReActFramework {
    */
   private extractFromUnstructuredResponse(text: string): ReActResponse {
     // Look for thought patterns
-    const thoughtMatch = text.match(/(?:thought|thinking|reasoning):\s*(.+?)(?:\n|$)/i);
-    const thought = thoughtMatch ? thoughtMatch[1].trim() : 'Processing request...';
+    const thoughtMatch = text.match(
+      /(?:thought|thinking|reasoning):\s*(.+?)(?:\n|$)/i,
+    );
+    const thought = thoughtMatch
+      ? thoughtMatch[1].trim()
+      : 'Processing request...';
 
     // Look for action patterns
-    
+
     // Try to detect tool calls
-    const toolMatch = text.match(/(?:calling|using|executing)\s+tool:\s*(\w+)/i);
+    const toolMatch = text.match(
+      /(?:calling|using|executing)\s+tool:\s*(\w+)/i,
+    );
     if (toolMatch) {
       return {
         thought,
@@ -262,7 +275,10 @@ export class ReActFramework {
     }
 
     // Try to detect questions
-    if (text.includes('?') && text.match(/(?:clarify|confirm|please|could you)/i)) {
+    if (
+      text.includes('?') &&
+      text.match(/(?:clarify|confirm|please|could you)/i)
+    ) {
       const questionMatch = text.match(/([^.!]+\?)/);
       if (questionMatch) {
         return {
@@ -367,7 +383,7 @@ Please provide a valid response following the ReAct format:
     query: string,
     thought: string,
     action: ReActAction,
-    observation?: string
+    observation?: string,
   ): ReActCycle {
     return {
       id: `cycle-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -384,7 +400,7 @@ Please provide a valid response following the ReAct format:
  * Factory function to create ReAct framework
  */
 export function createReActFramework(
-  config?: Partial<ReActPromptConfig>
+  config?: Partial<ReActPromptConfig>,
 ): ReActFramework {
   return new ReActFramework({
     strictJson: true,

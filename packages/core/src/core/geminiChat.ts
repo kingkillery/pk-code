@@ -274,7 +274,11 @@ export class GeminiChat {
     const userContent = createUserContent(params.message);
     const requestContents = this.getHistory(true).concat(userContent);
 
-    void this._logApiRequest(requestContents, this.config.getModel(), prompt_id);
+    void this._logApiRequest(
+      requestContents,
+      this.config.getModel(),
+      prompt_id,
+    );
 
     const startTime = Date.now();
     let response: GenerateContentResponse;
@@ -382,7 +386,11 @@ export class GeminiChat {
     await this.sendPromise;
     const userContent = createUserContent(params.message);
     const requestContents = this.getHistory(true).concat(userContent);
-    void this._logApiRequest(requestContents, this.config.getModel(), prompt_id);
+    void this._logApiRequest(
+      requestContents,
+      this.config.getModel(),
+      prompt_id,
+    );
 
     const startTime = Date.now();
 

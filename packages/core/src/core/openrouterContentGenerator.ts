@@ -129,6 +129,58 @@ export class OpenRouterContentGenerator extends OpenAIContentGenerator {
     }
   }
 
+  /**
+   * Fetch models visible/allowed for the current API key
+   */
+  private async getAllowedModelsForKey(): Promise<string[]> {
+    try {
+      const apiKey = (this as unknown as { client: { apiKey: string } }).client
+        ?.apiKey;
+      const resp = await fetch('https://openrouter.ai/api/v1/models', {
+        headers: apiKey ? { Authorization: `Bearer ${apiKey}` } : undefined,
+      });
+      if (!resp.ok) {
+        return [];
+      }
+      const parseResult = await safeJsonParseResponse<{
+        data?: Array<{ id: string }>;
+      }>(resp, {
+        context: 'OpenRouter models API (auth) fetch',
+        validateContentType: false,
+      });
+      if (!parseResult.success) {
+        return [];
+      }
+      return (parseResult.data?.data || []).map((m) => m.id);
+    } catch {
+      return [];
+    }
+  }
+
+  /**
+   * Resolve fallback candidates, preferring allowed free models for this key
+   */
+  private async resolveFallbackModels(): Promise<string[]> {
+    const allowed = await this.getAllowedModelsForKey();
+    if (allowed.length === 0) {
+      return this.fallbackModels;
+    }
+
+    // Prefer free models first
+    const free = allowed.filter((id) => id.endsWith(':free'));
+
+    // Prefer Qwen coder variants among free
+    const qwenFree = free.filter((id) => id.toLowerCase().includes('qwen'));
+    const othersFree = free.filter((id) => !id.toLowerCase().includes('qwen'));
+
+    // If no free models, fall back to any allowed models
+    if (free.length === 0) {
+      return allowed;
+    }
+
+    return [...qwenFree, ...othersFree];
+  }
+
   private getOpenRouterHeaders(): Record<string, string> {
     const headers: Record<string, string> = {
       'HTTP-Referer': 'https://qwen-code.dev',
@@ -229,7 +281,12 @@ export class OpenRouterContentGenerator extends OpenAIContentGenerator {
       `[OpenRouter] Model "${currentModel}" failed, attempting fallback...`,
     );
 
-    for (const fallbackModel of this.fallbackModels) {
+    // Compute dynamic fallbacks for this API key
+    const dynamicFallbacks = await this.resolveFallbackModels();
+    const candidates =
+      dynamicFallbacks.length > 0 ? dynamicFallbacks : this.fallbackModels;
+
+    for (const fallbackModel of candidates) {
       if (fallbackModel === currentModel) {
         continue; // Skip the model that already failed
       }
@@ -278,8 +335,9 @@ export class OpenRouterContentGenerator extends OpenAIContentGenerator {
     // If all fallbacks failed, throw the original error with additional context
     throw new Error(
       `All OpenRouter models failed. Original error: ${originalError.message}\n\n` +
-        `Attempted fallback models: ${this.fallbackModels.join(', ')}\n\n` +
-        `Please check your API key, network connection, or try again later.`,
+        `Attempted fallback models: ${candidates.join(', ')}\n\n` +
+        `Please check your API key, network connection, or try again later.\n\n` +
+        `Tip: Set an allowed model via OPENROUTER_MODEL or use /model to select one from your account.`,
     );
   }
 
@@ -312,7 +370,7 @@ export class OpenRouterContentGenerator extends OpenAIContentGenerator {
       if (this.preferredProvider) {
         return await this.generateContentWithProvider(request);
       }
-      
+
       // Otherwise, use the parent implementation
       return await super.generateContent(request);
     } catch (error) {
@@ -341,7 +399,7 @@ export class OpenRouterContentGenerator extends OpenAIContentGenerator {
       if (this.preferredProvider) {
         return await this.generateContentStreamWithProvider(request);
       }
-      
+
       // Otherwise, use the parent implementation
       return await super.generateContentStream(request);
     } catch (error) {
@@ -358,7 +416,6 @@ export class OpenRouterContentGenerator extends OpenAIContentGenerator {
       )) as AsyncGenerator<GenerateContentResponse>;
     }
   }
-
 
   /**
    * Patch the OpenAI client to automatically add provider routing to request body
@@ -381,12 +438,10 @@ export class OpenRouterContentGenerator extends OpenAIContentGenerator {
       const enhancedParams = {
         ...params,
         provider: {
-          only: [
-            this.preferredProvider,
-          ],
+          only: [this.preferredProvider],
         },
       };
-      
+
       return originalCreate(
         enhancedParams as OpenAI.Chat.Completions.ChatCompletionCreateParams,
         options,

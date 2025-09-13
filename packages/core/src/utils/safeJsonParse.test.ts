@@ -79,7 +79,9 @@ describe('safeJsonParse', () => {
 
     it('should detect potentially truncated responses', () => {
       const longString = 'a'.repeat(1000);
-      const result = safeJsonParse(`{"data": "${longString}"}`, { maxSize: 500 });
+      const result = safeJsonParse(`{"data": "${longString}"}`, {
+        maxSize: 500,
+      });
       expect(result.success).toBe(false);
       expect(result.error).toContain('may be truncated');
     });
@@ -116,7 +118,9 @@ describe('safeJsonParseResponse', () => {
       text: vi.fn().mockResolvedValue('{"success": true}'),
     } as any;
 
-    mockResponse.headers.get = vi.fn((key: string) => mockResponse.headers.get(key));
+    mockResponse.headers.get = vi.fn((key: string) =>
+      mockResponse.headers.get(key),
+    );
 
     const result = await safeJsonParseResponse(mockResponse);
     expect(result.success).toBe(true);
@@ -146,7 +150,9 @@ describe('safeJsonParseResponse', () => {
       headers: new Map([['content-type', 'text/html']]),
     } as any;
 
-    mockResponse.headers.get = vi.fn((key: string) => mockResponse.headers.get(key));
+    mockResponse.headers.get = vi.fn((key: string) =>
+      mockResponse.headers.get(key),
+    );
 
     const result = await safeJsonParseResponse(mockResponse);
     expect(result.success).toBe(false);
@@ -162,7 +168,9 @@ describe('safeJsonParseResponse', () => {
       text: vi.fn().mockResolvedValue('{"data": "test"}'),
     } as any;
 
-    mockResponse.headers.get = vi.fn((key: string) => mockResponse.headers.get(key));
+    mockResponse.headers.get = vi.fn((key: string) =>
+      mockResponse.headers.get(key),
+    );
 
     const result = await safeJsonParseResponse(mockResponse, {
       validateContentType: false,
@@ -182,12 +190,12 @@ describe('safeJsonParseResponse', () => {
 
     // Create a proper mock for headers.get
     const mockHeaders = {
-      get: vi.fn((_key: string) => 'application/json')
+      get: vi.fn((_key: string) => 'application/json'),
     };
     Object.defineProperty(mockResponse, 'headers', {
       value: mockHeaders,
       writable: false,
-      configurable: true
+      configurable: true,
     });
 
     const result = await safeJsonParseResponse(mockResponse);

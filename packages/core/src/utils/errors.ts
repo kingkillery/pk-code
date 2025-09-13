@@ -65,17 +65,14 @@ export function toFriendlyError(error: unknown): unknown {
 function parseResponseData(error: GaxiosError): ResponseData {
   // Inexplicably, Gaxios sometimes doesn't JSONify the response data.
   if (typeof error.response?.data === 'string') {
-    const parseResult = safeJsonParse<ResponseData>(
-      error.response.data,
-      {
-        context: 'Gaxios error response',
-      },
-    );
-    
+    const parseResult = safeJsonParse<ResponseData>(error.response.data, {
+      context: 'Gaxios error response',
+    });
+
     if (parseResult.success && parseResult.data) {
       return parseResult.data;
     }
-    
+
     // If parsing fails, return a generic error structure
     console.warn(
       `Failed to parse Gaxios error response JSON: ${parseResult.error}`,
@@ -87,12 +84,12 @@ function parseResponseData(error: GaxiosError): ResponseData {
       },
     };
   }
-  
+
   // Handle case where data is already an object or other type
   if (error.response?.data && typeof error.response.data === 'object') {
     return error.response.data as ResponseData;
   }
-  
+
   // Fallback for any other case
   return {
     error: {

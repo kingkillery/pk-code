@@ -19,7 +19,7 @@ export interface SearchIndexToolParams {
    * The search query to find relevant documents.
    */
   query: string;
-  
+
   /**
    * Number of top results to return (default: 5).
    */
@@ -36,7 +36,10 @@ export class SearchIndexTool extends BaseTool<
   static readonly Name: string = 'search_index';
   private embeddingIndex: EmbeddingIndex;
 
-  constructor(private readonly config: Config, indexDir?: string) {
+  constructor(
+    private readonly config: Config,
+    indexDir?: string,
+  ) {
     super(
       SearchIndexTool.Name,
       'SearchIndex',
@@ -46,17 +49,19 @@ export class SearchIndexTool extends BaseTool<
         properties: {
           query: {
             type: Type.STRING,
-            description: 'The search query describing what you are looking for in the repository (e.g., "authentication logic", "database connection", "error handling").',
+            description:
+              'The search query describing what you are looking for in the repository (e.g., "authentication logic", "database connection", "error handling").',
           },
           top_k: {
             type: Type.INTEGER,
-            description: 'Number of most relevant results to return (default: 5, max: 20).',
+            description:
+              'Number of most relevant results to return (default: 5, max: 20).',
           },
         },
         required: ['query'],
       },
     );
-    
+
     this.embeddingIndex = new EmbeddingIndex(config, indexDir);
   }
 
@@ -108,8 +113,10 @@ export class SearchIndexTool extends BaseTool<
       const stats = this.embeddingIndex.getIndexStats();
       if (stats.documentCount === 0) {
         return {
-          llmContent: 'No embedding index found or index is empty. The repository needs to be indexed first before searching.',
-          returnDisplay: 'Repository index not available. Please build the index first.',
+          llmContent:
+            'No embedding index found or index is empty. The repository needs to be indexed first before searching.',
+          returnDisplay:
+            'Repository index not available. Please build the index first.',
         };
       }
 
@@ -124,17 +131,20 @@ export class SearchIndexTool extends BaseTool<
       }
 
       // Format results for display
-      const formattedResults = results.map((result, index) => {
-        const relativePath = result.filePath;
-        const truncatedContent = result.content.length > 500 
-          ? result.content.substring(0, 500) + '...' 
-          : result.content;
-        
-        return `${index + 1}. **${relativePath}** (similarity score: ${result.score.toFixed(4)})
+      const formattedResults = results
+        .map((result, index) => {
+          const relativePath = result.filePath;
+          const truncatedContent =
+            result.content.length > 500
+              ? result.content.substring(0, 500) + '...'
+              : result.content;
+
+          return `${index + 1}. **${relativePath}** (similarity score: ${result.score.toFixed(4)})
 \`\`\`
 ${truncatedContent}
 \`\`\``;
-      }).join('\n\n');
+        })
+        .join('\n\n');
 
       const llmContent = `Found ${results.length} relevant documents for query "${params.query}":
 

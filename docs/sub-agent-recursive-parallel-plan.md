@@ -26,6 +26,7 @@ This plan describes how to enable PK Code to spawn sub-agents as separate `pk` s
 ## Proposed Interfaces/Config
 
 - New orchestrator option:
+
 ```ts
 interface OrchestrationOptions {
   execution?: ExecutionOptions & {
@@ -37,11 +38,12 @@ interface OrchestrationOptions {
 ```
 
 - Subprocess spawn helper (CLI):
+
 ```ts
 interface PkSubprocessOptions {
-  agent?: string;           // optional, or use prompt
-  query?: string;           // used with `pk use`
-  prompt?: string;          // used with `-p`
+  agent?: string; // optional, or use prompt
+  query?: string; // used with `pk use`
+  prompt?: string; // used with `-p`
   cwd?: string;
   env?: NodeJS.ProcessEnv;
   windowsConsole?: 'hidden' | 'new-window' | 'inherit';
@@ -57,7 +59,8 @@ function spawnPkSubprocess(opts: PkSubprocessOptions): ChildProcess;
 
 ## Step-by-Step Implementation
 
-1) CLI: Implement `agent run` (parallel agents)
+1. CLI: Implement `agent run` (parallel agents)
+
 - File: `packages/cli/src/commands/agent.ts`
   - Add `handleRunAgents(agentNames: string[], query?: string)` that spawns parallel pk subprocesses.
   - Accept syntax: `pk agent run 'agentA,agentB' --query "..."` OR per-agent prompts: `--prompts 'q1;q2'`.
@@ -65,37 +68,43 @@ function spawnPkSubprocess(opts: PkSubprocessOptions): ChildProcess;
   - Cross-platform spawn: Windows uses `powershell.exe` when `windowsConsole=new-window`; otherwise spawn Node directly.
   - Output aggregation similar to `parallel.ts` with task IDs and summary.
 
-2) Shared subprocess helper
+2. Shared subprocess helper
+
 - New file: `packages/cli/src/utils/pkSubprocess.ts`
   - `spawnPkSubprocess()` building node args for `pk` CLI (`index.js`) with flags: prefer `pk use <agent> <query>` if agent provided, else `-p`.
   - Inject env: session id, task id, yolo, tool whitelist.
   - Windows `new-window`: spawn `powershell.exe -NoProfile -Command Start-Process -WindowStyle Normal -File ...` (or `Start-Process` with proper args) to open a new console, falling back to hidden.
   - POSIX: `bash -lc` optional new terminal only if explicitly requested (out of scope for MVP).
 
-3) Orchestrator: subprocess strategy
+3. Orchestrator: subprocess strategy
+
 - File: `packages/core/src/agents/agent-orchestrator.ts`
   - Extend `processMultiAgent()` to branch on `execution.processIsolation==='subprocess'` and delegate to a new `executeMultiViaSubprocess()` that uses CLI helper through an adapter. Because core cannot import CLI, define an interface and inject a factory from CLI entry OR put the subprocess adapter in a small cross-package util.
   - For MVP, keep subprocess orchestration in CLI layer: a new `packages/cli/src/agent/SubprocessOrchestratorAdapter.ts` that mirrors `AgentExecutor.executeMultipleAgents` but via pk subprocesses. Wire this when CLI runs in non-interactive mode.
 
-4) DAG: parallel ready tasks
+4. DAG: parallel ready tasks
+
 - File: `packages/core/src/agents/agent-orchestrator.ts` (`executeTasks`)
   - Modify to collect all `readyTasks` and run concurrently, limited by `execution.maxProcessConcurrency` when `processIsolation==='subprocess'`, else `execution.maxConcurrency` for in-process.
   - For subprocess path, use the adapter to spawn pk per task with `pk use <agent> "<task desc>"`.
-  - Update blackboard status on start/finish; propagate artifacts from subprocess stdout via a simple JSON fence convention (e.g., detect ```json pk-artifacts: ... ``` blocks).
+  - Update blackboard status on start/finish; propagate artifacts from subprocess stdout via a simple JSON fence convention (e.g., detect `json pk-artifacts: ... ` blocks).
 
-5) Telemetry, audit, and cancellation
+5. Telemetry, audit, and cancellation
+
 - Ensure child processes inherit telemetry env where applicable.
 - Implement parent->child cancellation: on timeout or SIGINT, send `SIGTERM` (Windows: `taskkill /pid <pid> /t /f` fallback). Gracefully escalate after 5s.
 - Extend `parallel.ts` cleanup logic to be reusable by `agent run`.
 
-6) Configuration and settings
+6. Configuration and settings
+
 - Add settings to `~/.pk/settings.json` and CLI flags:
   - `--process-isolation subprocess|in-process`
   - `--process-concurrency N`
   - Windows console behavior flag.
 - Respect `PK_PREFER_LOCAL_BROWSER=1` during subprocess tool discovery to avoid cloud tool registration.
 
-7) Tests
+7. Tests
+
 - Unit tests (Vitest):
   - Mock `child_process.spawn` to verify args/env per platform.
   - Test `agent run` outputs and summary with mixed success/error.
@@ -103,7 +112,8 @@ function spawnPkSubprocess(opts: PkSubprocessOptions): ChildProcess;
 - Integration tests:
   - Reuse patterns from `integration-tests/*` to simulate parallel subprocess and verify exit codes.
 
-8) Docs
+8. Docs
+
 - Update `docs/cli/commands.md` with `agent run` usage and examples.
 - Update `PARALLEL_EXECUTION.md` with subprocess-based sub-agents.
 - Add Windows guidance: PowerShell vs hidden console.

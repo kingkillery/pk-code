@@ -29,8 +29,8 @@ import {
 } from '../tools/memoryTool.js';
 import { TaskTool } from '../tools/task.js';
 import {
-    getGlobalAgentRegistry,
-    initializeGlobalAgentRegistry,
+  getGlobalAgentRegistry,
+  initializeGlobalAgentRegistry,
 } from '../agents/agent-registry.js';
 import { ParsedAgent } from '../agents/types.js';
 import { ContentGenerator } from '../core/contentGenerator.js';
@@ -234,21 +234,23 @@ export class Config {
     this.question = params.question;
     this.fullContext = params.fullContext ?? false;
     this.coreTools = params.coreTools;
-    
+
     // Auto-exclude cloud browser_use tool when local browser is preferred
     if (process.env.PK_PREFER_LOCAL_BROWSER) {
       const excludeList = params.excludeTools ? [...params.excludeTools] : [];
       if (!excludeList.includes('browser_use')) {
         excludeList.push('browser_use');
         if (params.debugMode) {
-          console.debug('[Browser] Auto-excluding browser_use tool due to PK_PREFER_LOCAL_BROWSER');
+          console.debug(
+            '[Browser] Auto-excluding browser_use tool due to PK_PREFER_LOCAL_BROWSER',
+          );
         }
       }
       this.excludeTools = excludeList;
     } else {
       this.excludeTools = params.excludeTools;
     }
-    
+
     this.toolDiscoveryCommand = params.toolDiscoveryCommand;
     this.toolCallCommand = params.toolCallCommand;
     this.mcpServerCommand = params.mcpServerCommand;

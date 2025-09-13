@@ -43,7 +43,10 @@ describe('Task Manager', () => {
     });
 
     it('should validate task as complete when criteria met', () => {
-      const result = taskManager.validateCompletion({ testsPassed: true, todoItems: false });
+      const result = taskManager.validateCompletion({
+        testsPassed: true,
+        todoItems: false,
+      });
 
       expect(result).toBe('TASK COMPLETE');
     });
@@ -55,7 +58,10 @@ describe('Task Manager', () => {
     });
 
     it('should return null when criteria not met', () => {
-      const result = taskManager.validateCompletion({ testsPassed: false, todoItems: true });
+      const result = taskManager.validateCompletion({
+        testsPassed: false,
+        todoItems: true,
+      });
 
       expect(result).toBeNull();
     });
@@ -63,7 +69,9 @@ describe('Task Manager', () => {
     it('should throw error if completion criteria not set', () => {
       const newTaskManager = createTaskManager();
 
-      expect(() => newTaskManager.validateCompletion({})).toThrow('Task completion criteria not set.');
+      expect(() => newTaskManager.validateCompletion({})).toThrow(
+        'Task completion criteria not set.',
+      );
     });
   });
 });

@@ -73,12 +73,14 @@ export BROWSER_USE_API_KEY="your-api-key-here"
 ### Using Browser Automation
 
 The `browser_use` tool is automatically available and provides:
+
 - Cloud-based browser task execution
 - Real-time step monitoring
 - Structured JSON output
 - Task control (pause/resume/stop)
 
 Example:
+
 ```bash
 pk
 > Use browser_use to search for the latest AI news on Google

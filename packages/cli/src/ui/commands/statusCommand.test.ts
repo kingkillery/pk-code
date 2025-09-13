@@ -22,7 +22,7 @@ describe('statusCommand', () => {
   beforeEach(() => {
     context = mockCommandContext();
     vi.clearAllMocks();
-    
+
     // Mock telemetry data
     vi.mocked(uiTelemetryService.getMetrics).mockReturnValue({
       totalTokens: 15000,
@@ -41,7 +41,7 @@ describe('statusCommand', () => {
         },
       },
     });
-    
+
     vi.mocked(uiTelemetryService.getLastPromptTokenCount).mockReturnValue(500);
   });
 
@@ -59,26 +59,26 @@ describe('statusCommand', () => {
     expect(content).toContain('• Duration:');
     expect(content).toContain('• Prompts: 0');
     expect(content).toContain('• Model: gemini-2.5-flash');
-    
+
     expect(content).toContain('🪙 Token Usage:');
     expect(content).toContain('• Total Tokens: 15,000 / 32,768 (46%)');
     expect(content).toContain('• Input Tokens: 10,000');
     expect(content).toContain('• Output Tokens: 5,000');
     expect(content).toContain('• Cached Tokens: 2,000');
     expect(content).toContain('• Last Prompt: 500 tokens');
-    
+
     expect(content).toContain('⚡ Performance:');
     expect(content).toContain('• API Calls: 10');
     expect(content).toContain('• Tool Calls: 5');
     expect(content).toContain('• Errors: 1');
     expect(content).toContain('• Avg API Time: 500ms');
     expect(content).toContain('• Avg Tool Time: 500ms');
-    
+
     expect(content).toContain('📈 Model Metrics (gemini-2.5-flash):');
     expect(content).toContain('• Requests: 10');
     expect(content).toContain('• Tokens: 15,000');
     expect(content).toContain('• Avg Tokens/Request: 1,500');
-    
+
     expect(content).toContain('💾 Memory Usage:');
   });
 
@@ -98,8 +98,10 @@ describe('statusCommand', () => {
 
     const result = await statusCommand.action(context, '');
     const content = result.content as string;
-    
-    expect(content).toContain('⚠️ Warning: Context usage is high (85%). Consider using /compress to reduce context size.');
+
+    expect(content).toContain(
+      '⚠️ Warning: Context usage is high (85%). Consider using /compress to reduce context size.',
+    );
   });
 
   it('should handle missing configuration', async () => {

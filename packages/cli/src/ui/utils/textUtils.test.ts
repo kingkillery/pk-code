@@ -5,7 +5,13 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { getAsciiArtWidth, isBinary, toCodePoints, cpLen, cpSlice } from './textUtils.js';
+import {
+  getAsciiArtWidth,
+  isBinary,
+  toCodePoints,
+  cpLen,
+  cpSlice,
+} from './textUtils.js';
 
 describe('textUtils', () => {
   describe('getAsciiArtWidth', () => {
@@ -57,7 +63,9 @@ describe('textUtils', () => {
     });
 
     it('should return true for buffer with NULL byte', () => {
-      const binaryBuffer = Buffer.from([0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x00, 0x57, 0x6f, 0x72, 0x6c, 0x64]);
+      const binaryBuffer = Buffer.from([
+        0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x00, 0x57, 0x6f, 0x72, 0x6c, 0x64,
+      ]);
       expect(isBinary(binaryBuffer)).toBe(true);
     });
 
@@ -104,7 +112,18 @@ describe('textUtils', () => {
       });
 
       it('should handle mixed ASCII and Unicode characters', () => {
-        expect(toCodePoints('Hello 世界 🌍')).toEqual(['H', 'e', 'l', 'l', 'o', ' ', '世', '界', ' ', '🌍']);
+        expect(toCodePoints('Hello 世界 🌍')).toEqual([
+          'H',
+          'e',
+          'l',
+          'l',
+          'o',
+          ' ',
+          '世',
+          '界',
+          ' ',
+          '🌍',
+        ]);
       });
     });
 

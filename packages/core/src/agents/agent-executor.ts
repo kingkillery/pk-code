@@ -321,9 +321,12 @@ export class AgentExecutor {
   /**
    * Execute a task with an agent
    */
-  async executeTask(agent: ParsedAgent, task: { id: string; query: string }): Promise<AgentExecutionResult> {
+  async executeTask(
+    agent: ParsedAgent,
+    task: { id: string; query: string },
+  ): Promise<AgentExecutionResult> {
     const startTime = new Date();
-    
+
     try {
       // Create a routing result for the agent
       const routingResult: RoutingResult = {
@@ -332,13 +335,13 @@ export class AgentExecutor {
         reason: 'Direct task execution',
         alternatives: [],
       };
-      
+
       // Execute using executeSingleAgent
       const result = await this.executeSingleAgent(routingResult, task.query);
-      
+
       // Override taskId with the provided task ID
       result.taskId = task.id;
-      
+
       return result;
     } catch (error) {
       return {

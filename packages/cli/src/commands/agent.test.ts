@@ -89,8 +89,12 @@ describe('Browser Agent Error Handling', () => {
 
     await handleAgentCommand('start', 'browser');
 
-    expect(mockConsoleError).toHaveBeenCalledWith('Error: The "browser-use" package is not installed.');
-    expect(mockConsoleError).toHaveBeenCalledWith('Please install it by running: npm install -g browser-use');
+    expect(mockConsoleError).toHaveBeenCalledWith(
+      'Error: The "browser-use" package is not installed.',
+    );
+    expect(mockConsoleError).toHaveBeenCalledWith(
+      'Please install it by running: npm install -g browser-use',
+    );
   });
 
   it('should show error if Chrome path is not configured', async () => {
@@ -100,7 +104,9 @@ describe('Browser Agent Error Handling', () => {
 
     await handleAgentCommand('start', 'browser');
 
-    expect(mockConsoleError).toHaveBeenCalledWith('Error: Chrome executable path is not configured or is invalid.');
+    expect(mockConsoleError).toHaveBeenCalledWith(
+      'Error: Chrome executable path is not configured or is invalid.',
+    );
   });
 
   it('should show error if browser-use config is missing', async () => {
@@ -109,11 +115,15 @@ describe('Browser Agent Error Handling', () => {
       if (p.toString().endsWith('.mcp.json')) return false;
       return false;
     });
-    vi.mocked(fs.readFileSync).mockReturnValueOnce(JSON.stringify({ chromePath: '/mock/chrome' })); // Global settings
+    vi.mocked(fs.readFileSync).mockReturnValueOnce(
+      JSON.stringify({ chromePath: '/mock/chrome' }),
+    ); // Global settings
 
     await handleAgentCommand('start', 'browser');
 
-    expect(mockConsoleError).toHaveBeenCalledWith('Error: browser-use MCP server configuration not found.');
+    expect(mockConsoleError).toHaveBeenCalledWith(
+      'Error: browser-use MCP server configuration not found.',
+    );
   });
 
   it('should show error if agent is already running', async () => {
@@ -123,7 +133,9 @@ describe('Browser Agent Error Handling', () => {
 
     await handleAgentCommand('start', 'browser');
 
-    expect(mockConsoleLog).toHaveBeenCalledWith('Browser agent is already running with PID: 1234. To stop it, run "pk agent stop browser".');
+    expect(mockConsoleLog).toHaveBeenCalledWith(
+      'Browser agent is already running with PID: 1234. To stop it, run "pk agent stop browser".',
+    );
   });
 
   it('should show error if agent is not running on stop', async () => {
@@ -131,7 +143,9 @@ describe('Browser Agent Error Handling', () => {
 
     await handleAgentCommand('stop', 'browser');
 
-    expect(mockConsoleLog).toHaveBeenCalledWith('Browser agent is not running.');
+    expect(mockConsoleLog).toHaveBeenCalledWith(
+      'Browser agent is not running.',
+    );
   });
 
   it('should handle stale PID file on start', async () => {
@@ -143,12 +157,18 @@ describe('Browser Agent Error Handling', () => {
 
     // Mock the rest of the start sequence to prevent further errors in this test
     vi.mock('browser-use/package.json', () => ({}));
-    vi.mocked(fs.readFileSync).mockReturnValueOnce(JSON.stringify({ chromePath: '/mock/chrome' }));
+    vi.mocked(fs.readFileSync).mockReturnValueOnce(
+      JSON.stringify({ chromePath: '/mock/chrome' }),
+    );
 
     await handleAgentCommand('start', 'browser');
 
-    expect(console.warn).toHaveBeenCalledWith('Found stale PID file from a previous session. Removing it.');
-    expect(fs.unlinkSync).toHaveBeenCalledWith(expect.stringContaining('browser-agent.pid'));
+    expect(console.warn).toHaveBeenCalledWith(
+      'Found stale PID file from a previous session. Removing it.',
+    );
+    expect(fs.unlinkSync).toHaveBeenCalledWith(
+      expect.stringContaining('browser-agent.pid'),
+    );
   });
 
   it('should handle stale PID file on stop', async () => {
@@ -160,8 +180,12 @@ describe('Browser Agent Error Handling', () => {
 
     await handleAgentCommand('stop', 'browser');
 
-    expect(console.warn).toHaveBeenCalledWith('Stale PID file found for a non-existent process (PID: 5678). Cleaning up.');
-    expect(fs.unlinkSync).toHaveBeenCalledWith(expect.stringContaining('browser-agent.pid'));
+    expect(console.warn).toHaveBeenCalledWith(
+      'Stale PID file found for a non-existent process (PID: 5678). Cleaning up.',
+    );
+    expect(fs.unlinkSync).toHaveBeenCalledWith(
+      expect.stringContaining('browser-agent.pid'),
+    );
   });
 });
 
@@ -170,7 +194,6 @@ const mockConsoleLog = vi.spyOn(console, 'log').mockImplementation(() => {});
 const mockConsoleError = vi
   .spyOn(console, 'error')
   .mockImplementation(() => {});
-
 
 // Mock process.kill
 const processKillSpy = vi.spyOn(process, 'kill').mockImplementation(() => true);
@@ -222,7 +245,9 @@ describe('agent command', () => {
     const mockAgent2 = { name: 'agent2', description: 'Test agent 2' };
 
     vi.mocked(fs.promises.access).mockResolvedValue(undefined);
-    vi.mocked(fs.promises.readdir).mockResolvedValue(mockAgentFiles as fs.Dirent[]);
+    vi.mocked(fs.promises.readdir).mockResolvedValue(
+      mockAgentFiles as fs.Dirent[],
+    );
     vi.mocked(fs.promises.readFile).mockResolvedValue('mock file content');
     vi.mocked(parseAgentFromFile)
       .mockResolvedValueOnce(mockAgent1 as MockAgent)

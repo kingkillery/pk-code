@@ -31,7 +31,13 @@ export interface Task {
 /**
  * Task execution status
  */
-export type TaskStatus = 'pending' | 'ready' | 'running' | 'completed' | 'failed' | 'blocked';
+export type TaskStatus =
+  | 'pending'
+  | 'ready'
+  | 'running'
+  | 'completed'
+  | 'failed'
+  | 'blocked';
 
 /**
  * Task with runtime status information
@@ -108,8 +114,15 @@ export class TaskPlanner {
   /**
    * Decompose a user query into a DAG of tasks
    */
-  async decomposeQuery(request: DecompositionRequest): Promise<DecompositionResult> {
-    const { query, availableAgents: _availableAgents, context, preferences } = request;
+  async decomposeQuery(
+    request: DecompositionRequest,
+  ): Promise<DecompositionResult> {
+    const {
+      query,
+      availableAgents: _availableAgents,
+      context,
+      preferences,
+    } = request;
 
     // Analyze query complexity and determine decomposition strategy
     const strategy = this.determineDecompositionStrategy(query, context);
@@ -120,19 +133,34 @@ export class TaskPlanner {
 
     switch (strategy) {
       case 'mvp-development':
-        ({ tasks, reasoning, confidence } = this.decomposeMVPDevelopment(query, context));
+        ({ tasks, reasoning, confidence } = this.decomposeMVPDevelopment(
+          query,
+          context,
+        ));
         break;
       case 'analysis-task':
-        ({ tasks, reasoning, confidence } = this.decomposeAnalysisTask(query, context));
+        ({ tasks, reasoning, confidence } = this.decomposeAnalysisTask(
+          query,
+          context,
+        ));
         break;
       case 'refactoring-task':
-        ({ tasks, reasoning, confidence } = this.decomposeRefactoringTask(query, context));
+        ({ tasks, reasoning, confidence } = this.decomposeRefactoringTask(
+          query,
+          context,
+        ));
         break;
       case 'feature-development':
-        ({ tasks, reasoning, confidence } = this.decomposeFeatureDevelopment(query, context));
+        ({ tasks, reasoning, confidence } = this.decomposeFeatureDevelopment(
+          query,
+          context,
+        ));
         break;
       default:
-        ({ tasks, reasoning, confidence } = this.decomposeGenericTask(query, context));
+        ({ tasks, reasoning, confidence } = this.decomposeGenericTask(
+          query,
+          context,
+        ));
     }
 
     // Apply preferences to adjust task granularity
@@ -159,26 +187,45 @@ export class TaskPlanner {
   /**
    * Determine the best decomposition strategy based on query analysis
    */
-  private determineDecompositionStrategy(query: string, _context?: DecompositionRequest['context']): string {
+  private determineDecompositionStrategy(
+    query: string,
+    _context?: DecompositionRequest['context'],
+  ): string {
     const queryLower = query.toLowerCase();
 
     // MVP/Application development patterns
-    if (queryLower.includes('mvp') || queryLower.includes('build') && (queryLower.includes('app') || queryLower.includes('application'))) {
+    if (
+      queryLower.includes('mvp') ||
+      (queryLower.includes('build') &&
+        (queryLower.includes('app') || queryLower.includes('application')))
+    ) {
       return 'mvp-development';
     }
 
     // Analysis patterns
-    if (queryLower.includes('analyze') || queryLower.includes('review') || queryLower.includes('audit')) {
+    if (
+      queryLower.includes('analyze') ||
+      queryLower.includes('review') ||
+      queryLower.includes('audit')
+    ) {
       return 'analysis-task';
     }
 
     // Refactoring patterns
-    if (queryLower.includes('refactor') || queryLower.includes('restructure') || queryLower.includes('modernize')) {
+    if (
+      queryLower.includes('refactor') ||
+      queryLower.includes('restructure') ||
+      queryLower.includes('modernize')
+    ) {
       return 'refactoring-task';
     }
 
     // Feature development patterns
-    if (queryLower.includes('add') || queryLower.includes('implement') || queryLower.includes('create')) {
+    if (
+      queryLower.includes('add') ||
+      queryLower.includes('implement') ||
+      queryLower.includes('create')
+    ) {
       return 'feature-development';
     }
 
@@ -188,7 +235,10 @@ export class TaskPlanner {
   /**
    * Decompose MVP development requests
    */
-  private decomposeMVPDevelopment(query: string, _context?: DecompositionRequest['context']): {
+  private decomposeMVPDevelopment(
+    query: string,
+    _context?: DecompositionRequest['context'],
+  ): {
     tasks: Task[];
     reasoning: string;
     confidence: number;
@@ -197,11 +247,12 @@ export class TaskPlanner {
       {
         id: 'requirements-analysis',
         title: 'Requirements Analysis',
-        description: 'Analyze requirements and define project scope based on: ' + query,
+        description:
+          'Analyze requirements and define project scope based on: ' + query,
         dependencies: [],
         category: 'analysis',
         effort: 3,
-        expectedOutputs: ['requirements.md', 'project-scope.md']
+        expectedOutputs: ['requirements.md', 'project-scope.md'],
       },
       {
         id: 'architecture-design',
@@ -210,7 +261,7 @@ export class TaskPlanner {
         dependencies: ['requirements-analysis'],
         category: 'architecture',
         effort: 5,
-        expectedOutputs: ['architecture.md', 'tech-stack.md']
+        expectedOutputs: ['architecture.md', 'tech-stack.md'],
       },
       {
         id: 'database-schema',
@@ -219,7 +270,7 @@ export class TaskPlanner {
         dependencies: ['architecture-design'],
         category: 'database',
         effort: 4,
-        expectedOutputs: ['schema.sql', 'data-models.md']
+        expectedOutputs: ['schema.sql', 'data-models.md'],
       },
       {
         id: 'api-design',
@@ -228,7 +279,7 @@ export class TaskPlanner {
         dependencies: ['database-schema'],
         category: 'backend',
         effort: 4,
-        expectedOutputs: ['api-spec.yaml', 'endpoints.md']
+        expectedOutputs: ['api-spec.yaml', 'endpoints.md'],
       },
       {
         id: 'backend-implementation',
@@ -237,7 +288,7 @@ export class TaskPlanner {
         dependencies: ['api-design'],
         category: 'backend',
         effort: 8,
-        expectedOutputs: ['backend-code', 'api-implementation']
+        expectedOutputs: ['backend-code', 'api-implementation'],
       },
       {
         id: 'frontend-setup',
@@ -246,7 +297,7 @@ export class TaskPlanner {
         dependencies: ['architecture-design'],
         category: 'frontend',
         effort: 3,
-        expectedOutputs: ['frontend-scaffold', 'build-config']
+        expectedOutputs: ['frontend-scaffold', 'build-config'],
       },
       {
         id: 'ui-components',
@@ -255,7 +306,7 @@ export class TaskPlanner {
         dependencies: ['frontend-setup'],
         category: 'frontend',
         effort: 6,
-        expectedOutputs: ['component-library', 'ui-components']
+        expectedOutputs: ['component-library', 'ui-components'],
       },
       {
         id: 'frontend-integration',
@@ -264,16 +315,17 @@ export class TaskPlanner {
         dependencies: ['backend-implementation', 'ui-components'],
         category: 'integration',
         effort: 5,
-        expectedOutputs: ['integrated-application']
+        expectedOutputs: ['integrated-application'],
       },
       {
         id: 'testing',
         title: 'Testing Implementation',
-        description: 'Implement unit tests, integration tests, and end-to-end tests',
+        description:
+          'Implement unit tests, integration tests, and end-to-end tests',
         dependencies: ['frontend-integration'],
         category: 'testing',
         effort: 6,
-        expectedOutputs: ['test-suite', 'test-coverage-report']
+        expectedOutputs: ['test-suite', 'test-coverage-report'],
       },
       {
         id: 'deployment',
@@ -282,8 +334,8 @@ export class TaskPlanner {
         dependencies: ['testing'],
         category: 'devops',
         effort: 4,
-        expectedOutputs: ['deployment-config', 'production-setup']
-      }
+        expectedOutputs: ['deployment-config', 'production-setup'],
+      },
     ];
 
     const reasoning = `Decomposed MVP development into standard software development lifecycle phases: 
@@ -296,7 +348,10 @@ export class TaskPlanner {
   /**
    * Decompose analysis tasks
    */
-  private decomposeAnalysisTask(query: string, _context?: DecompositionRequest['context']): {
+  private decomposeAnalysisTask(
+    query: string,
+    _context?: DecompositionRequest['context'],
+  ): {
     tasks: Task[];
     reasoning: string;
     confidence: number;
@@ -309,7 +364,7 @@ export class TaskPlanner {
         dependencies: [],
         category: 'analysis',
         effort: 2,
-        expectedOutputs: ['analysis-scope.md']
+        expectedOutputs: ['analysis-scope.md'],
       },
       {
         id: 'data-collection',
@@ -318,7 +373,7 @@ export class TaskPlanner {
         dependencies: ['scope-definition'],
         category: 'analysis',
         effort: 4,
-        expectedOutputs: ['collected-data', 'metrics-snapshot']
+        expectedOutputs: ['collected-data', 'metrics-snapshot'],
       },
       {
         id: 'static-analysis',
@@ -327,7 +382,7 @@ export class TaskPlanner {
         dependencies: ['data-collection'],
         category: 'analysis',
         effort: 5,
-        expectedOutputs: ['static-analysis-report']
+        expectedOutputs: ['static-analysis-report'],
       },
       {
         id: 'pattern-analysis',
@@ -336,7 +391,7 @@ export class TaskPlanner {
         dependencies: ['static-analysis'],
         category: 'analysis',
         effort: 6,
-        expectedOutputs: ['architecture-analysis', 'pattern-report']
+        expectedOutputs: ['architecture-analysis', 'pattern-report'],
       },
       {
         id: 'findings-synthesis',
@@ -345,8 +400,8 @@ export class TaskPlanner {
         dependencies: ['pattern-analysis'],
         category: 'analysis',
         effort: 4,
-        expectedOutputs: ['final-analysis-report', 'recommendations.md']
-      }
+        expectedOutputs: ['final-analysis-report', 'recommendations.md'],
+      },
     ];
 
     const reasoning = `Decomposed analysis task into systematic analysis phases: 
@@ -359,7 +414,10 @@ export class TaskPlanner {
   /**
    * Decompose refactoring tasks
    */
-  private decomposeRefactoringTask(query: string, _context?: DecompositionRequest['context']): {
+  private decomposeRefactoringTask(
+    query: string,
+    _context?: DecompositionRequest['context'],
+  ): {
     tasks: Task[];
     reasoning: string;
     confidence: number;
@@ -368,29 +426,32 @@ export class TaskPlanner {
       {
         id: 'current-state-analysis',
         title: 'Current State Analysis',
-        description: 'Analyze current codebase and identify refactoring targets: ' + query,
+        description:
+          'Analyze current codebase and identify refactoring targets: ' + query,
         dependencies: [],
         category: 'analysis',
         effort: 4,
-        expectedOutputs: ['current-state-report', 'refactoring-targets']
+        expectedOutputs: ['current-state-report', 'refactoring-targets'],
       },
       {
         id: 'refactoring-plan',
         title: 'Refactoring Strategy & Plan',
-        description: 'Create detailed refactoring plan with phases and safety measures',
+        description:
+          'Create detailed refactoring plan with phases and safety measures',
         dependencies: ['current-state-analysis'],
         category: 'planning',
         effort: 3,
-        expectedOutputs: ['refactoring-plan.md', 'safety-checklist']
+        expectedOutputs: ['refactoring-plan.md', 'safety-checklist'],
       },
       {
         id: 'test-coverage',
         title: 'Test Coverage Enhancement',
-        description: 'Improve test coverage before refactoring to ensure safety',
+        description:
+          'Improve test coverage before refactoring to ensure safety',
         dependencies: ['refactoring-plan'],
         category: 'testing',
         effort: 5,
-        expectedOutputs: ['enhanced-test-suite', 'coverage-report']
+        expectedOutputs: ['enhanced-test-suite', 'coverage-report'],
       },
       {
         id: 'incremental-refactoring',
@@ -399,7 +460,7 @@ export class TaskPlanner {
         dependencies: ['test-coverage'],
         category: 'refactoring',
         effort: 8,
-        expectedOutputs: ['refactored-code', 'migration-log']
+        expectedOutputs: ['refactored-code', 'migration-log'],
       },
       {
         id: 'validation-testing',
@@ -408,8 +469,8 @@ export class TaskPlanner {
         dependencies: ['incremental-refactoring'],
         category: 'testing',
         effort: 4,
-        expectedOutputs: ['validation-report', 'regression-test-results']
-      }
+        expectedOutputs: ['validation-report', 'regression-test-results'],
+      },
     ];
 
     const reasoning = `Decomposed refactoring into safe, incremental phases: 
@@ -422,7 +483,10 @@ export class TaskPlanner {
   /**
    * Decompose feature development tasks
    */
-  private decomposeFeatureDevelopment(query: string, _context?: DecompositionRequest['context']): {
+  private decomposeFeatureDevelopment(
+    query: string,
+    _context?: DecompositionRequest['context'],
+  ): {
     tasks: Task[];
     reasoning: string;
     confidence: number;
@@ -431,11 +495,13 @@ export class TaskPlanner {
       {
         id: 'feature-specification',
         title: 'Feature Specification',
-        description: 'Define detailed feature requirements and acceptance criteria: ' + query,
+        description:
+          'Define detailed feature requirements and acceptance criteria: ' +
+          query,
         dependencies: [],
         category: 'analysis',
         effort: 3,
-        expectedOutputs: ['feature-spec.md', 'acceptance-criteria']
+        expectedOutputs: ['feature-spec.md', 'acceptance-criteria'],
       },
       {
         id: 'technical-design',
@@ -444,7 +510,7 @@ export class TaskPlanner {
         dependencies: ['feature-specification'],
         category: 'design',
         effort: 4,
-        expectedOutputs: ['technical-design.md', 'interface-definitions']
+        expectedOutputs: ['technical-design.md', 'interface-definitions'],
       },
       {
         id: 'implementation',
@@ -453,7 +519,7 @@ export class TaskPlanner {
         dependencies: ['technical-design'],
         category: 'implementation',
         effort: 7,
-        expectedOutputs: ['feature-code', 'updated-apis']
+        expectedOutputs: ['feature-code', 'updated-apis'],
       },
       {
         id: 'testing',
@@ -462,17 +528,18 @@ export class TaskPlanner {
         dependencies: ['implementation'],
         category: 'testing',
         effort: 4,
-        expectedOutputs: ['test-suite', 'test-documentation']
+        expectedOutputs: ['test-suite', 'test-documentation'],
       },
       {
         id: 'integration',
         title: 'Integration & Documentation',
-        description: 'Integrate feature with existing system and update documentation',
+        description:
+          'Integrate feature with existing system and update documentation',
         dependencies: ['testing'],
         category: 'integration',
         effort: 3,
-        expectedOutputs: ['integrated-feature', 'updated-docs']
-      }
+        expectedOutputs: ['integrated-feature', 'updated-docs'],
+      },
     ];
 
     const reasoning = `Decomposed feature development into standard development phases: 
@@ -485,7 +552,10 @@ export class TaskPlanner {
   /**
    * Decompose generic tasks
    */
-  private decomposeGenericTask(query: string, _context?: DecompositionRequest['context']): {
+  private decomposeGenericTask(
+    query: string,
+    _context?: DecompositionRequest['context'],
+  ): {
     tasks: Task[];
     reasoning: string;
     confidence: number;
@@ -498,7 +568,7 @@ export class TaskPlanner {
         dependencies: [],
         category: 'analysis',
         effort: 2,
-        expectedOutputs: ['task-breakdown.md']
+        expectedOutputs: ['task-breakdown.md'],
       },
       {
         id: 'approach-design',
@@ -507,7 +577,7 @@ export class TaskPlanner {
         dependencies: ['task-analysis'],
         category: 'planning',
         effort: 3,
-        expectedOutputs: ['approach-plan.md']
+        expectedOutputs: ['approach-plan.md'],
       },
       {
         id: 'implementation',
@@ -516,7 +586,7 @@ export class TaskPlanner {
         dependencies: ['approach-design'],
         category: 'implementation',
         effort: 6,
-        expectedOutputs: ['deliverables']
+        expectedOutputs: ['deliverables'],
       },
       {
         id: 'review-refinement',
@@ -525,8 +595,8 @@ export class TaskPlanner {
         dependencies: ['implementation'],
         category: 'review',
         effort: 2,
-        expectedOutputs: ['final-deliverables', 'review-notes']
-      }
+        expectedOutputs: ['final-deliverables', 'review-notes'],
+      },
     ];
 
     const reasoning = `Decomposed generic task into basic phases: 
@@ -548,7 +618,10 @@ export class TaskPlanner {
     let currentCategory = '';
 
     for (const task of tasks) {
-      if (task.category === currentCategory && consolidated.length < maxTasks - 1) {
+      if (
+        task.category === currentCategory &&
+        consolidated.length < maxTasks - 1
+      ) {
         currentGroup.push(task);
       } else {
         if (currentGroup.length > 0) {
@@ -572,15 +645,24 @@ export class TaskPlanner {
   private mergeTaskGroup(tasks: Task[]): Task {
     if (tasks.length === 1) return tasks[0];
 
-    const allDependencies = Array.from(new Set(tasks.flatMap(t => t.dependencies)));
+    const allDependencies = Array.from(
+      new Set(tasks.flatMap((t) => t.dependencies)),
+    );
     const mergedTask: Task = {
-      id: tasks.map(t => t.id).join('-'),
+      id: tasks.map((t) => t.id).join('-'),
       title: `${tasks[0].category || 'Combined'} Phase`,
-      description: tasks.map(t => `${t.title}: ${t.description}`).join('\n\n'),
-      dependencies: allDependencies.filter(dep => !tasks.some(t => t.id === dep)),
+      description: tasks
+        .map((t) => `${t.title}: ${t.description}`)
+        .join('\n\n'),
+      dependencies: allDependencies.filter(
+        (dep) => !tasks.some((t) => t.id === dep),
+      ),
       category: tasks[0].category,
-      effort: Math.max(1, Math.floor(tasks.reduce((sum, t) => sum + (t.effort || 1), 0) * 0.8)), // 20% efficiency gain from consolidation
-      expectedOutputs: tasks.flatMap(t => t.expectedOutputs || [])
+      effort: Math.max(
+        1,
+        Math.floor(tasks.reduce((sum, t) => sum + (t.effort || 1), 0) * 0.8),
+      ), // 20% efficiency gain from consolidation
+      expectedOutputs: tasks.flatMap((t) => t.expectedOutputs || []),
     };
 
     return mergedTask;
@@ -589,7 +671,11 @@ export class TaskPlanner {
   /**
    * Build DAG from task list
    */
-  private buildDAG(tasks: Task[], originalQuery: string, strategy: string): TaskDAG {
+  private buildDAG(
+    tasks: Task[],
+    originalQuery: string,
+    strategy: string,
+  ): TaskDAG {
     const taskMap = new Map<string, TaskWithStatus>();
     const dependencies = new Map<string, string[]>();
     const dependents = new Map<string, string[]>();
@@ -598,7 +684,7 @@ export class TaskPlanner {
     for (const task of tasks) {
       taskMap.set(task.id, {
         ...task,
-        status: task.dependencies.length === 0 ? 'ready' : 'pending'
+        status: task.dependencies.length === 0 ? 'ready' : 'pending',
       });
       dependencies.set(task.id, [...task.dependencies]);
       dependents.set(task.id, []);
@@ -618,7 +704,7 @@ export class TaskPlanner {
       dependencies,
       dependents,
       originalQuery,
-      strategy
+      strategy,
     };
   }
 
@@ -641,9 +727,10 @@ export class TaskPlanner {
       if (!task) return 0;
 
       const deps = dependencies.get(taskId) || [];
-      const maxDepEffort = deps.length > 0 
-        ? Math.max(...deps.map(depId => calculateEffort(depId)))
-        : 0;
+      const maxDepEffort =
+        deps.length > 0
+          ? Math.max(...deps.map((depId) => calculateEffort(depId)))
+          : 0;
 
       const totalEffort = (task.effort || 1) + maxDepEffort;
       taskEfforts.set(taskId, totalEffort);
@@ -668,15 +755,15 @@ export class TaskPlanner {
     // Trace back the critical path
     const tracePath = (taskId: string): void => {
       if (visited.has(taskId)) return;
-      
+
       visited.add(taskId);
       const deps = dependencies.get(taskId) || [];
-      
+
       if (deps.length > 0) {
         // Find the dependency with maximum effort
         let maxDepEffort = 0;
         let criticalDep = '';
-        
+
         for (const depId of deps) {
           const depEffort = taskEfforts.get(depId) || 0;
           if (depEffort > maxDepEffort) {
@@ -684,12 +771,12 @@ export class TaskPlanner {
             criticalDep = depId;
           }
         }
-        
+
         if (criticalDep) {
           tracePath(criticalDep);
         }
       }
-      
+
       path.push(taskId);
     };
 
@@ -706,7 +793,7 @@ export class TaskPlanner {
   private estimateProjectDuration(dag: TaskDAG): number {
     const { tasks } = dag;
     const criticalPath = this.calculateCriticalPath(dag);
-    
+
     // Sum efforts along critical path
     return criticalPath.reduce((total, taskId) => {
       const task = tasks.get(taskId);
@@ -719,25 +806,25 @@ export class TaskPlanner {
    */
   getReadyTasks(dag: TaskDAG): TaskWithStatus[] {
     const readyTasks: TaskWithStatus[] = [];
-    
+
     for (const [taskId, task] of dag.tasks) {
       if (task.status === 'ready') {
         readyTasks.push(task);
       } else if (task.status === 'pending') {
         // Check if all dependencies are completed
         const deps = dag.dependencies.get(taskId) || [];
-        const allDepsCompleted = deps.every(depId => {
+        const allDepsCompleted = deps.every((depId) => {
           const depTask = dag.tasks.get(depId);
           return depTask?.status === 'completed';
         });
-        
+
         if (allDepsCompleted) {
           task.status = 'ready';
           readyTasks.push(task);
         }
       }
     }
-    
+
     return readyTasks;
   }
 
@@ -760,11 +847,11 @@ export class TaskPlanner {
       const dependentTask = dag.tasks.get(dependentId);
       if (dependentTask && dependentTask.status === 'pending') {
         const deps = dag.dependencies.get(dependentId) || [];
-        const allDepsCompleted = deps.every(depId => {
+        const allDepsCompleted = deps.every((depId) => {
           const depTask = dag.tasks.get(depId);
           return depTask?.status === 'completed';
         });
-        
+
         if (allDepsCompleted) {
           dependentTask.status = 'ready';
         }
@@ -787,7 +874,10 @@ export class TaskPlanner {
     const dependents = dag.dependents.get(taskId) || [];
     for (const dependentId of dependents) {
       const dependentTask = dag.tasks.get(dependentId);
-      if (dependentTask && (dependentTask.status === 'pending' || dependentTask.status === 'ready')) {
+      if (
+        dependentTask &&
+        (dependentTask.status === 'pending' || dependentTask.status === 'ready')
+      ) {
         dependentTask.status = 'blocked';
       }
     }

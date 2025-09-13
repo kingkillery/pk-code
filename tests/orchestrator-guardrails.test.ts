@@ -4,12 +4,12 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { 
-  GuardrailManager, 
-  GuardrailConfig, 
-  OrchestratorPhase, 
+import {
+  GuardrailManager,
+  GuardrailConfig,
+  OrchestratorPhase,
   PhaseTransition,
-  createGuardrailManager 
+  createGuardrailManager,
 } from '../packages/core/src/orchestrator/guardrails';
 
 describe('Guardrail Injection Mechanism', () => {
@@ -22,7 +22,7 @@ describe('Guardrail Injection Mechanism', () => {
       phaseTransitionMessages: true,
       toolCallValidation: true,
       retryEnabled: true,
-      maxRetries: 1
+      maxRetries: 1,
     };
     guardrailManager = new GuardrailManager(config);
   });
@@ -32,7 +32,7 @@ describe('Guardrail Injection Mechanism', () => {
       const transition: PhaseTransition = {
         from: OrchestratorPhase.METADATA,
         to: OrchestratorPhase.PARETO,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
 
       const message = guardrailManager.recordPhaseTransition(transition);
@@ -49,14 +49,14 @@ describe('Guardrail Injection Mechanism', () => {
       guardrailManager.recordPhaseTransition({
         from: OrchestratorPhase.METADATA,
         to: OrchestratorPhase.PARETO,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
 
       // Then transition to strategic
       const transition: PhaseTransition = {
         from: OrchestratorPhase.PARETO,
         to: OrchestratorPhase.STRATEGIC,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
 
       const message = guardrailManager.recordPhaseTransition(transition);
@@ -74,18 +74,18 @@ describe('Guardrail Injection Mechanism', () => {
       guardrailManager.recordPhaseTransition({
         from: OrchestratorPhase.METADATA,
         to: OrchestratorPhase.PARETO,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
       guardrailManager.recordPhaseTransition({
         from: OrchestratorPhase.PARETO,
         to: OrchestratorPhase.STRATEGIC,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
 
       const transition: PhaseTransition = {
         from: OrchestratorPhase.STRATEGIC,
         to: OrchestratorPhase.EXECUTION,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
 
       const message = guardrailManager.recordPhaseTransition(transition);
@@ -101,7 +101,7 @@ describe('Guardrail Injection Mechanism', () => {
       const invalidTransition: PhaseTransition = {
         from: OrchestratorPhase.METADATA,
         to: OrchestratorPhase.EXECUTION, // Skip pareto and strategic
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
 
       expect(() => {
@@ -112,14 +112,14 @@ describe('Guardrail Injection Mechanism', () => {
     it('should not generate messages when phase transitions disabled', () => {
       const disabledConfig: GuardrailConfig = {
         ...config,
-        phaseTransitionMessages: false
+        phaseTransitionMessages: false,
       };
       const disabledManager = new GuardrailManager(disabledConfig);
 
       const transition: PhaseTransition = {
         from: OrchestratorPhase.METADATA,
         to: OrchestratorPhase.PARETO,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
 
       const message = disabledManager.recordPhaseTransition(transition);
@@ -132,7 +132,7 @@ describe('Guardrail Injection Mechanism', () => {
       const message = guardrailManager.generateToolCallGuardrail(
         'run_pdb_test',
         OrchestratorPhase.EXECUTION,
-        { success: true }
+        { success: true },
       );
 
       expect(message).not.toBeNull();
@@ -146,7 +146,7 @@ describe('Guardrail Injection Mechanism', () => {
       const message = guardrailManager.generateToolCallGuardrail(
         'edit_files',
         OrchestratorPhase.EXECUTION,
-        { success: true }
+        { success: true },
       );
 
       expect(message).not.toBeNull();
@@ -158,16 +158,18 @@ describe('Guardrail Injection Mechanism', () => {
       const successMessage = guardrailManager.generateToolCallGuardrail(
         'run_command',
         OrchestratorPhase.EXECUTION,
-        { success: true, exitCode: 0 }
+        { success: true, exitCode: 0 },
       );
 
       const failMessage = guardrailManager.generateToolCallGuardrail(
         'run_command',
         OrchestratorPhase.EXECUTION,
-        { success: false, exitCode: 1 }
+        { success: false, exitCode: 1 },
       );
 
-      expect(successMessage?.message).toContain('Command executed successfully');
+      expect(successMessage?.message).toContain(
+        'Command executed successfully',
+      );
       expect(failMessage?.message).toContain('Command failed');
       expect(failMessage?.message).toContain('Review error output');
     });
@@ -175,14 +177,14 @@ describe('Guardrail Injection Mechanism', () => {
     it('should not generate tool guardrails when disabled', () => {
       const disabledConfig: GuardrailConfig = {
         ...config,
-        toolCallValidation: false
+        toolCallValidation: false,
       };
       const disabledManager = new GuardrailManager(disabledConfig);
 
       const message = disabledManager.generateToolCallGuardrail(
         'edit_files',
         OrchestratorPhase.EXECUTION,
-        { success: true }
+        { success: true },
       );
 
       expect(message).toBeNull();
@@ -194,7 +196,7 @@ describe('Guardrail Injection Mechanism', () => {
       const message = guardrailManager.generateRetryMessage(
         'search_codebase',
         1,
-        'Network timeout'
+        'Network timeout',
       );
 
       expect(message).not.toBeNull();
@@ -208,7 +210,7 @@ describe('Guardrail Injection Mechanism', () => {
       const message = guardrailManager.generateRetryMessage(
         'search_codebase',
         2, // Exceeds maxRetries of 1
-        'Network timeout'
+        'Network timeout',
       );
 
       expect(message).not.toBeNull();
@@ -220,14 +222,14 @@ describe('Guardrail Injection Mechanism', () => {
     it('should not generate retry messages when disabled', () => {
       const disabledConfig: GuardrailConfig = {
         ...config,
-        retryEnabled: false
+        retryEnabled: false,
       };
       const disabledManager = new GuardrailManager(disabledConfig);
 
       const message = disabledManager.generateRetryMessage(
         'search_codebase',
         1,
-        'Network timeout'
+        'Network timeout',
       );
 
       expect(message).toBeNull();
@@ -238,14 +240,20 @@ describe('Guardrail Injection Mechanism', () => {
     it('should validate valid Pareto phase output', () => {
       const validOutput = {
         pareto: [
-          { path: 'src/main.ts', reason: 'Core entry point, 60% of functionality.' },
-          { path: 'tests/unit.test.ts', reason: 'Primary test suite, catches 80% of bugs.' }
-        ]
+          {
+            path: 'src/main.ts',
+            reason: 'Core entry point, 60% of functionality.',
+          },
+          {
+            path: 'tests/unit.test.ts',
+            reason: 'Primary test suite, catches 80% of bugs.',
+          },
+        ],
       };
 
       const message = guardrailManager.generateValidationMessage(
         OrchestratorPhase.PARETO,
-        validOutput
+        validOutput,
       );
 
       expect(message).not.toBeNull();
@@ -255,13 +263,12 @@ describe('Guardrail Injection Mechanism', () => {
 
     it('should detect invalid Pareto phase output', () => {
       const invalidOutput = {
-        pareto: [
-        1, 2, 3, 4, 5, 6] // Too many files, wrong format
+        pareto: [1, 2, 3, 4, 5, 6], // Too many files, wrong format
       };
 
       const message = guardrailManager.generateValidationMessage(
         OrchestratorPhase.PARETO,
-        invalidOutput
+        invalidOutput,
       );
 
       expect(message).not.toBeNull();
@@ -274,14 +281,14 @@ describe('Guardrail Injection Mechanism', () => {
           projectSetup: 'Load config',
           implementationSteps: ['Step 1', 'Step 2'],
           testingPlan: 'Run tests',
-          proceed: '### PROCEED TO EXECUTION'
+          proceed: '### PROCEED TO EXECUTION',
         },
-        tokenCount: 300
+        tokenCount: 300,
       };
 
       const message = guardrailManager.generateValidationMessage(
         OrchestratorPhase.STRATEGIC,
-        validOutput
+        validOutput,
       );
 
       expect(message).not.toBeNull();
@@ -295,12 +302,12 @@ describe('Guardrail Injection Mechanism', () => {
           projectSetup: 'Load config',
           // Missing proceed marker
         },
-        tokenCount: 400 // Exceeds limit
+        tokenCount: 400, // Exceeds limit
       };
 
       const message = guardrailManager.generateValidationMessage(
         OrchestratorPhase.STRATEGIC,
-        invalidOutput
+        invalidOutput,
       );
 
       expect(message).not.toBeNull();
@@ -311,14 +318,22 @@ describe('Guardrail Injection Mechanism', () => {
     it('should validate Execution phase output', () => {
       const validOutput = {
         steps: [
-          { thought: 'Load config', action: 'read_files', observation: 'Config loaded' },
-          { thought: 'Run tests', action: 'run_command', observation: 'Tests passed' }
-        ]
+          {
+            thought: 'Load config',
+            action: 'read_files',
+            observation: 'Config loaded',
+          },
+          {
+            thought: 'Run tests',
+            action: 'run_command',
+            observation: 'Tests passed',
+          },
+        ],
       };
 
       const message = guardrailManager.generateValidationMessage(
         OrchestratorPhase.EXECUTION,
-        validOutput
+        validOutput,
       );
 
       expect(message).not.toBeNull();
@@ -332,13 +347,13 @@ describe('Guardrail Injection Mechanism', () => {
       guardrailManager.recordPhaseTransition({
         from: OrchestratorPhase.METADATA,
         to: OrchestratorPhase.PARETO,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
 
       guardrailManager.recordPhaseTransition({
         from: OrchestratorPhase.PARETO,
         to: OrchestratorPhase.STRATEGIC,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
 
       const history = guardrailManager.getTransitionHistory();
@@ -355,7 +370,7 @@ describe('Guardrail Injection Mechanism', () => {
       guardrailManager.recordPhaseTransition({
         from: OrchestratorPhase.METADATA,
         to: OrchestratorPhase.PARETO,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
 
       expect(guardrailManager.getCurrentPhase()).toBe(OrchestratorPhase.PARETO);
@@ -365,13 +380,13 @@ describe('Guardrail Injection Mechanism', () => {
       guardrailManager.recordPhaseTransition({
         from: OrchestratorPhase.METADATA,
         to: OrchestratorPhase.PARETO,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
 
       guardrailManager.generateToolCallGuardrail(
         'edit_files',
         OrchestratorPhase.PARETO,
-        { success: true }
+        { success: true },
       );
 
       const messages = guardrailManager.getGuardrailMessages();
@@ -384,7 +399,7 @@ describe('Guardrail Injection Mechanism', () => {
       guardrailManager.recordPhaseTransition({
         from: OrchestratorPhase.METADATA,
         to: OrchestratorPhase.PARETO,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
 
       expect(guardrailManager.getGuardrailMessages()).toHaveLength(1);
@@ -410,7 +425,7 @@ describe('Guardrail Injection Mechanism', () => {
       const message = guardrailManager.generateSubAgentGuardrail(
         'pk-debugger',
         OrchestratorPhase.EXECUTION,
-        { success: true, output: 'Debug analysis complete' }
+        { success: true, output: 'Debug analysis complete' },
       );
 
       expect(message).not.toBeNull();
@@ -424,7 +439,7 @@ describe('Guardrail Injection Mechanism', () => {
       const message = guardrailManager.generateSubAgentGuardrail(
         'pk-planner',
         OrchestratorPhase.EXECUTION,
-        { success: true, output: 'Strategic plan updated' }
+        { success: true, output: 'Strategic plan updated' },
       );
 
       expect(message).not.toBeNull();
@@ -438,7 +453,7 @@ describe('Guardrail Injection Mechanism', () => {
       const message = guardrailManager.generateSubAgentGuardrail(
         'unknown-agent',
         OrchestratorPhase.EXECUTION,
-        { success: true }
+        { success: true },
       );
 
       expect(message).toBeNull();
@@ -447,14 +462,14 @@ describe('Guardrail Injection Mechanism', () => {
     it('should not generate sub-agent guardrails when disabled', () => {
       const disabledConfig: GuardrailConfig = {
         ...config,
-        toolCallValidation: false
+        toolCallValidation: false,
       };
       const disabledManager = new GuardrailManager(disabledConfig);
 
       const message = disabledManager.generateSubAgentGuardrail(
         'pk-debugger',
         OrchestratorPhase.EXECUTION,
-        { success: true }
+        { success: true },
       );
 
       expect(message).toBeNull();
@@ -468,7 +483,7 @@ describe('Guardrail Injection Mechanism', () => {
         phaseTransitionMessages: true,
         toolCallValidation: true,
         retryEnabled: true,
-        maxRetries: 1
+        maxRetries: 1,
       };
       const disabledManager = new GuardrailManager(disabledConfig);
 
@@ -476,30 +491,30 @@ describe('Guardrail Injection Mechanism', () => {
       const phaseMessage = disabledManager.recordPhaseTransition({
         from: OrchestratorPhase.METADATA,
         to: OrchestratorPhase.PARETO,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
 
       const toolMessage = disabledManager.generateToolCallGuardrail(
         'edit_files',
         OrchestratorPhase.EXECUTION,
-        { success: true }
+        { success: true },
       );
 
       const validationMessage = disabledManager.generateValidationMessage(
         OrchestratorPhase.PARETO,
-        { pareto: [] }
+        { pareto: [] },
       );
 
       const retryMessage = disabledManager.generateRetryMessage(
         'search_codebase',
         1,
-        'Error'
+        'Error',
       );
 
       const subAgentMessage = disabledManager.generateSubAgentGuardrail(
         'pk-debugger',
         OrchestratorPhase.EXECUTION,
-        { success: true }
+        { success: true },
       );
 
       expect(phaseMessage).toBeNull();

@@ -9,7 +9,13 @@ import { BaseTool, ToolResult } from './tools.js';
 import { Config } from '../config/config.js';
 
 interface BrowserUseParams {
-  action: 'create_task' | 'get_status' | 'get_details' | 'pause' | 'resume' | 'stop';
+  action:
+    | 'create_task'
+    | 'get_status'
+    | 'get_details'
+    | 'pause'
+    | 'resume'
+    | 'stop';
   task?: string;
   taskId?: string;
   structuredOutputSchema?: string;
@@ -61,7 +67,14 @@ For structured output, include a JSON schema in structuredOutputSchema when crea
           action: {
             type: Type.STRING,
             description: 'The action to perform',
-            enum: ['create_task', 'get_status', 'get_details', 'pause', 'resume', 'stop'],
+            enum: [
+              'create_task',
+              'get_status',
+              'get_details',
+              'pause',
+              'resume',
+              'stop',
+            ],
           },
           task: {
             type: Type.STRING,
@@ -73,7 +86,8 @@ For structured output, include a JSON schema in structuredOutputSchema when crea
           },
           structuredOutputSchema: {
             type: Type.STRING,
-            description: 'JSON schema for structured output (optional, for create_task)',
+            description:
+              'JSON schema for structured output (optional, for create_task)',
           },
           pollInterval: {
             type: Type.NUMBER,
@@ -81,7 +95,8 @@ For structured output, include a JSON schema in structuredOutputSchema when crea
           },
           waitForCompletion: {
             type: Type.BOOLEAN,
-            description: 'Whether to wait for task completion and stream steps (default: false)',
+            description:
+              'Whether to wait for task completion and stream steps (default: false)',
           },
         },
         required: ['action'],
@@ -93,13 +108,15 @@ For structured output, include a JSON schema in structuredOutputSchema when crea
     // Get API key from environment or config
     this.apiKey = process.env.BROWSER_USE_API_KEY || '';
     if (!this.apiKey) {
-      console.warn('BROWSER_USE_API_KEY not set. Browser Use tool will not work.');
+      console.warn(
+        'BROWSER_USE_API_KEY not set. Browser Use tool will not work.',
+      );
     }
   }
 
   private getHeaders() {
     return {
-      'Authorization': `Bearer ${this.apiKey}`,
+      Authorization: `Bearer ${this.apiKey}`,
       'Content-Type': 'application/json',
     };
   }
@@ -129,20 +146,27 @@ For structured output, include a JSON schema in structuredOutputSchema when crea
       }, timeoutMs);
       if (signal) {
         if (signal.aborted) controller.abort();
-        signal.addEventListener('abort', () => controller.abort(), { once: true });
+        signal.addEventListener('abort', () => controller.abort(), {
+          once: true,
+        });
       }
       try {
         const res = await fetch(url, { ...options, signal: controller.signal });
         if (!res.ok) {
           // Map common statuses to friendly errors with truncation and hints
           const raw = await res.text().catch(() => '');
-          const truncated = raw && raw.length > 2048 ? `${raw.slice(0, 2048)}... [truncated]` : raw;
+          const truncated =
+            raw && raw.length > 2048
+              ? `${raw.slice(0, 2048)}... [truncated]`
+              : raw;
           let friendly = `HTTP ${res.status} ${res.statusText}`;
           if (truncated) friendly += `: ${truncated}`;
           if (res.status === 401 || res.status === 403) {
-            friendly += ' — authentication/permission error (check BROWSER_USE_API_KEY and account permissions).';
+            friendly +=
+              ' — authentication/permission error (check BROWSER_USE_API_KEY and account permissions).';
           } else if (res.status === 400 || res.status === 422) {
-            friendly += ' — request invalid (verify parameters/structuredOutputSchema).';
+            friendly +=
+              ' — request invalid (verify parameters/structuredOutputSchema).';
           }
           // Respect Retry-After for 429
           if (res.status === 429 && attemptNo < maxRetries) {
@@ -172,16 +196,21 @@ For structured output, include a JSON schema in structuredOutputSchema when crea
         }
         return res;
       } catch (e: any) {
-        const isAbort = e?.name === 'AbortError' || /abort/i.test(String(e?.message));
-        const isNetwork = /fetch|network|ECONN|ENOTFOUND|EAI_AGAIN|TLS|Timeout/i.test(String(e?.message));
+        const isAbort =
+          e?.name === 'AbortError' || /abort/i.test(String(e?.message));
+        const isNetwork =
+          /fetch|network|ECONN|ENOTFOUND|EAI_AGAIN|TLS|Timeout/i.test(
+            String(e?.message),
+          );
         // If externally aborted, do not retry
         if (isAbort && signal?.aborted && !abortedByTimeout) {
           throw e;
         }
-        const isRetryable = isAbort || isNetwork || String(e?.message).startsWith('retryable:');
+        const isRetryable =
+          isAbort || isNetwork || String(e?.message).startsWith('retryable:');
         if (isRetryable && attemptNo < maxRetries) {
           const delay = initialDelayMs * Math.pow(2, attemptNo - 1);
-          await new Promise(r => setTimeout(r, delay));
+          await new Promise((r) => setTimeout(r, delay));
           return attempt(attemptNo + 1);
         }
         throw e;
@@ -193,7 +222,11 @@ For structured output, include a JSON schema in structuredOutputSchema when crea
     return attempt(1);
   }
 
-  private async createTask(instructions: string, structuredOutputSchema?: string, signal?: AbortSignal): Promise<string> {
+  private async createTask(
+    instructions: string,
+    structuredOutputSchema?: string,
+    signal?: AbortSignal,
+  ): Promise<string> {
     const payload: any = { task: instructions };
     if (structuredOutputSchema) {
       payload.structured_output_json = structuredOutputSchema;
@@ -210,30 +243,36 @@ For structured output, include a JSON schema in structuredOutputSchema when crea
       signal,
     );
 
-    const result = await response.json() as { id: string };
+    const result = (await response.json()) as { id: string };
     return result.id;
   }
 
-  private async getTaskStatus(taskId: string, signal?: AbortSignal): Promise<string> {
+  private async getTaskStatus(
+    taskId: string,
+    signal?: AbortSignal,
+  ): Promise<string> {
     const response = await this.fetchWithRetry(
       `${this.baseUrl}/task/${taskId}/status`,
       { headers: this.getHeaders(), timeoutMs: 15000 },
       signal,
     );
-    const data = await response.json() as any;
+    const data = (await response.json()) as any;
     if (typeof data === 'string') return data;
     if (data && typeof data.status === 'string') return data.status;
     return 'unknown';
   }
 
-  private async getTaskDetails(taskId: string, signal?: AbortSignal): Promise<TaskDetails> {
+  private async getTaskDetails(
+    taskId: string,
+    signal?: AbortSignal,
+  ): Promise<TaskDetails> {
     const response = await this.fetchWithRetry(
       `${this.baseUrl}/task/${taskId}`,
       { headers: this.getHeaders(), timeoutMs: 20000 },
       signal,
     );
 
-    return await response.json() as TaskDetails;
+    return (await response.json()) as TaskDetails;
   }
 
   private async pauseTask(taskId: string, signal?: AbortSignal): Promise<void> {
@@ -244,7 +283,10 @@ For structured output, include a JSON schema in structuredOutputSchema when crea
     );
   }
 
-  private async resumeTask(taskId: string, signal?: AbortSignal): Promise<void> {
+  private async resumeTask(
+    taskId: string,
+    signal?: AbortSignal,
+  ): Promise<void> {
     await this.fetchWithRetry(
       `${this.baseUrl}/resume-task?task_id=${taskId}`,
       { method: 'PUT', headers: this.getHeaders(), timeoutMs: 10000 },
@@ -278,7 +320,7 @@ For structured output, include a JSON schema in structuredOutputSchema when crea
         else if (this.config.getDebugMode()) console.log(`\n${header}`);
         headerEmitted = true;
       }
-      
+
       // Stream new steps via updateOutput (preferred) and console (fallback)
       if (details.steps && details.steps.length > 0) {
         for (const step of details.steps) {
@@ -289,7 +331,10 @@ For structured output, include a JSON schema in structuredOutputSchema when crea
             let detailsChunk = '';
             if (step.details) {
               const full = JSON.stringify(step.details, null, 2);
-              const truncated = full.length > 2048 ? `${full.slice(0, 2048)}... [details truncated]` : full;
+              const truncated =
+                full.length > 2048
+                  ? `${full.slice(0, 2048)}... [details truncated]`
+                  : full;
               detailsChunk = `\n  Details: ${truncated}`;
             }
             const chunk = `${line}${detailsChunk}`;
@@ -299,12 +344,16 @@ For structured output, include a JSON schema in structuredOutputSchema when crea
         }
       }
 
-      if (details.status === 'finished' || details.status === 'failed' || details.status === 'stopped') {
+      if (
+        details.status === 'finished' ||
+        details.status === 'failed' ||
+        details.status === 'stopped'
+      ) {
         if (updateOutput) updateOutput(`\nStatus: ${details.status}`);
         return details;
       }
 
-      await new Promise(resolve => setTimeout(resolve, pollInterval * 1000));
+      await new Promise((resolve) => setTimeout(resolve, pollInterval * 1000));
     }
 
     throw new Error('Task waiting was aborted');
@@ -318,7 +367,8 @@ For structured output, include a JSON schema in structuredOutputSchema when crea
     if (!this.apiKey) {
       return {
         llmContent: 'Error: BROWSER_USE_API_KEY is not configured',
-        returnDisplay: '❌ Browser Use API key is not configured. Please set the BROWSER_USE_API_KEY environment variable.',
+        returnDisplay:
+          '❌ Browser Use API key is not configured. Please set the BROWSER_USE_API_KEY environment variable.',
       };
     }
 
@@ -326,15 +376,25 @@ For structured output, include a JSON schema in structuredOutputSchema when crea
       switch (params.action) {
         case 'create_task': {
           if (!params.task) {
-            throw new Error('Task instructions are required for create_task action');
+            throw new Error(
+              'Task instructions are required for create_task action',
+            );
           }
 
-          const taskId = await this.createTask(params.task, params.structuredOutputSchema, signal);
-          
+          const taskId = await this.createTask(
+            params.task,
+            params.structuredOutputSchema,
+            signal,
+          );
+
           if (params.waitForCompletion) {
             if (updateOutput) updateOutput(`✅ Task created: ${taskId}`);
-            else if (this.config.getDebugMode()) console.log(`✅ Task created with ID: ${taskId}`);
-            if (updateOutput) updateOutput('\n⏳ Waiting for completion and streaming steps...');
+            else if (this.config.getDebugMode())
+              console.log(`✅ Task created with ID: ${taskId}`);
+            if (updateOutput)
+              updateOutput(
+                '\n⏳ Waiting for completion and streaming steps...',
+              );
 
             const details = await this.waitForCompletion(
               taskId,
@@ -345,10 +405,10 @@ For structured output, include a JSON schema in structuredOutputSchema when crea
 
             const output = details.output || 'Task completed without output';
             const statusEmoji = details.status === 'finished' ? '✅' : '❌';
-            
+
             return {
               llmContent: `Task ${taskId} ${details.status}. Output: ${output}`,
-              returnDisplay: `${statusEmoji} Task ${taskId} ${details.status}\n\n**Steps:**\n${details.steps.map(s => `- [${s.timestamp}] ${s.action}`).join('\n')}\n\n**Output:**\n${output}`,
+              returnDisplay: `${statusEmoji} Task ${taskId} ${details.status}\n\n**Steps:**\n${details.steps.map((s) => `- [${s.timestamp}] ${s.action}`).join('\n')}\n\n**Output:**\n${output}`,
             };
           } else {
             return {
@@ -377,7 +437,8 @@ For structured output, include a JSON schema in structuredOutputSchema when crea
 
           if (params.waitForCompletion) {
             if (updateOutput) updateOutput('⏳ Streaming task steps...');
-            else if (this.config.getDebugMode()) console.log('⏳ Streaming task steps...');
+            else if (this.config.getDebugMode())
+              console.log('⏳ Streaming task steps...');
             const details = await this.waitForCompletion(
               params.taskId,
               params.pollInterval || 2,
@@ -387,18 +448,21 @@ For structured output, include a JSON schema in structuredOutputSchema when crea
 
             const output = details.output || 'No output available';
             const statusEmoji = details.status === 'finished' ? '✅' : '❌';
-            
+
             return {
               llmContent: `Task ${params.taskId} ${details.status}. Steps: ${details.steps.length}. Output: ${output}`,
-              returnDisplay: `${statusEmoji} Task ${params.taskId} ${details.status}\n\n**Steps:** ${details.steps.length}\n${details.steps.map(s => `- [${s.timestamp}] ${s.action}`).join('\n')}\n\n**Output:**\n${output}`,
+              returnDisplay: `${statusEmoji} Task ${params.taskId} ${details.status}\n\n**Steps:** ${details.steps.length}\n${details.steps.map((s) => `- [${s.timestamp}] ${s.action}`).join('\n')}\n\n**Output:**\n${output}`,
             };
           } else {
             const details = await this.getTaskDetails(params.taskId, signal);
             const output = details.output || 'No output yet';
-            
+
             return {
               llmContent: `Task ${params.taskId} status: ${details.status}. Steps: ${details.steps.length}. Output: ${output}`,
-              returnDisplay: `📊 Task ${params.taskId}\n**Status:** ${details.status}\n**Steps:** ${details.steps.length}\n\n**Recent Steps:**\n${details.steps.slice(-5).map(s => `- [${s.timestamp}] ${s.action}`).join('\n')}\n\n**Output:**\n${output}`,
+              returnDisplay: `📊 Task ${params.taskId}\n**Status:** ${details.status}\n**Steps:** ${details.steps.length}\n\n**Recent Steps:**\n${details.steps
+                .slice(-5)
+                .map((s) => `- [${s.timestamp}] ${s.action}`)
+                .join('\n')}\n\n**Output:**\n${output}`,
             };
           }
         }
@@ -443,7 +507,8 @@ For structured output, include a JSON schema in structuredOutputSchema when crea
           throw new Error(`Unknown action: ${params.action}`);
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       return {
         llmContent: `Browser Use API error: ${errorMessage}`,
         returnDisplay: `❌ Browser Use API Error:\n${errorMessage}`,
@@ -454,10 +519,17 @@ For structured output, include a JSON schema in structuredOutputSchema when crea
   async shouldConfirmExecute(params: BrowserUseParams): Promise<any> {
     // Only require confirmation for task creation with potentially sensitive operations
     if (params.action === 'create_task' && params.task) {
-      const sensitiveKeywords = ['password', 'delete', 'remove', 'payment', 'purchase', 'buy'];
+      const sensitiveKeywords = [
+        'password',
+        'delete',
+        'remove',
+        'payment',
+        'purchase',
+        'buy',
+      ];
       const taskLower = params.task.toLowerCase();
-      
-      if (sensitiveKeywords.some(keyword => taskLower.includes(keyword))) {
+
+      if (sensitiveKeywords.some((keyword) => taskLower.includes(keyword))) {
         return {
           title: 'Browser Automation Task',
           description: `This will create a browser automation task with the following instructions:\n\n"${params.task}"\n\nThis task may involve sensitive operations.`,
@@ -465,7 +537,7 @@ For structured output, include a JSON schema in structuredOutputSchema when crea
         };
       }
     }
-    
+
     return null;
   }
 }

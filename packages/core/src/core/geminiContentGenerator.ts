@@ -48,8 +48,10 @@ export class GeminiContentGenerator {
   ): Promise<EmbedContentResponse> {
     try {
       // Mock embedding values (768 dimensions for gemini-embedding-001)
-      const embeddingValues = Array(768).fill(0).map(() => Math.random());
-      
+      const embeddingValues = Array(768)
+        .fill(0)
+        .map(() => Math.random());
+
       return {
         embeddings: [
           {

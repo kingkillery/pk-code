@@ -225,8 +225,7 @@ export const useSlashCommandProcessor = (
         name: 'docs',
         description: 'open full PK Code documentation in your browser',
         action: async (_mainCommand, _subCommand, _args) => {
-          const docsUrl =
-            'https://github.com/kingkillery/pk-code#readme';
+          const docsUrl = 'https://github.com/kingkillery/pk-code#readme';
           if (process.env.SANDBOX && process.env.SANDBOX !== 'sandbox-exec') {
             addMessage({
               type: MessageType.INFO,
@@ -790,7 +789,7 @@ export const useSlashCommandProcessor = (
           // Import telemetry service inline to avoid circular dependency issues
           const { uiTelemetryService } = await import('@pk-code/core');
           const { formatNumber } = await import('../utils/formatters.js');
-          
+
           if (!config) {
             addMessage({
               type: MessageType.ERROR,
@@ -802,46 +801,52 @@ export const useSlashCommandProcessor = (
 
           // Get current metrics
           const metrics = uiTelemetryService.getMetrics();
-          const lastPromptTokenCount = uiTelemetryService.getLastPromptTokenCount();
-          
+          const lastPromptTokenCount =
+            uiTelemetryService.getLastPromptTokenCount();
+
           // Calculate session duration
           const now = new Date();
-          const wallDuration = now.getTime() - session.stats.sessionStartTime.getTime();
-          
+          const wallDuration =
+            now.getTime() - session.stats.sessionStartTime.getTime();
+
           // Calculate total tokens across all models
           const totalTokens = Object.values(metrics.models).reduce(
-            (sum, model) => sum + model.tokens.total, 0
+            (sum, model) => sum + model.tokens.total,
+            0,
           );
           const totalInputTokens = Object.values(metrics.models).reduce(
-            (sum, model) => sum + model.tokens.prompt, 0
+            (sum, model) => sum + model.tokens.prompt,
+            0,
           );
           const totalOutputTokens = Object.values(metrics.models).reduce(
-            (sum, model) => sum + model.tokens.candidates, 0
+            (sum, model) => sum + model.tokens.candidates,
+            0,
           );
           const totalCachedTokens = Object.values(metrics.models).reduce(
-            (sum, model) => sum + model.tokens.cached, 0
+            (sum, model) => sum + model.tokens.cached,
+            0,
           );
-          
+
           // Get token limits
           const maxContextSize = 32768; // Default context size
-          const contextUsagePercent = totalTokens 
+          const contextUsagePercent = totalTokens
             ? Math.round((totalTokens / maxContextSize) * 100)
             : 0;
-          
+
           // Get model info
           const modelVersion = config.getModel() || 'Unknown';
           const authType = config.getAuthType();
-          
+
           // Build status message
           let message = '🔍 Session Status\n\n';
-          
+
           // Session info
           message += `📊 Session Information:\n`;
           message += `  • Duration: ${formatDuration(wallDuration)}\n`;
           message += `  • Prompts: ${session.stats.promptCount}\n`;
           message += `  • Model: ${modelVersion}\n`;
           message += `  • Auth: ${authType}\n\n`;
-          
+
           // Token usage
           message += `🪙 Token Usage:\n`;
           message += `  • Total Tokens: ${formatNumber(totalTokens)} / ${formatNumber(maxContextSize)} (${contextUsagePercent}%)\n`;
@@ -849,58 +854,65 @@ export const useSlashCommandProcessor = (
           message += `  • Output Tokens: ${formatNumber(totalOutputTokens)}\n`;
           message += `  • Cached Tokens: ${formatNumber(totalCachedTokens)}\n`;
           message += `  • Last Prompt: ${formatNumber(lastPromptTokenCount)} tokens\n\n`;
-          
+
           // Calculate performance metrics from API and tool data
           const totalApiRequests = Object.values(metrics.models).reduce(
-            (sum, model) => sum + model.api.totalRequests, 0
+            (sum, model) => sum + model.api.totalRequests,
+            0,
           );
           const totalApiTime = Object.values(metrics.models).reduce(
-            (sum, model) => sum + model.api.totalLatencyMs, 0
+            (sum, model) => sum + model.api.totalLatencyMs,
+            0,
           );
           const totalApiErrors = Object.values(metrics.models).reduce(
-            (sum, model) => sum + model.api.totalErrors, 0
+            (sum, model) => sum + model.api.totalErrors,
+            0,
           );
-          
+
           // Performance metrics
           message += `⚡ Performance:\n`;
           message += `  • API Calls: ${totalApiRequests}\n`;
           message += `  • Tool Calls: ${metrics.tools.totalCalls}\n`;
           message += `  • Errors: ${totalApiErrors}\n`;
-          
+
           if (totalApiRequests > 0) {
             const avgApiTime = Math.round(totalApiTime / totalApiRequests);
             message += `  • Avg API Time: ${avgApiTime}ms\n`;
           }
-          
+
           if (metrics.tools.totalCalls > 0) {
-            const avgToolTime = Math.round(metrics.tools.totalDurationMs / metrics.tools.totalCalls);
+            const avgToolTime = Math.round(
+              metrics.tools.totalDurationMs / metrics.tools.totalCalls,
+            );
             message += `  • Avg Tool Time: ${avgToolTime}ms\n`;
           }
-          
+
           // Model-specific metrics
           const modelData = metrics.models[modelVersion];
           if (modelData) {
             message += `\n📈 Model Metrics (${modelVersion}):\n`;
             message += `  • Requests: ${modelData.api.totalRequests}\n`;
             message += `  • Tokens: ${formatNumber(modelData.tokens.total)}\n`;
-            
+
             if (modelData.api.totalRequests > 0) {
-              const avgTokensPerRequest = Math.round(modelData.tokens.total / modelData.api.totalRequests);
+              const avgTokensPerRequest = Math.round(
+                modelData.tokens.total / modelData.api.totalRequests,
+              );
               message += `  • Avg Tokens/Request: ${formatNumber(avgTokensPerRequest)}\n`;
             }
           }
-          
+
           // Memory usage
           const memUsage = process.memoryUsage();
           message += `\n💾 Memory Usage:\n`;
           message += `  • Heap Used: ${Math.round(memUsage.heapUsed / 1024 / 1024)}MB\n`;
           message += `  • RSS: ${Math.round(memUsage.rss / 1024 / 1024)}MB\n`;
-          
+
           // Context warning
           if (contextUsagePercent > 80) {
             message += `\n⚠️ Warning: Context usage is high (${contextUsagePercent}%). Consider using /compress to reduce context size.\n`;
           }
-          
+
           addMessage({
             type: MessageType.INFO,
             content: message,

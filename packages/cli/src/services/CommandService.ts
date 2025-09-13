@@ -16,6 +16,7 @@ import { modelCommand } from '../ui/commands/model.js';
 import { inferenceProviderCommand } from '../ui/commands/inferenceProviderCommand.js';
 import { agentCommand } from '../ui/commands/agentCommands.js';
 import { browserUseCommand } from '../ui/commands/browserUseCommand.js';
+import { settingsCommand } from '../ui/commands/settings.js';
 
 const loadBuiltInCommands = async (): Promise<Command[]> => [
   aboutCommand,
@@ -28,6 +29,7 @@ const loadBuiltInCommands = async (): Promise<Command[]> => [
   memoryCommand,
   modelCommand,
   privacyCommand,
+  settingsCommand,
   themeCommand,
 ];
 

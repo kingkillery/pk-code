@@ -16,13 +16,17 @@ import {
   ResultAggregator,
   type AggregationOptions,
 } from './result-aggregator.js';
-import { TaskPlanner, type DecompositionRequest, type TaskDAG } from '../orchestrator/TaskPlanner.js';
+import {
+  TaskPlanner,
+  type DecompositionRequest,
+  type TaskDAG,
+} from '../orchestrator/TaskPlanner.js';
 import { Blackboard } from '../orchestrator/Blackboard.js';
-import { 
-  ReActFramework, 
+import {
+  ReActFramework,
   createReActFramework,
   type ReActCycle,
-  type ReActPromptConfig 
+  type ReActPromptConfig,
 } from './react-framework.js';
 
 /**
@@ -151,13 +155,13 @@ export class AgentOrchestrator {
     this.aggregator = new ResultAggregator();
     this.planner = new TaskPlanner(registry);
     this.blackboard = new Blackboard();
-    
+
     // Initialize ReAct framework with configuration
     this.reactFramework = createReActFramework(
       defaultOptions.react?.promptConfig || {
         strictJson: true,
         includeExamples: true,
-      }
+      },
     );
   }
 
@@ -204,7 +208,6 @@ export class AgentOrchestrator {
 
       // Validate performance targets
       this.validatePerformanceTargets(result, effectiveOptions);
-
 
       // Store results in blackboard
       this.storeResultsInBlackboard(result);
@@ -266,14 +269,14 @@ export class AgentOrchestrator {
     // Execute single agent
     const executionStart = Date.now();
     let executionResult: AgentExecutionResult;
-    
+
     // Check if ReAct is enabled
     if (options.react?.enabled) {
       // Initialize react cycles for this agent if not already done
       if (!this.reactCycles.has(routingResult.agent.config.name)) {
         this.reactCycles.set(routingResult.agent.config.name, []);
       }
-      
+
       // Use ReAct framework for execution
       executionResult = await this.executeWithReAct(
         routingResult.agent,
@@ -289,7 +292,7 @@ export class AgentOrchestrator {
         ...options.execution,
         contentGeneratorFactory: this.contentGeneratorFactory,
       };
-      
+
       executionResult = await this.executor.executeSingleAgent(
         routingResult,
         query,
@@ -405,10 +408,12 @@ export class AgentOrchestrator {
             strategy: 'single',
             selectedAgents: [singleRouting.agent.config.name],
             confidence: singleRouting.confidence,
-            reason: 'Fallback to single agent due to no successful multi-agent results',
+            reason:
+              'Fallback to single agent due to no successful multi-agent results',
           },
           execution: {
-            status: singleExecResult.status === 'success' ? 'success' : 'failed',
+            status:
+              singleExecResult.status === 'success' ? 'success' : 'failed',
             duration: executionDuration,
             agentResults: [singleExecResult],
           },
@@ -425,7 +430,10 @@ export class AgentOrchestrator {
             executionDuration,
             aggregationDuration,
             overhead:
-              totalDuration - routingDuration - executionDuration - aggregationDuration,
+              totalDuration -
+              routingDuration -
+              executionDuration -
+              aggregationDuration,
           },
           metadata: {
             timestamp: new Date(),
@@ -471,7 +479,10 @@ export class AgentOrchestrator {
             executionDuration,
             aggregationDuration,
             overhead:
-              totalDuration - routingDuration - executionDuration - aggregationDuration,
+              totalDuration -
+              routingDuration -
+              executionDuration -
+              aggregationDuration,
           },
           metadata: {
             timestamp: new Date(),
@@ -591,11 +602,12 @@ export class AgentOrchestrator {
     let attempt = 0;
     while (attempt <= (options.react?.maxReprompts || 2)) {
       const apiStartTime = Date.now();
-      const response = await this.contentGeneratorFactory(agent).then((generator) =>
-        generator.generateContent({ 
-          model: agent.config.model || 'gpt-4',
-          contents: [{ role: 'user', parts: [{ text: prompt }] }] 
-        })
+      const response = await this.contentGeneratorFactory(agent).then(
+        (generator) =>
+          generator.generateContent({
+            model: agent.config.model || 'gpt-4',
+            contents: [{ role: 'user', parts: [{ text: prompt }] }],
+          }),
       );
       const apiDuration = Date.now() - apiStartTime;
 
@@ -604,9 +616,15 @@ export class AgentOrchestrator {
 
       if (reactResponse.action.type !== 'error') {
         // Log cycle
-        this.reactCycles.get(agent.config.name)?.push(
-          this.reactFramework.createCycle(query, reactResponse.thought, reactResponse.action)
-        );
+        this.reactCycles
+          .get(agent.config.name)
+          ?.push(
+            this.reactFramework.createCycle(
+              query,
+              reactResponse.thought,
+              reactResponse.action,
+            ),
+          );
 
         const totalDuration = Date.now() - executionStartTime;
         return {
@@ -622,8 +640,12 @@ export class AgentOrchestrator {
       }
 
       // Handle error and re-prompt
-      const errorMessage = reactResponse.action.message || 'Invalid response format';
-      prompt = this.reactFramework.createReprompt(errorMessage, reactResponse.raw || '');
+      const errorMessage =
+        reactResponse.action.message || 'Invalid response format';
+      prompt = this.reactFramework.createReprompt(
+        errorMessage,
+        reactResponse.raw || '',
+      );
 
       attempt++;
     }
@@ -645,7 +667,10 @@ export class AgentOrchestrator {
   /**
    * Decompose a request into a DAG of tasks and schedule agents
    */
-  async planAndExecuteTasks(query: string, _options?: Partial<OrchestrationOptions>): Promise<void> {
+  async planAndExecuteTasks(
+    query: string,
+    _options?: Partial<OrchestrationOptions>,
+  ): Promise<void> {
     // Decompose query into tasks
     const decompositionRequest: DecompositionRequest = {
       query,
@@ -665,11 +690,11 @@ export class AgentOrchestrator {
     for (const task of readyTasks) {
       try {
         // Assign agent and execute
-        const routingResult = await this.router.routeTask({ 
-          id: task.id, 
-          query: task.description 
+        const routingResult = await this.router.routeTask({
+          id: task.id,
+          query: task.description,
         });
-        
+
         // Determine agent from routing result
         let agent: ParsedAgent;
         if ('primaryAgents' in routingResult) {
@@ -682,17 +707,28 @@ export class AgentOrchestrator {
           // RoutingResult
           agent = routingResult.agent;
         }
-        
+
         this.blackboard.assignTask(task.id, agent.config.name);
-        await this.executor.executeTask(agent, { id: task.id, query: task.description });
+        await this.executor.executeTask(agent, {
+          id: task.id,
+          query: task.description,
+        });
         this.planner.completeTask(dag, task.id);
 
         // Log and notify completion
-        this.blackboard.updateTaskStatus(task.id, 'completed', agent.config.name);
+        this.blackboard.updateTaskStatus(
+          task.id,
+          'completed',
+          agent.config.name,
+        );
         console.log(`✅ Completed task: ${task.title}`);
       } catch (error) {
         // Handle task failure
-        this.planner.failTask(dag, task.id, error instanceof Error ? error.message : 'Unknown error');
+        this.planner.failTask(
+          dag,
+          task.id,
+          error instanceof Error ? error.message : 'Unknown error',
+        );
         console.error(`❌ Failed task: ${task.title}`, error);
       }
     }
@@ -709,7 +745,15 @@ export class AgentOrchestrator {
           // Convert simple artifact to full Artifact structure
           this.blackboard.createArtifact({
             name: `Artifact ${artifact.id}`,
-            type: (artifact.type as 'file' | 'document' | 'data' | 'report' | 'config' | 'schema' | 'other') || 'other',
+            type:
+              (artifact.type as
+                | 'file'
+                | 'document'
+                | 'data'
+                | 'report'
+                | 'config'
+                | 'schema'
+                | 'other') || 'other',
             content: artifact.content,
             createdBy: agentResult.taskId,
             tags: ['agent-generated', agentResult.agent.config.name],
@@ -724,13 +768,28 @@ export class AgentOrchestrator {
       }
 
       // Update task status (map AgentExecutionResult status to TaskStatus)
-      const taskStatus: 'pending' | 'ready' | 'running' | 'completed' | 'failed' | 'blocked' = 
-        agentResult.status === 'success' ? 'completed' :
-        agentResult.status === 'error' ? 'failed' :
-        agentResult.status === 'timeout' ? 'failed' :
-        agentResult.status === 'cancelled' ? 'blocked' : 'failed';
-      
-      this.blackboard.updateTaskStatus(agentResult.taskId, taskStatus, agentResult.agent.config.name);
+      const taskStatus:
+        | 'pending'
+        | 'ready'
+        | 'running'
+        | 'completed'
+        | 'failed'
+        | 'blocked' =
+        agentResult.status === 'success'
+          ? 'completed'
+          : agentResult.status === 'error'
+            ? 'failed'
+            : agentResult.status === 'timeout'
+              ? 'failed'
+              : agentResult.status === 'cancelled'
+                ? 'blocked'
+                : 'failed';
+
+      this.blackboard.updateTaskStatus(
+        agentResult.taskId,
+        taskStatus,
+        agentResult.agent.config.name,
+      );
     }
   }
 

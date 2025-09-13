@@ -20,9 +20,9 @@ export interface PhaseTransition {
 
 export enum OrchestratorPhase {
   METADATA = 'metadata',
-  PARETO = 'pareto', 
+  PARETO = 'pareto',
   STRATEGIC = 'strategic',
-  EXECUTION = 'execution'
+  EXECUTION = 'execution',
 }
 
 export interface GuardrailMessage {
@@ -49,20 +49,22 @@ export class GuardrailManager {
   /**
    * Generate guardrail message for phase transitions
    */
-  generatePhaseTransitionMessage(transition: PhaseTransition): GuardrailMessage | null {
+  generatePhaseTransitionMessage(
+    transition: PhaseTransition,
+  ): GuardrailMessage | null {
     if (!this.config.enabled || !this.config.phaseTransitionMessages) {
       return null;
     }
 
     const messages: Record<string, string> = {
-      [`${OrchestratorPhase.METADATA}_to_${OrchestratorPhase.PARETO}`]: 
-        "Next: Focus Selection (Pareto-20). Identify ≤5 critical files with quantitative justification.",
-      
-      [`${OrchestratorPhase.PARETO}_to_${OrchestratorPhase.STRATEGIC}`]: 
+      [`${OrchestratorPhase.METADATA}_to_${OrchestratorPhase.PARETO}`]:
+        'Next: Focus Selection (Pareto-20). Identify ≤5 critical files with quantitative justification.',
+
+      [`${OrchestratorPhase.PARETO}_to_${OrchestratorPhase.STRATEGIC}`]:
         "Next: Strategic Planning. Compose implementation plan ≤350 tokens ending with '### PROCEED TO EXECUTION'.",
-      
-      [`${OrchestratorPhase.STRATEGIC}_to_${OrchestratorPhase.EXECUTION}`]: 
-        "Next: Execution Loop. Iterate through plan steps with Thought→Action→Observation pattern."
+
+      [`${OrchestratorPhase.STRATEGIC}_to_${OrchestratorPhase.EXECUTION}`]:
+        'Next: Execution Loop. Iterate through plan steps with Thought→Action→Observation pattern.',
     };
 
     const transitionKey = `${transition.from}_to_${transition.to}`;
@@ -79,8 +81,8 @@ export class GuardrailManager {
       timestamp: new Date().toISOString(),
       metadata: {
         transition: transitionKey,
-        context: transition.context
-      }
+        context: transition.context,
+      },
     };
 
     this.guardrailMessages.push(guardrailMessage);
@@ -90,14 +92,23 @@ export class GuardrailManager {
   /**
    * Generate guardrail message after tool calls
    */
-  generateToolCallGuardrail(toolName: string, phase: OrchestratorPhase, result: unknown): GuardrailMessage | null {
+  generateToolCallGuardrail(
+    toolName: string,
+    phase: OrchestratorPhase,
+    result: unknown,
+  ): GuardrailMessage | null {
     if (!this.config.enabled || !this.config.toolCallValidation) {
       return null;
     }
 
     // Safely derive exitCode if present on result
     let exitCode: number | undefined;
-    if (result && typeof result === 'object' && result !== null && 'exitCode' in result) {
+    if (
+      result &&
+      typeof result === 'object' &&
+      result !== null &&
+      'exitCode' in result
+    ) {
       const value = (result as { exitCode?: unknown }).exitCode;
       if (typeof value === 'number') {
         exitCode = value;
@@ -106,14 +117,18 @@ export class GuardrailManager {
 
     // Tool-specific guardrails based on Refact.ai patterns
     const toolGuardrails: Record<string, string> = {
-      'run_pdb_test': 'After debugger call: Open relevant files via read_files to examine stack trace context.',
-      'edit_files': 'After file edit: Run tests (pytest -q) to validate changes.',
-      'create_file': 'After file creation: Verify file exists and check for syntax errors.',
-      'search_codebase': 'After search: Read the most relevant files found for deeper analysis.',
-      'grep': 'After grep: Examine matched files to understand context and patterns.',
-      'run_command': exitCode === 0 
-        ? 'Command executed successfully. Proceed with next step.'
-        : 'Command failed. Review error output and adjust approach.'
+      run_pdb_test:
+        'After debugger call: Open relevant files via read_files to examine stack trace context.',
+      edit_files: 'After file edit: Run tests (pytest -q) to validate changes.',
+      create_file:
+        'After file creation: Verify file exists and check for syntax errors.',
+      search_codebase:
+        'After search: Read the most relevant files found for deeper analysis.',
+      grep: 'After grep: Examine matched files to understand context and patterns.',
+      run_command:
+        exitCode === 0
+          ? 'Command executed successfully. Proceed with next step.'
+          : 'Command failed. Review error output and adjust approach.',
     };
 
     const message = toolGuardrails[toolName];
@@ -134,8 +149,8 @@ export class GuardrailManager {
       timestamp: new Date().toISOString(),
       metadata: {
         toolName,
-        result: metaResult
-      }
+        result: metaResult,
+      },
     };
 
     this.guardrailMessages.push(guardrailMessage);
@@ -145,12 +160,15 @@ export class GuardrailManager {
   /**
    * Validate phase transition is allowed
    */
-  validatePhaseTransition(from: OrchestratorPhase, to: OrchestratorPhase): boolean {
+  validatePhaseTransition(
+    from: OrchestratorPhase,
+    to: OrchestratorPhase,
+  ): boolean {
     const validTransitions: Record<OrchestratorPhase, OrchestratorPhase[]> = {
       [OrchestratorPhase.METADATA]: [OrchestratorPhase.PARETO],
       [OrchestratorPhase.PARETO]: [OrchestratorPhase.STRATEGIC],
       [OrchestratorPhase.STRATEGIC]: [OrchestratorPhase.EXECUTION],
-      [OrchestratorPhase.EXECUTION]: [] // Terminal phase
+      [OrchestratorPhase.EXECUTION]: [], // Terminal phase
     };
 
     return validTransitions[from]?.includes(to) || false;
@@ -161,7 +179,9 @@ export class GuardrailManager {
    */
   recordPhaseTransition(transition: PhaseTransition): GuardrailMessage | null {
     if (!this.validatePhaseTransition(transition.from, transition.to)) {
-      throw new Error(`Invalid phase transition from ${transition.from} to ${transition.to}`);
+      throw new Error(
+        `Invalid phase transition from ${transition.from} to ${transition.to}`,
+      );
     }
 
     this.transitionHistory.push(transition);
@@ -171,7 +191,11 @@ export class GuardrailManager {
   /**
    * Get retry message when tool call fails
    */
-  generateRetryMessage(toolName: string, attempt: number, error: string): GuardrailMessage | null {
+  generateRetryMessage(
+    toolName: string,
+    attempt: number,
+    error: string,
+  ): GuardrailMessage | null {
     if (!this.config.enabled || !this.config.retryEnabled) {
       return null;
     }
@@ -182,7 +206,7 @@ export class GuardrailManager {
         phase: OrchestratorPhase.EXECUTION, // Default to execution phase
         message: `Max retries (${this.config.maxRetries}) exceeded for ${toolName}. Switching to fallback LLM (gpt-4o).`,
         timestamp: new Date().toISOString(),
-        metadata: { toolName, attempt, error, fallback: true }
+        metadata: { toolName, attempt, error, fallback: true },
       };
     }
 
@@ -191,7 +215,7 @@ export class GuardrailManager {
       phase: OrchestratorPhase.EXECUTION,
       message: `${toolName} failed (attempt ${attempt}/${this.config.maxRetries}). Retrying with same model...`,
       timestamp: new Date().toISOString(),
-      metadata: { toolName, attempt, error, fallback: false }
+      metadata: { toolName, attempt, error, fallback: false },
     };
 
     this.guardrailMessages.push(guardrailMessage);
@@ -233,15 +257,21 @@ export class GuardrailManager {
   /**
    * Generate guardrail message after sub-agent calls
    */
-  generateSubAgentGuardrail(agentName: string, phase: OrchestratorPhase, result: unknown): GuardrailMessage | null {
+  generateSubAgentGuardrail(
+    agentName: string,
+    phase: OrchestratorPhase,
+    result: unknown,
+  ): GuardrailMessage | null {
     if (!this.config.enabled || !this.config.toolCallValidation) {
       return null;
     }
 
     // Sub-agent specific guardrails
     const subAgentGuardrails: Record<string, string> = {
-      'pk-debugger': 'After debugger analysis: Use read_files to examine the source files mentioned in the stack trace for context and understanding.',
-      'pk-planner': 'After strategic planning: Use search_codebase or read_files to gather architectural context for the revised plan.'
+      'pk-debugger':
+        'After debugger analysis: Use read_files to examine the source files mentioned in the stack trace for context and understanding.',
+      'pk-planner':
+        'After strategic planning: Use search_codebase or read_files to gather architectural context for the revised plan.',
     };
 
     const message = subAgentGuardrails[agentName];
@@ -262,8 +292,8 @@ export class GuardrailManager {
       timestamp: new Date().toISOString(),
       metadata: {
         agentName,
-        result: metaResult
-      }
+        result: metaResult,
+      },
     };
 
     this.guardrailMessages.push(guardrailMessage);
@@ -273,7 +303,10 @@ export class GuardrailManager {
   /**
    * Generate validation message for phase outputs
    */
-  generateValidationMessage(phase: OrchestratorPhase, output: unknown): GuardrailMessage | null {
+  generateValidationMessage(
+    phase: OrchestratorPhase,
+    output: unknown,
+  ): GuardrailMessage | null {
     if (!this.config.enabled) {
       return null;
     }
@@ -284,9 +317,11 @@ export class GuardrailManager {
       case OrchestratorPhase.PARETO: {
         const o = output as { pareto?: unknown[] } | null | undefined;
         if (!o?.pareto || !Array.isArray(o.pareto)) {
-          validationMessage = "Pareto phase output invalid: Must contain YAML block with 'pareto' array.";
+          validationMessage =
+            "Pareto phase output invalid: Must contain YAML block with 'pareto' array.";
         } else if (o.pareto.length > 5) {
-          validationMessage = "Pareto phase validation: Exceeded limit of 5 files. Focus on most critical.";
+          validationMessage =
+            'Pareto phase validation: Exceeded limit of 5 files. Focus on most critical.';
         } else {
           validationMessage = `Pareto phase validated: ${o.pareto.length} critical files identified.`;
         }
@@ -294,13 +329,22 @@ export class GuardrailManager {
       }
 
       case OrchestratorPhase.STRATEGIC: {
-        const o = output as { plan?: { proceed?: unknown }; tokenCount?: number } | null | undefined;
-        if (!o?.plan?.proceed || o.plan.proceed !== '### PROCEED TO EXECUTION') {
-          validationMessage = "Strategic phase validation: Must end with '### PROCEED TO EXECUTION'.";
+        const o = output as
+          | { plan?: { proceed?: unknown }; tokenCount?: number }
+          | null
+          | undefined;
+        if (
+          !o?.plan?.proceed ||
+          o.plan.proceed !== '### PROCEED TO EXECUTION'
+        ) {
+          validationMessage =
+            "Strategic phase validation: Must end with '### PROCEED TO EXECUTION'.";
         } else if ((o.tokenCount ?? 0) > 350) {
-          validationMessage = "Strategic phase validation: Exceeded 350 token limit. Consider condensing.";
+          validationMessage =
+            'Strategic phase validation: Exceeded 350 token limit. Consider condensing.';
         } else {
-          validationMessage = "Strategic phase validated: Plan complete and ready for execution.";
+          validationMessage =
+            'Strategic phase validated: Plan complete and ready for execution.';
         }
         break;
       }
@@ -308,7 +352,8 @@ export class GuardrailManager {
       case OrchestratorPhase.EXECUTION: {
         const o = output as { steps?: unknown[] } | null | undefined;
         if (!o?.steps || !Array.isArray(o.steps)) {
-          validationMessage = "Execution phase validation: Must contain steps with Thought→Action→Observation.";
+          validationMessage =
+            'Execution phase validation: Must contain steps with Thought→Action→Observation.';
         } else {
           const hasThoughtActionObs = o.steps.every((step) => {
             if (typeof step !== 'object' || step === null) return false;
@@ -316,7 +361,8 @@ export class GuardrailManager {
             return 'thought' in s && 'action' in s && 'observation' in s;
           });
           if (!hasThoughtActionObs) {
-            validationMessage = "Execution phase validation: Each step must have thought, action, and observation.";
+            validationMessage =
+              'Execution phase validation: Each step must have thought, action, and observation.';
           } else {
             validationMessage = `Execution phase validated: ${o.steps.length} steps completed.`;
           }
@@ -337,7 +383,7 @@ export class GuardrailManager {
       phase,
       message: validationMessage,
       timestamp: new Date().toISOString(),
-      metadata: { output }
+      metadata: { output },
     };
 
     this.guardrailMessages.push(guardrailMessage);
@@ -348,6 +394,8 @@ export class GuardrailManager {
 /**
  * Factory function to create GuardrailManager from config
  */
-export function createGuardrailManager(config: GuardrailConfig): GuardrailManager {
+export function createGuardrailManager(
+  config: GuardrailConfig,
+): GuardrailManager {
   return new GuardrailManager(config);
 }

@@ -8,17 +8,17 @@ import { describe, it, expect } from 'vitest';
 import { ReActFramework } from './react-framework.js';
 import { GenerateContentResponse } from '@google/genai';
 
-function mockResponseWithFunctionCall(name: string, args: Record<string, unknown>) {
+function mockResponseWithFunctionCall(
+  name: string,
+  args: Record<string, unknown>,
+) {
   const response = new GenerateContentResponse();
   response.candidates = [
     {
       index: 0,
       content: {
         role: 'model',
-        parts: [
-          { text: 'Using a tool...' },
-          { functionCall: { name, args } },
-        ],
+        parts: [{ text: 'Using a tool...' }, { functionCall: { name, args } }],
       },
       finishReason: 1 as any,
       safetyRatings: [],
@@ -83,13 +83,19 @@ describe('ReActFramework.parseResponse (model-aware)', () => {
     const resp = mockResponseWithFunctionCall('run_tool', { a: 1 });
     const parsed = framework.parseResponse(resp);
     expect(parsed.action.type).toBe('tool');
-    expect(parsed.action).toMatchObject({ name: 'run_tool', parameters: { a: 1 } });
+    expect(parsed.action).toMatchObject({
+      name: 'run_tool',
+      parameters: { a: 1 },
+    });
     expect(parsed.thought).toContain('Using a tool');
   });
 
   it('parses JSON when no function calls exist (Qwen-Code JSON output)', () => {
     const framework = new ReActFramework();
-    const text = JSON.stringify({ thought: 'ok', action: { type: 'response', content: 'hi' } });
+    const text = JSON.stringify({
+      thought: 'ok',
+      action: { type: 'response', content: 'hi' },
+    });
     const resp = mockResponseWithJson(text);
     const parsed = framework.parseResponse(resp);
     expect(parsed.thought).toBe('ok');
@@ -101,7 +107,10 @@ describe('ReActFramework.parseResponse (model-aware)', () => {
     const resp = mockResponseWithMultipleFunctionCalls();
     const parsed = framework.parseResponse(resp);
     expect(parsed.action.type).toBe('tool');
-    expect(parsed.action).toMatchObject({ name: 'first_tool', parameters: { step: 1 } });
+    expect(parsed.action).toMatchObject({
+      name: 'first_tool',
+      parameters: { step: 1 },
+    });
   });
 
   it('falls back to unstructured extraction on invalid JSON (missing fields)', () => {
@@ -122,5 +131,3 @@ describe('ReActFramework.parseResponse (model-aware)', () => {
     expect((parsed.action as any).content).toBe(msg);
   });
 });
-
-

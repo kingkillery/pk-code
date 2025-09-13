@@ -87,14 +87,15 @@ export async function parseArguments(): Promise<CliArgs> {
         process.env.GEMINI_MODEL ||
         DEFAULT_GEMINI_MODEL,
     })
-.option('prompt', {
+    .option('prompt', {
       alias: 'p',
       type: 'string',
       description: 'Prompt. Appended to input on stdin (if any).',
     })
     .option('prompt-file', {
       type: 'string',
-      description: 'Path to a file containing the prompt (useful for long or quote-heavy text).',
+      description:
+        'Path to a file containing the prompt (useful for long or quote-heavy text).',
     })
     .option('prompt-interactive', {
       alias: 'i',
@@ -104,11 +105,13 @@ export async function parseArguments(): Promise<CliArgs> {
     })
     .option('parallel', {
       type: 'string',
-      description: 'Execute multiple prompts in parallel. Provide comma-separated prompts.',
+      description:
+        'Execute multiple prompts in parallel. Provide comma-separated prompts.',
     })
     .option('parallel-tasks', {
       type: 'number',
-      description: 'Number of parallel tasks to run (default: number of prompts)',
+      description:
+        'Number of parallel tasks to run (default: number of prompts)',
       default: undefined,
     })
     .option('sandbox', {
@@ -282,7 +285,10 @@ export async function parseArguments(): Promise<CliArgs> {
           });
       },
       (argv) => {
-        void handleAgentCommand(argv.command as string, argv.agentName as string);
+        void handleAgentCommand(
+          argv.command as string,
+          argv.agentName as string,
+        );
       },
     )
 
@@ -291,17 +297,21 @@ export async function parseArguments(): Promise<CliArgs> {
     .help()
     .alias('h', 'help')
     .strict()
-.check((argv) => {
+    .check((argv) => {
       if (argv.prompt && argv.promptInteractive) {
         throw new Error(
           'Cannot use both --prompt (-p) and --prompt-interactive (-i) together',
         );
       }
       if (argv.promptFile && argv.prompt) {
-        throw new Error('Cannot use both --prompt (-p) and --prompt-file together');
+        throw new Error(
+          'Cannot use both --prompt (-p) and --prompt-file together',
+        );
       }
       if (argv.promptFile && argv.promptInteractive) {
-        throw new Error('Cannot use both --prompt-interactive (-i) and --prompt-file together');
+        throw new Error(
+          'Cannot use both --prompt-interactive (-i) and --prompt-file together',
+        );
       }
       return true;
     });
@@ -444,7 +454,9 @@ export async function loadCliConfig(
         );
       }
     } catch (err) {
-      throw new Error(`Failed to read --prompt-file "${argv.promptFile}": ${String(err)}`);
+      throw new Error(
+        `Failed to read --prompt-file "${argv.promptFile}": ${String(err)}`,
+      );
     }
   }
 
@@ -497,7 +509,7 @@ export async function loadCliConfig(
     cwd: process.cwd(),
     fileDiscoveryService: fileService,
     bugCommand: settings.bugCommand,
-    model: argv.model!,
+    model: argv.model || settings.defaultModel || DEFAULT_GEMINI_MODEL,
     extensionContextFilePaths,
     maxSessionTurns: settings.maxSessionTurns ?? -1,
     listExtensions: argv.listExtensions || false,

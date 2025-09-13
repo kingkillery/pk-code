@@ -26,12 +26,11 @@
       "Bash(task-master update-subtask:*)",
       "Bash(npm start:*)",
       "Bash(task-master:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(cat:*)"
     ],
     "deny": []
   },
   "enableAllProjectMcpServers": true,
-  "enabledMcpjsonServers": [
-    "browser-use"
-  ]
+  "enabledMcpjsonServers": ["browser-use"]
 }

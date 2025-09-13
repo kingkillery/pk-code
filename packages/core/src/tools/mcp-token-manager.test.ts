@@ -47,7 +47,7 @@ describe('MCPTokenManager', () => {
     // Construct manager (debug to get console messages in CI if failing)
     const mgr = new MCPTokenManager(
       'testServer',
-      { provider: 'notion', clientId: 'abc' },
+      { provider: 'custom', clientId: 'abc' },
       true,
     );
 
@@ -58,13 +58,13 @@ describe('MCPTokenManager', () => {
 
     // Should have checked stable first then legacy
     expect(calls.length).toBeGreaterThanOrEqual(2);
-    expect(calls[0]!.startsWith('mcp_oauth|notion')).toBe(true);
+    expect(calls[0]!.startsWith('mcp_oauth|custom')).toBe(true);
     expect(calls).toContain('mcp_oauth_testServer');
 
     // Should have migrated token to stable key and removed legacy
     expect(vi.mocked(setCredential)).toHaveBeenCalledTimes(1);
     const setArgs = vi.mocked(setCredential).mock.calls[0];
-    expect(setArgs[0]!.startsWith('mcp_oauth|notion')).toBe(true);
+    expect(setArgs[0]!.startsWith('mcp_oauth|custom')).toBe(true);
     expect(setArgs[1]).toBe(legacyToken);
 
     expect(vi.mocked(deleteCredential)).toHaveBeenCalledWith(
@@ -72,4 +72,3 @@ describe('MCPTokenManager', () => {
     );
   });
 });
-

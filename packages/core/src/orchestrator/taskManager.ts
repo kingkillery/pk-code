@@ -83,4 +83,3 @@ export class TaskManager {
 export function createTaskManager(): TaskManager {
   return new TaskManager();
 }
-

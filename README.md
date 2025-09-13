@@ -8,11 +8,15 @@ PK Code is a powerful AI-driven command-line interface that transforms how devel
 
 - **🧠 Intelligent Code Analysis** - Understand complex codebases instantly with AI-powered insights
 - **⚡ Interactive Terminal Interface** - Beautiful, responsive CLI built with React and Ink
-- **🔗 Multi-Provider Support** - Works with OpenAI, Anthropic, Google Gemini, and more
-- **🎯 Context-Aware Assistance** - Maintains project context across conversations
-- **🛠️ Workflow Automation** - Automate repetitive development tasks
+- **🔗 Multi-Provider Support** - Works with OpenAI, Anthropic, Google Gemini, Qwen, and OpenAI-compatible endpoints
+- **🎯 Context-Aware Assistance** - Maintains project context across conversations with advanced context window management
+- **🛠️ Workflow Automation** - Automate repetitive development tasks with multi-step instruction processing
 - **🔍 Vision Model Integration** - Advanced UI analysis and screenshot interpretation
 - **📦 Monorepo Architecture** - Scalable codebase with modular packages
+- **📋 Advanced Task Management** - Comprehensive todo tool with priorities, dependencies, and project tracking
+- **🧠 Memory Management** - Separate project-level and global memory with intelligent search and organization
+- **🔧 Enhanced Function Calling** - Multi-step program synthesis and agentic workflow support
+- **🌐 OpenAI-Compatible APIs** - Support for custom endpoints, Azure OpenAI, Together AI, and more
 
 ## 🚀 Quick Start
 
@@ -73,6 +77,38 @@ export GOOGLE_API_KEY="your_google_key"
 export GOOGLE_MODEL="gemini-1.5-pro"
 ```
 
+#### Qwen Models
+
+```bash
+export QWEN_API_KEY="your_qwen_key"
+export QWEN_MODEL="qwen2-72b-instruct"
+```
+
+#### OpenAI-Compatible Endpoints
+
+```bash
+# Azure OpenAI
+export AZURE_OPENAI_API_KEY="your_azure_key"
+export AZURE_OPENAI_ENDPOINT="https://your-resource.openai.azure.com"
+export AZURE_OPENAI_MODEL="gpt-4"
+
+# Together AI
+export TOGETHER_API_KEY="your_together_key"
+export TOGETHER_MODEL="codellama/CodeLlama-34b-Instruct-hf"
+
+# Custom OpenAI-compatible endpoint
+export CUSTOM_OPENAI_API_KEY="your_api_key"
+export CUSTOM_OPENAI_BASE_URL="https://your-endpoint.com/v1"
+export CUSTOM_OPENAI_MODEL="your-model-name"
+```
+
+#### ModelScope (for Mainland China)
+
+```bash
+export MODELSCOPE_API_KEY="your_modelscope_key"
+export MODELSCOPE_MODEL="qwen/Qwen2-72B-Instruct"
+```
+
 ## 🎯 Usage
 
 ### Interactive Mode
@@ -110,13 +146,15 @@ pk "Generate JSDoc comments for all functions in src/utils"
 
 ## 🔌 Supported AI Providers
 
-| Provider       | Models                         | Features                         |
-| -------------- | ------------------------------ | -------------------------------- |
-| **OpenAI**     | GPT-4, GPT-3.5                 | Chat, Code, Vision               |
-| **Anthropic**  | Claude 3.5 Sonnet, Claude 3    | Advanced reasoning, Code         |
-| **Google**     | Gemini 1.5 Pro, Gemini 1.0 Pro | Multimodal, Long context         |
-| **OpenRouter** | Multiple models                | Model variety, Cost optimization |
-| **Cohere**     | Command R+, Command            | Multilingual, RAG                |
+| Provider              | Models                               | Features                             |
+| --------------------- | ------------------------------------ | ------------------------------------ |
+| **OpenAI**            | GPT-4, GPT-4-Turbo, GPT-3.5          | Chat, Code, Vision, Function Calling |
+| **Anthropic**         | Claude 3.5 Sonnet, Claude 3          | Advanced reasoning, Code             |
+| **Google**            | Gemini 1.5 Pro, Gemini 1.0 Pro       | Multimodal, Long context (up to 1M)  |
+| **Qwen**              | Qwen2-72B, Qwen2-Coder               | Code generation, Large context       |
+| **OpenAI-Compatible** | Azure OpenAI, Together AI, Replicate | Custom endpoints, Multiple models    |
+| **OpenRouter**        | Multiple models                      | Model variety, Cost optimization     |
+| **Cohere**            | Command R+, Command                  | Multilingual, RAG                    |
 
 ## 🎨 Vision & Multimodal Support
 
@@ -213,9 +251,9 @@ Local browser agent is ready!
 
 ### Environment Variables
 
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `BROWSER_USE_API_KEY` | API key for cloud Browser Use service | For cloud mode |
+| Variable                  | Description                                                | Required       |
+| ------------------------- | ---------------------------------------------------------- | -------------- |
+| `BROWSER_USE_API_KEY`     | API key for cloud Browser Use service                      | For cloud mode |
 | `PK_PREFER_LOCAL_BROWSER` | Set to `1` to disable cloud API and use local browser only | For local mode |
 
 ### Troubleshooting
@@ -224,6 +262,313 @@ Local browser agent is ready!
 - **Port conflicts**: The local browser agent uses port 3001 by default
 - **Agent management**: Use `pk agent stop browser` to stop the local browser agent
 
+## 🧠 Enhanced Command Parser & Multi-Step Instructions
+
+PK Code now supports advanced command parsing for complex, multi-step instructions and agentic workflows.
+
+### Multi-Step Instructions
+
+Execute complex workflows with natural language:
+
+```bash
+pk "First analyze the codebase structure, then identify performance bottlenecks, and finally generate optimization recommendations"
+```
+
+The system automatically:
+
+- Parses multi-step instructions using natural language processing
+- Determines workflow type (sequential, parallel, conditional)
+- Assesses task complexity and resource requirements
+- Routes to appropriate specialized agents
+- Manages dependencies and execution order
+
+### Supported Patterns
+
+- **Sequential workflows**: "First do X, then do Y, finally do Z"
+- **Parallel execution**: "Do X, Y, and Z simultaneously"
+- **Conditional logic**: "If condition A, then do X, else do Y"
+- **Iterative processes**: "Repeat X until condition Y is met"
+
+### Agent-Specific Commands
+
+Direct commands to specialized agents:
+
+```bash
+pk "/architect analyze this microservices architecture"
+/developer "implement authentication middleware"
+/tester "create comprehensive test suite"
+```
+
+## 🔧 Advanced Function Calling & Agentic Workflows
+
+### Multi-Step Program Synthesis
+
+PK Code can synthesize complete programs through orchestrated function calling:
+
+```bash
+pk "Create a full-stack web application with user authentication, database integration, and API endpoints"
+```
+
+The system automatically:
+
+- Analyzes program requirements
+- Designs system architecture
+- Generates code components
+- Implements core functionality
+- Adds features and enhancements
+- Performs integration testing
+- Generates documentation
+
+### Function Call Chains
+
+Complex operations are broken down into dependency-aware function call chains:
+
+```bash
+pk "Build a CI/CD pipeline with automated testing, deployment, and monitoring"
+```
+
+Features:
+
+- **Dependency Management**: Automatic resolution of task dependencies
+- **Error Handling**: Configurable retry logic and fallback strategies
+- **Progress Tracking**: Real-time monitoring of multi-step execution
+- **Resource Management**: Intelligent allocation based on task complexity
+
+## 📏 Context Window Management (256K - 1M Tokens)
+
+### Advanced Context Management
+
+PK Code supports large context windows with intelligent compression and extension:
+
+```bash
+# Automatic context window scaling based on operation complexity
+pk "Analyze this entire codebase and provide architectural recommendations"
+```
+
+### Features
+
+- **Dynamic Scaling**: Automatically extends context window for complex operations
+- **Intelligent Compression**: Selective retention of high-priority content
+- **Memory Optimization**: Multiple compression strategies (truncate, selective, hierarchical)
+- **Token Estimation**: Accurate token counting with buffer management
+
+### Model-Specific Support
+
+| Model Provider | Context Window | Extension Support    |
+| -------------- | -------------- | -------------------- |
+| Qwen 3-Coder   | 256K - 1M      | ✅ Full support      |
+| GPT-4 Turbo    | 128K           | ⚠️ Limited extension |
+| Gemini 1.5 Pro | 1M+            | ✅ Full support      |
+| Claude 3.5     | 200K           | ✅ Extension support |
+
+## 🧠 Memory Management System
+
+### Project vs Global Memory
+
+PK Code maintains separate memory stores for different scopes:
+
+```bash
+# Add to project memory
+pk memory add context "This project uses React with TypeScript"
+
+# Add to global memory
+pk memory add context "I prefer functional programming patterns" --global
+
+# Search across all memory
+pk memory search "authentication patterns"
+
+# Get recent insights
+pk memory recent 24
+```
+
+### Memory Commands
+
+```bash
+# Add memory entry
+pk memory add <type> <content> [--global] [--tags tag1,tag2]
+
+# Search memory
+pk memory search <query> [--tags tag1,tag2] [--type context]
+
+# List memory entries
+pk memory list [type] [--project|--global]
+
+# Get recent memory
+pk memory recent <hours>
+
+# Delete memory entries
+pk memory delete <id1> <id2> [--project|--global]
+
+# Clean expired entries
+pk memory clean
+
+# Export memory to file
+pk memory export <file> [--query "search"] [--global]
+
+# Import memory from file
+pk memory import <file> [--merge]
+
+# Show memory statistics
+pk memory stats [--global]
+```
+
+### Memory Types
+
+- **context**: Project or global context information
+- **insight**: Learned insights and best practices
+- **decision**: Important decisions and their rationale
+- **task**: Task-related information and progress
+- **conversation**: Important conversation threads
+- **code-snippet**: Useful code patterns and examples
+
+## 📋 Advanced Todo Management
+
+### Comprehensive Task Management
+
+PK Code includes a powerful todo tool for project and personal task management:
+
+```bash
+# Create a new todo
+pk
+> Use todo tool to create task "Implement user authentication" with high priority and due date 2024-02-01
+
+# Query todos by status
+pk
+> Use todo tool to query todos with status "pending" and priority "high"
+
+# Add subtasks
+pk
+> Use todo tool to add subtask "Setup JWT tokens" to parent task "Implement user authentication"
+
+# Update todo status
+pk
+> Use todo tool to update todo with id "todo_123" and set status "completed"
+```
+
+### Todo Features
+
+- **Priority Management**: low, medium, high, critical priorities
+- **Due Date Tracking**: Set and track due dates with overdue detection
+- **Dependency Management**: Link tasks with prerequisites
+- **Subtasks**: Break down complex tasks into manageable subtasks
+- **Categories & Tags**: Organize tasks by category and flexible tagging
+- **Time Tracking**: Estimate and track actual hours spent
+- **Assignee Management**: Assign tasks to team members
+- **Status Tracking**: pending, in-progress, completed, cancelled, blocked
+
+### Todo Commands
+
+```bash
+# Create todo
+pk
+> Use todo tool with action "create" and data including title "Implement API" and priority "high"
+
+# Update todo
+pk
+> Use todo tool with action "update" and data including id "todo_123" and status "completed"
+
+# Query todos
+pk
+> Use todo tool with action "query" and data including status ["pending"] and priority ["high"]
+
+# Add subtask
+pk
+> Use todo tool with action "addSubtask" and data including parentId "todo_123" and title "Database setup"
+
+# Get statistics
+pk
+> Use todo tool with action "getStats"
+```
+
+## 🌐 OpenAI-Compatible API Integration
+
+### Supported Providers
+
+PK Code supports various OpenAI-compatible endpoints:
+
+#### Azure OpenAI
+
+```bash
+export AZURE_OPENAI_API_KEY="your-key"
+export AZURE_OPENAI_ENDPOINT="https://your-resource.openai.azure.com"
+export AZURE_OPENAI_DEPLOYMENT="gpt-4"
+export AZURE_OPENAI_API_VERSION="2023-12-01-preview"
+```
+
+#### Together AI
+
+```bash
+export TOGETHER_API_KEY="your-key"
+export TOGETHER_BASE_URL="https://api.together.xyz/v1"
+export TOGETHER_MODEL="codellama/CodeLlama-34b-Instruct-hf"
+```
+
+#### Replicate
+
+```bash
+export REPLICATE_API_KEY="your-key"
+export REPLICATE_BASE_URL="https://openai-proxy.replicate.com/v1"
+export REPLICATE_MODEL="your-model-name"
+```
+
+### Custom Endpoints
+
+Support for any OpenAI-compatible API:
+
+```bash
+export CUSTOM_OPENAI_API_KEY="your-key"
+export CUSTOM_OPENAI_BASE_URL="https://your-custom-endpoint.com/v1"
+export CUSTOM_OPENAI_MODEL="your-model"
+```
+
+### Features
+
+- **Full Compatibility**: Supports all OpenAI API features including function calling
+- **Streaming Support**: Real-time response streaming
+- **Custom Headers**: Support for custom authentication headers
+- **Retry Logic**: Configurable retry policies and timeouts
+- **Model Auto-Detection**: Automatic model capability detection
+
+## 🏗️ Advanced Workflow Automation
+
+### GitHub Integration
+
+PK Code supports advanced GitHub workflow automation:
+
+```bash
+# PR Review and Analysis
+pk "Review this pull request and suggest improvements"
+
+# Issue Triage
+pk "Analyze these GitHub issues and prioritize them"
+
+# Automated Submissions
+pk "Create a pull request for the authentication feature"
+```
+
+### Complex Code Refactoring
+
+Handle multi-file refactoring operations:
+
+```bash
+pk "Refactor this entire authentication module to use the new design patterns"
+```
+
+Features:
+
+- **Multi-file Analysis**: Analyze dependencies across files
+- **Batch Operations**: Apply changes across multiple files
+- **Safety Checks**: Validate changes before applying
+- **Rollback Support**: Easy reversion of complex changes
+
+### Workflow Scripting
+
+Create reusable workflow scripts:
+
+```bash
+# Define a workflow script for code review that includes linting, testing, and documentation checks
+```
+
 ## 🔌 MCP Server Integration
 
 PK Code supports Model Context Protocol (MCP) servers to extend functionality with custom tools and external integrations. MCP servers can provide additional capabilities like database access, API integrations, or specialized workflows.
@@ -231,7 +576,8 @@ PK Code supports Model Context Protocol (MCP) servers to extend functionality wi
 ### Configuration
 
 MCP servers are configured in the `.pk/settings.json` file. This file can be located either:
-- Globally: `~/.pk/settings.json` 
+
+- Globally: `~/.pk/settings.json`
 - Per-project: `.pk/settings.json` in your project root
 
 Add an `mcpServers` section to your settings file:
