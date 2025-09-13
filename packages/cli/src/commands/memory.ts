@@ -391,7 +391,7 @@ export class MemoryManager {
       const store = JSON.parse(data);
 
       // Convert timestamp strings back to Date objects
-      store.entries = store.entries.map((entry: any) => ({
+      store.entries = store.entries.map((entry: MemoryEntry & { timestamp: string; expiresAt?: string }) => ({
         ...entry,
         timestamp: new Date(entry.timestamp),
         expiresAt: entry.expiresAt ? new Date(entry.expiresAt) : undefined,
@@ -581,7 +581,7 @@ async function handleAddMemory(
   const content = contentParts.join(' ');
 
   // Parse options
-  const global = args.includes('--global');
+  const _global = args.includes('--global');
   const tagsIndex = args.indexOf('--tags');
   const tags =
     tagsIndex >= 0 && args[tagsIndex + 1]
@@ -591,7 +591,7 @@ async function handleAddMemory(
   try {
     let entry: MemoryEntry;
 
-    if (global) {
+    if (_global) {
       entry = await memoryManager.addGlobalMemory(
         type as MemoryEntry['type'],
         content,
@@ -626,7 +626,7 @@ async function handleSearchMemory(
   args: string[],
 ): Promise<void> {
   const query = args[0] || '';
-  const global = args.includes('--global');
+  const _global = args.includes('--global');
   const projectOnly = args.includes('--project');
 
   const tagsIndex = args.indexOf('--tags');
@@ -640,7 +640,7 @@ async function handleSearchMemory(
     typeIndex >= 0 ? (args[typeIndex + 1] as MemoryEntry['type']) : undefined;
 
   const limitIndex = args.indexOf('--limit');
-  const limit = limitIndex >= 0 ? parseInt(args[limitIndex + 1]) || 20 : 20;
+  const limit = limitIndex >= 0 ? parseInt(args[limitIndex + 1], 10) || 20 : 20;
 
   try {
     const entries = await memoryManager.searchMemory(
@@ -686,7 +686,7 @@ async function handleListMemory(
   const type = args[0] as MemoryEntry['type'];
   const projectOnly = args.includes('--project');
   const limitIndex = args.indexOf('--limit');
-  const limit = limitIndex >= 0 ? parseInt(args[limitIndex + 1]) || 50 : 50;
+  const limit = limitIndex >= 0 ? parseInt(args[limitIndex + 1], 10) || 50 : 50;
 
   try {
     const entries = type
@@ -724,10 +724,10 @@ async function handleRecentMemory(
   memoryManager: MemoryManager,
   args: string[],
 ): Promise<void> {
-  const hours = args[0] ? parseInt(args[0]) : 24;
+  const hours = args[0] ? parseInt(args[0], 10) : 24;
   const projectOnly = args.includes('--project');
   const limitIndex = args.indexOf('--limit');
-  const limit = limitIndex >= 0 ? parseInt(args[limitIndex + 1]) || 20 : 20;
+  const limit = limitIndex >= 0 ? parseInt(args[limitIndex + 1], 10) || 20 : 20;
 
   try {
     const entries = await memoryManager.getRecentMemory(
