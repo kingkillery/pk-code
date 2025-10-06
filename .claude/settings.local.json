@@ -27,10 +27,17 @@
       "Bash(npm start:*)",
       "Bash(task-master:*)",
       "Bash(ls:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(git remote add:*)",
+      "Bash(git fetch:*)",
+      "Bash(git rev-list:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(pk:*)"
     ],
     "deny": []
   },
   "enableAllProjectMcpServers": true,
-  "enabledMcpjsonServers": ["browser-use"]
+  "enabledMcpjsonServers": [
+    "browser-use"
+  ]
 }

@@ -137,6 +137,37 @@ export async function main() {
     );
     process.exit(0);
   }
+  if (argv._[0] === 'login') {
+    const { handleLoginWithApiKey } = await import('./commands/login.js');
+    const provider = (argv.provider as 'openai' | 'anthropic' | 'google') || 'openai';
+
+    if (argv.withApiKey) {
+      await handleLoginWithApiKey(provider);
+    } else {
+      console.error('Please specify authentication method:');
+      console.error('  pk login --with-api-key [--provider=openai|anthropic|google]');
+      console.error('\nExample:');
+      console.error('  echo "sk-..." | pk login --with-api-key --provider=openai');
+      process.exit(1);
+    }
+    process.exit(0);
+  }
+  if (argv._[0] === 'auth') {
+    const { handleAuthStatus, handleAuthLogout } = await import('./commands/login.js');
+    const action = (argv as unknown as { action?: string }).action || (argv._[1] as string);
+    const provider = (argv.provider as 'openai' | 'anthropic' | 'google') || undefined;
+
+    if (action === 'status') {
+      await handleAuthStatus();
+    } else if (action === 'logout') {
+      await handleAuthLogout(provider);
+    } else {
+      console.error(`Unknown auth action: ${action}`);
+      console.error('Valid actions: status, logout');
+      process.exit(1);
+    }
+    process.exit(0);
+  }
   if (argv._[0] === 'sandbox') {
     await handleSandboxCommand(
       (argv as unknown as { action?: string }).action || (argv._[1] as string),

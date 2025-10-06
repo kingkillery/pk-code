@@ -70,6 +70,8 @@ export interface CliArgs {
   // Use command properties
   agent?: string;
   query?: string;
+  // Login command properties
+  withApiKey?: boolean;
 }
 
 export async function parseArguments(): Promise<CliArgs> {
@@ -301,6 +303,38 @@ export async function parseArguments(): Promise<CliArgs> {
           argv.agentName as string,
         );
       },
+    )
+    .command(
+      'login',
+      'Authenticate with AI providers',
+      (yargs) =>
+        yargs
+          .option('with-api-key', {
+            type: 'boolean',
+            description: 'Login with API key from stdin',
+          })
+          .option('provider', {
+            type: 'string',
+            choices: ['openai', 'anthropic', 'google'],
+            default: 'openai',
+            description: 'Provider to authenticate with',
+          }),
+    )
+    .command(
+      'auth <action>',
+      'Manage authentication',
+      (yargs) =>
+        yargs
+          .positional('action', {
+            describe: 'Authentication action',
+            choices: ['status', 'logout'],
+            demandOption: true,
+          })
+          .option('provider', {
+            type: 'string',
+            choices: ['openai', 'anthropic', 'google'],
+            description: 'Provider to logout from (logout only)',
+          }),
     )
 
     .version(false) // Disable default version, we'll handle it manually
