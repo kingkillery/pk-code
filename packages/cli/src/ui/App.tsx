@@ -38,6 +38,7 @@ import { AuthInProgress } from './components/AuthInProgress.js';
 import { EditorSettingsDialog } from './components/EditorSettingsDialog.js';
 import { Colors } from './colors.js';
 import { Help } from './components/Help.js';
+import { DiagnosticsPanel } from './components/DiagnosticsPanel.js';
 import { loadHierarchicalGeminiMemory } from '../config/config.js';
 import { LoadedSettings } from '../config/settings.js';
 import { Tips } from './components/Tips.js';
@@ -135,6 +136,7 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
   const [geminiMdFileCount, setGeminiMdFileCount] = useState<number>(0);
   const [debugMessage, setDebugMessage] = useState<string>('');
   const [showHelp, setShowHelp] = useState<boolean>(false);
+  const [showDiagnostics, setShowDiagnostics] = useState<boolean>(false);
   const [themeError, setThemeError] = useState<string | null>(null);
   const [authError, setAuthError] = useState<string | null>(null);
   const [editorError, setEditorError] = useState<string | null>(null);
@@ -388,6 +390,7 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
     showToolDescriptions,
     setQuittingMessages,
     openPrivacyNotice,
+    setShowDiagnostics,
   );
   const pendingHistoryItems = [...pendingSlashCommandHistoryItems];
 
@@ -459,6 +462,18 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
       // the user starts interacting with the app.
       enteringConstrainHeightMode = true;
       setConstrainHeight(true);
+    }
+
+    // Handle ESC key to close dialogs
+    if (key.escape) {
+      if (showDiagnostics) {
+        setShowDiagnostics(false);
+        return;
+      }
+      if (showHelp) {
+        setShowHelp(false);
+        return;
+      }
     }
 
     if (key.ctrl && input === 'o') {
@@ -782,6 +797,9 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
         </OverflowProvider>
 
         {showHelp && <Help slashCommands={slashCommands} />}
+        {showDiagnostics && (
+          <DiagnosticsPanel onClose={() => setShowDiagnostics(false)} />
+        )}
 
         <Box flexDirection="column" ref={mainControlsRef}>
           {startupWarnings.length > 0 && (

@@ -66,7 +66,13 @@ export interface MessageActionReturn {
 export interface OpenDialogActionReturn {
   type: 'dialog';
   // TODO: Add 'theme' | 'auth' | 'editor' | 'privacy' as migration happens.
-  dialog: 'help' | 'auth' | 'theme' | 'privacy' | 'agent-creation';
+  dialog:
+    | 'help'
+    | 'auth'
+    | 'theme'
+    | 'privacy'
+    | 'agent-creation'
+    | 'diagnostics';
 }
 
 export type SlashCommandActionReturn =

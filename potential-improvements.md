@@ -21,9 +21,13 @@ Created: 2025-10-05 14:00:35 -0600
    - ✅ `scripts/build_sandbox.js` now performs container runtime preflight checks (Docker/Podman availability, seatbelt permissions) and surfaces remediation guidance.
    - ✅ Added `pk sandbox status` command backed by `packages/core/src/sandbox/status.ts` to report current `PK_SANDBOX` mode, writable roots, and network restrictions.
 
-5. **Provider Lifecycle Management**
-   - Define a provider registry manifest (e.g., `packages/core/providers.json`) describing capability flags (vision, large context, function calling) to power model fallback recommendations.
-   - Enable opt-in telemetry leveraging OpenTelemetry dependencies to aggregate anonymous provider errors and improve retry/backoff tuning.
+5. **Provider Lifecycle Management** _(implemented 2025-10-05)_
+   - ✅ Created provider registry manifest `packages/core/providers/registry.json` describing capability flags (vision, large context, function calling, pricing, endpoints).
+   - ✅ Implemented TypeScript types and validation in `packages/core/src/providers/registry.ts` with Zod schemas.
+   - ✅ Added `pk config providers` command to list all available providers with configuration status.
+   - ✅ Added `pk config provider <id>` command for detailed provider information.
+   - ✅ Added `pk config recommend` command to suggest best providers for different use cases.
+   - ❌ Enable opt-in telemetry leveraging OpenTelemetry dependencies to aggregate anonymous provider errors and improve retry/backoff tuning (deferred).
 
 6. **Developer Experience**
    - Supply faster local loops via targeted scripts (`npm run dev --workspace @pk/core`, Justfile recipes) that wrap lint/test commands per package.
@@ -35,21 +39,34 @@ Created: 2025-10-05 14:00:35 -0600
 
 ## Priority Execution Plan (2025-10-05)
 
-### Configuration Doctor & Diagnostics Panel
+### Configuration Doctor & Diagnostics Panel _(completed 2025-10-05)_
 
-- Establish a `pk config doctor` command in `packages/cli/src/commands/config/doctor.ts` that composes checks from `packages/core/src/config/validators/` and emits actionable remediation steps.
-- Build configuration check modules covering environment precedence, missing provider keys, conflicting sandbox flags, and version mismatches in `packages/core/src/config/validators/`.
-- Add telemetry-free success/failure summaries to `pk config doctor` and wire it into onboarding (`npm run start`) warnings.
-- Implement an agent `/diagnostics` panel under `packages/cli/src/ui/panels/diagnostics.tsx` that subscribes to new OpenTelemetry spans emitted from `packages/core/src/agents/metrics.ts`.
-- Extend agent execution to emit structured events for routing, tool invocation, retry, and circuit-breaker state via OTEL exporters already declared in `package.json`.
+- ✅ Implemented `pk config doctor` command in `packages/cli/src/commands/config.ts` with checks from `packages/core/src/config/doctor.ts`.
+- ✅ Built configuration check modules covering:
+  - Provider credentials (environment variables and credential store)
+  - Settings file validation
+  - Sandbox environment configuration
+  - Environment file precedence (.env)
+- ✅ Added telemetry-free success/failure summaries with actionable remediation steps.
+- ✅ Implemented `/diagnostics` slash command that opens an interactive TUI diagnostics panel
+- ✅ Created `DiagnosticsPanel` component in `packages/cli/src/ui/components/DiagnosticsPanel.tsx` that:
+  - Runs configuration doctor checks in real-time
+  - Displays status with color-coded indicators (✅ ok, ⚠️ warning, ❌ error)
+  - Shows actionable suggestions for each issue
+  - Supports ESC key to close
+- ✅ Integrated diagnostics command into the command service and slash command processor
+- ❌ Extend agent execution to emit structured events for routing, tool invocation, retry, and circuit-breaker state via OTEL exporters (deferred - would require OpenTelemetry integration).
 
-### Provider Registry Schema & Model Migration
+### Provider Registry Schema & Model Migration _(completed 2025-10-05)_
 
-- Define `packages/core/providers/registry.json` capturing provider ids, default models, capability flags (vision, context-size, tool-calling), and environment variable mappings.
-- Create TypeScript types in `packages/core/src/providers/registry.ts` with runtime validation (via `zod`) to load the manifest and expose typed helpers.
-- Migrate constants from `packages/core/src/config/models.ts` and related modules to consume the registry loader, ensuring backward-compatible fallbacks for unspecified providers.
-- Update provider selection logic in `packages/core/src/config/models.ts` and CLI prompts in `packages/cli/src/commands/config/model.ts` to surface registry-derived suggestions and fallbacks.
-- Add automated tests in `packages/core/test/providers/registry.test.ts` verifying schema integrity and migration behavior.
+- ✅ Defined `packages/core/providers/registry.json` capturing provider ids, default models, capability flags (vision, context-size, tool-calling), and environment variable mappings.
+- ✅ Created TypeScript types in `packages/core/src/providers/registry.ts` with runtime validation (via `zod`) to load the manifest and expose typed helpers.
+- ✅ Implemented provider selection logic with registry-derived suggestions via:
+  - `pk config providers` - lists all providers with configuration status
+  - `pk config provider <id>` - shows detailed provider information
+  - `pk config recommend` - suggests best providers for different use cases
+- ❌ Migrate constants from `packages/core/src/config/models.ts` and related modules to consume the registry loader (needs verification).
+- ❌ Add automated tests in `packages/core/test/providers/registry.test.ts` verifying schema integrity and migration behavior (not yet implemented).
 
 ### Roadmap & Documentation Refresh
 

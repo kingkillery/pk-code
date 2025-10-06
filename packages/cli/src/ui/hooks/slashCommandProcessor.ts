@@ -77,6 +77,7 @@ export const useSlashCommandProcessor = (
   showToolDescriptions: boolean = false,
   setQuittingMessages: (message: HistoryItem[]) => void,
   openPrivacyNotice: () => void,
+  setShowDiagnostics: React.Dispatch<React.SetStateAction<boolean>>,
 ) => {
   const session = useSessionStats();
   const [commands, setCommands] = useState<Command[]>([]);
@@ -1221,6 +1222,9 @@ export const useSlashCommandProcessor = (
                   case 'help':
                     setShowHelp(true);
                     return { type: 'handled' };
+                  case 'diagnostics':
+                    setShowDiagnostics(true);
+                    return { type: 'handled' };
                   case 'auth':
                     openAuthDialog();
                     return { type: 'handled' };
@@ -1317,6 +1321,7 @@ export const useSlashCommandProcessor = (
     [
       addItem,
       setShowHelp,
+      setShowDiagnostics,
       openAuthDialog,
       commands,
       legacyCommands,
