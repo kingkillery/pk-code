@@ -44,11 +44,7 @@ interface UpdateTodoParams {
 
 interface QueryTodosParams {
   status?: Array<
-    | 'pending'
-    | 'in-progress'
-    | 'completed'
-    | 'cancelled'
-    | 'blocked'
+    'pending' | 'in-progress' | 'completed' | 'cancelled' | 'blocked'
   >;
   priority?: Array<'low' | 'medium' | 'high' | 'critical'>;
   tags?: string[];

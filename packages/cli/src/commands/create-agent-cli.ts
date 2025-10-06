@@ -12,6 +12,8 @@ import {
   DEFAULT_OPENROUTER_MODEL,
 } from '../utils/providerUtils.js';
 
+type AgentDomain = NonNullable<PromptGenerationRequest['domain']>;
+
 const providers = [
   { label: 'OpenRouter (Recommended)', value: 'openrouter' },
   { label: 'Gemini', value: 'gemini' },
@@ -48,7 +50,7 @@ const models = {
   ],
 };
 
-const domains = [
+const domains: Array<{ label: string; value: AgentDomain }> = [
   { label: 'Coding & Development', value: 'coding' },
   { label: 'Code Analysis & Review', value: 'analysis' },
   { label: 'Debugging & Troubleshooting', value: 'debugging' },
@@ -200,7 +202,7 @@ export async function handleCreateAgentCommandCLI(): Promise<void> {
   }
 
   function generateTemplatePrompt() {
-    const domainColorMap: Record<string, string> = {
+    const domainColorMap: Record<AgentDomain, string> = {
       review: 'pink',
       debugging: 'red',
       testing: 'pink',

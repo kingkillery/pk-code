@@ -331,7 +331,10 @@ describe('agent command', () => {
     await handleAgentCommand('run', 'test-agent');
 
     expect(AgentRunner).toHaveBeenCalledWith(mockAgent);
-    expect(agentCommands.run).toHaveBeenCalledWith([mockRunner]);
+    expect(agentCommands.run).toHaveBeenCalledWith(
+      [mockRunner],
+      expect.anything(),
+    );
   });
 
   it('should handle run command with multiple agents', async () => {
@@ -352,7 +355,10 @@ describe('agent command', () => {
     await handleAgentCommand('run', 'agent1,agent2');
 
     expect(AgentRunner).toHaveBeenCalledTimes(2);
-    expect(agentCommands.run).toHaveBeenCalledWith([mockRunner1, mockRunner2]);
+    expect(agentCommands.run).toHaveBeenCalledWith(
+      [mockRunner1, mockRunner2],
+      expect.anything(),
+    );
   });
 
   it('should handle run command with non-existent agent', async () => {

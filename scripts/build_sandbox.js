@@ -17,7 +17,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { execSync } from 'child_process';
+import { execSync, spawnSync } from 'child_process';
 import { chmodSync, existsSync, readFileSync, rmSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import yargs from 'yargs';
@@ -52,6 +52,107 @@ try {
   process.exit(0);
 }
 
+function runPreflightChecks(command) {
+  const summary = {
+    warnings: [],
+    errors: [],
+  };
+
+  if (!command) {
+    summary.errors.push({
+      message:
+        'No sandbox command detected. Set PK_SANDBOX=docker|podman or configure GEMINI_SANDBOX.',
+      remediation:
+        'Set PK_SANDBOX (or legacy GEMINI_SANDBOX) to docker/podman, or install Docker Desktop / Podman and ensure it is on your PATH.',
+    });
+    return summary;
+  }
+
+  if (command === 'docker' || command === 'podman') {
+    const runtimeCheck = checkContainerRuntime(command);
+    summary.errors.push(...runtimeCheck.errors);
+    summary.warnings.push(...runtimeCheck.warnings);
+  }
+
+  if (process.platform === 'darwin') {
+    const seatbeltCheck = checkSeatbeltPermissions();
+    summary.errors.push(...seatbeltCheck.errors);
+    summary.warnings.push(...seatbeltCheck.warnings);
+  }
+
+  return summary;
+}
+
+function checkContainerRuntime(command) {
+  const result = { warnings: [], errors: [] };
+
+  if (!binaryAvailable(command, ['--version'])) {
+    result.errors.push({
+      message: `${command} CLI is not available in PATH.`,
+      remediation:
+        command === 'docker'
+          ? 'Install Docker Desktop or Docker Engine and ensure docker is available on PATH.'
+          : 'Install Podman and ensure podman is available on PATH.',
+    });
+    return result;
+  }
+
+  const infoArgs =
+    command === 'docker' ? ['info', '--format', '{{json .}}'] : ['info'];
+  const infoCheck = spawnSync(command, infoArgs, { stdio: 'ignore' });
+  if (infoCheck.status !== 0) {
+    result.warnings.push({
+      message: `${command} daemon is not responding.`,
+      remediation:
+        command === 'docker'
+          ? 'Start Docker Desktop / docker service and ensure you can run "docker info" successfully.'
+          : 'Start the podman machine or service (run "podman machine start") and ensure "podman info" succeeds.',
+    });
+  }
+
+  return result;
+}
+
+function checkSeatbeltPermissions() {
+  const result = { warnings: [], errors: [] };
+  const seatbeltProfile = (process.env.SEATBELT_PROFILE || '')
+    .trim()
+    .toLowerCase();
+
+  if (seatbeltProfile === 'none') {
+    result.warnings.push({
+      message:
+        'SEATBELT_PROFILE is set to "none"; macOS seatbelt sandboxing is disabled.',
+      remediation:
+        'Unset SEATBELT_PROFILE or set it to the desired profile (e.g. "default") to re-enable seatbelt protections.',
+    });
+    return result;
+  }
+
+  const seatbeltCheck = binaryAvailable('sandbox-exec', ['-h']);
+  if (!seatbeltCheck) {
+    result.errors.push({
+      message: 'macOS seatbelt tooling (sandbox-exec) is not available.',
+      remediation:
+        'Install the macOS command line tools (run "xcode-select --install") or set SEATBELT_PROFILE=none to skip seatbelt enforcement.',
+    });
+  }
+
+  return result;
+}
+
+function binaryAvailable(binary, args) {
+  try {
+    const result = spawnSync(binary, args, { stdio: 'ignore' });
+    if (result.error) {
+      return false;
+    }
+    return result.status === 0;
+  } catch {
+    return false;
+  }
+}
+
 if (sandboxCommand === 'sandbox-exec') {
   console.warn(
     'WARNING: container-based sandboxing is disabled (see README.md#sandboxing)',
@@ -60,6 +161,28 @@ if (sandboxCommand === 'sandbox-exec') {
 }
 
 console.log(`using ${sandboxCommand} for sandboxing`);
+
+const preflightSummary = runPreflightChecks(sandboxCommand);
+
+for (const warning of preflightSummary.warnings) {
+  console.warn(`PRE-FLIGHT WARNING: ${warning.message}`);
+  if (warning.remediation) {
+    console.warn(`  └─ Suggested action: ${warning.remediation}`);
+  }
+}
+
+if (preflightSummary.errors.length > 0) {
+  for (const error of preflightSummary.errors) {
+    console.error(`PRE-FLIGHT ERROR: ${error.message}`);
+    if (error.remediation) {
+      console.error(`  └─ Suggested action: ${error.remediation}`);
+    }
+  }
+  console.error(
+    'Sandbox preflight checks failed. Resolve the issues above and re-run the build.',
+  );
+  process.exit(1);
+}
 
 const baseImage = cliPkgJson.config.sandboxImageUri;
 const customImage = argv.i;

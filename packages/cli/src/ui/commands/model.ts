@@ -9,10 +9,15 @@ import {
   setOpenAIModel,
   setOpenRouterModel,
   validateOpenRouterModel,
+  validateGeminiModel,
   getAvailableOpenAIModels,
   getAvailableOpenRouterModels,
   getAvailableGeminiModels,
 } from '../../config/auth.js';
+import {
+  DEFAULT_GEMINI_MODEL,
+  getDefaultModelForProvider,
+} from '@pk-code/core';
 import { type Command } from './types.js';
 import { SettingScope } from '../../config/settings.js';
 
@@ -41,21 +46,35 @@ export const modelCommand: Command = {
       try {
         let availableModels: string[] = [];
         let providerName = '';
+        let providerId = 'google';
 
         switch (authType) {
           case 'openai':
             availableModels = await getAvailableOpenAIModels();
             providerName = 'OpenAI';
+            providerId = 'openai';
             break;
           case 'openrouter':
             availableModels = await getAvailableOpenRouterModels();
             providerName = 'OpenRouter';
+            providerId = 'openrouter';
             break;
           default:
             availableModels = await getAvailableGeminiModels();
             providerName = 'Gemini';
+            providerId = 'google';
             break;
         }
+
+        const registryDefaultModel = await getDefaultModelForProvider(
+          providerId,
+          'chat',
+        );
+        const defaultModel =
+          registryDefaultModel ||
+          (providerId === 'google'
+            ? DEFAULT_GEMINI_MODEL
+            : availableModels[0] || currentModel);
 
         const modelsList =
           availableModels.length > 0
@@ -73,7 +92,7 @@ export const modelCommand: Command = {
         return {
           type: 'message',
           messageType: 'info',
-          content: `The current model is: ${currentModel}\n\nAvailable ${providerName} models:\n${modelsList}${moreModelsNote}\n\nTo switch models, use: /model <model-name>`,
+          content: `The current model is: ${currentModel}\nDefault ${providerName} model: ${defaultModel}\n\nAvailable ${providerName} models:\n${modelsList}${moreModelsNote}\n\nTo switch models, use: /model <model-name>`,
         };
       } catch (_error) {
         return {

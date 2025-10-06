@@ -7,6 +7,7 @@
 // Export config
 export * from './config/config.js';
 export * from './config/models.js';
+export * from './config/doctor.js';
 
 // Export Core Logic
 export * from './core/client.js';
@@ -40,6 +41,9 @@ export * from './utils/session.js';
 export * from './services/fileDiscoveryService.js';
 export * from './services/gitService.js';
 
+// Export sandbox utilities
+export * from './sandbox/status.js';
+
 // Export base tool definitions
 export * from './tools/tools.js';
 export * from './tools/tool-registry.js';
@@ -71,6 +75,11 @@ export { default as OpenAIAnalytics } from './utils/openaiAnalytics.js';
 // Export credentials and provider
 export * from './provider.js';
 export * from './credentials.js';
+
+// Export provider registry system
+export * from './providers/registry.js';
+export * from './providers/registry-service.js';
+export * from './providers/utils.js';
 
 // Export agent system
 export * from './agents/index.js';

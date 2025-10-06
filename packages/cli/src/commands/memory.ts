@@ -391,11 +391,13 @@ export class MemoryManager {
       const store = JSON.parse(data);
 
       // Convert timestamp strings back to Date objects
-      store.entries = store.entries.map((entry: MemoryEntry & { timestamp: string; expiresAt?: string }) => ({
-        ...entry,
-        timestamp: new Date(entry.timestamp),
-        expiresAt: entry.expiresAt ? new Date(entry.expiresAt) : undefined,
-      }));
+      store.entries = store.entries.map(
+        (entry: MemoryEntry & { timestamp: string; expiresAt?: string }) => ({
+          ...entry,
+          timestamp: new Date(entry.timestamp),
+          expiresAt: entry.expiresAt ? new Date(entry.expiresAt) : undefined,
+        }),
+      );
 
       return store;
     } catch (error) {

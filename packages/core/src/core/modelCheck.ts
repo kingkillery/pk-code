@@ -7,6 +7,7 @@
 import {
   DEFAULT_GEMINI_MODEL,
   DEFAULT_GEMINI_FLASH_MODEL,
+  getDefaultModelForProvider,
 } from '../config/models.js';
 
 /**
@@ -21,13 +22,20 @@ export async function getEffectiveModel(
   apiKey: string,
   currentConfiguredModel: string,
 ): Promise<string> {
-  if (currentConfiguredModel !== DEFAULT_GEMINI_MODEL) {
+  const [registryDefaultModel, registryFallbackModel] = await Promise.all([
+    getDefaultModelForProvider('google', 'chat'),
+    getDefaultModelForProvider('google', 'fast'),
+  ]);
+
+  const canonicalDefaultModel = registryDefaultModel || DEFAULT_GEMINI_MODEL;
+  const fallbackModel = registryFallbackModel || DEFAULT_GEMINI_FLASH_MODEL;
+
+  if (currentConfiguredModel !== canonicalDefaultModel) {
     // Only check if the user is trying to use the specific pro model we want to fallback from.
     return currentConfiguredModel;
   }
 
-  const modelToTest = DEFAULT_GEMINI_MODEL;
-  const fallbackModel = DEFAULT_GEMINI_FLASH_MODEL;
+  const modelToTest = canonicalDefaultModel;
   const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelToTest}:generateContent?key=${apiKey}`;
   const body = JSON.stringify({
     contents: [{ parts: [{ text: 'test' }] }],

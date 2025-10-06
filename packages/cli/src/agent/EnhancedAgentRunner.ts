@@ -20,12 +20,16 @@ export class EnhancedAgentRunner {
 
   async run(
     query: string,
-    config: Config,
+    config?: Config,
   ): Promise<{ output: string; sessionId: string }> {
     this.status = 'running';
     this.latestOutput = `Agent "${this.agent.name}" is running with isolated context...`;
 
     try {
+      if (!config) {
+        throw new Error('Missing configuration for agent execution');
+      }
+
       // Create isolated content generator for this agent
       const version = process.env.CLI_VERSION || process.version;
       const httpOptions = {

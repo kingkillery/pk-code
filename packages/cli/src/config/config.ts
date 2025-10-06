@@ -16,6 +16,7 @@ import {
   ApprovalMode,
   DEFAULT_GEMINI_MODEL,
   DEFAULT_GEMINI_EMBEDDING_MODEL,
+  getDefaultModelForProvider,
   FileDiscoveryService,
   TelemetryTarget,
   MCPServerConfig,
@@ -252,6 +253,16 @@ export async function parseArguments(): Promise<CliArgs> {
           }),
     )
     .command(
+      'sandbox [action]',
+      'Inspect or manage sandbox runtime state',
+      (yargs) =>
+        yargs.positional('action', {
+          describe: 'Sandbox action to perform',
+          choices: ['status'],
+          default: 'status',
+        }),
+    )
+    .command(
       'use <agent> <query>',
       'Execute a specific agent with a query',
       (yargs) =>
@@ -460,9 +471,19 @@ export async function loadCliConfig(
     }
   }
 
+  const [registryDefaultModel, registryDefaultEmbeddingModel] =
+    await Promise.all([
+      getDefaultModelForProvider('google', 'chat'),
+      getDefaultModelForProvider('google', 'embedding'),
+    ]);
+
+  const resolvedDefaultModel = registryDefaultModel || DEFAULT_GEMINI_MODEL;
+  const resolvedDefaultEmbeddingModel =
+    registryDefaultEmbeddingModel || DEFAULT_GEMINI_EMBEDDING_MODEL;
+
   return new Config({
     sessionId,
-    embeddingModel: DEFAULT_GEMINI_EMBEDDING_MODEL,
+    embeddingModel: resolvedDefaultEmbeddingModel,
     sandbox: sandboxConfig,
     targetDir: process.cwd(),
     debugMode,
@@ -509,7 +530,7 @@ export async function loadCliConfig(
     cwd: process.cwd(),
     fileDiscoveryService: fileService,
     bugCommand: settings.bugCommand,
-    model: argv.model || settings.defaultModel || DEFAULT_GEMINI_MODEL,
+    model: argv.model || settings.defaultModel || resolvedDefaultModel,
     extensionContextFilePaths,
     maxSessionTurns: settings.maxSessionTurns ?? -1,
     listExtensions: argv.listExtensions || false,

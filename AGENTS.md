@@ -246,3 +246,45 @@ pk
 > /browser-use local
 > Navigate to google.com and search for AI news
 ```
+
+## Sandbox Diagnostics & Management
+
+PK Code supports containerized and macOS seatbelt sandboxing for secure code execution. The `pk sandbox status` command provides real-time visibility into the sandbox environment.
+
+### Checking Sandbox Status
+
+```bash
+pk sandbox status
+```
+
+**Output includes:**
+
+- **Mode**: Disabled, Docker, Podman, macOS seatbelt, or custom
+- **Command**: The active sandbox runtime (`docker`, `podman`, `sandbox-exec`)
+- **Writable Roots**: Directories accessible for read/write operations
+- **Network**: Open, proxied, or restricted network access
+- **Notes**: Configuration warnings and recommendations
+
+### Environment Variables
+
+- `PK_SANDBOX`: Set to `docker`, `podman`, or `false` to control sandbox mode
+- `GEMINI_SANDBOX`: Legacy variable (prefer `PK_SANDBOX`)
+- `SEATBELT_PROFILE`: macOS seatbelt profile (`permissive-open`, `restrictive-closed`, etc.)
+- `SANDBOX_MOUNTS`: Comma-separated mount points (`/path/on/host:/path/in/container:rw`)
+- `GEMINI_SANDBOX_PROXY_COMMAND`: Proxy command for network restrictions
+
+### Preflight Checks
+
+The `scripts/build_sandbox.js` script now includes automated preflight checks:
+
+- Docker/Podman availability and daemon status
+- macOS seatbelt tooling verification
+- Environment configuration validation
+- Actionable remediation guidance for common issues
+
+**Example preflight output:**
+
+```
+PRE-FLIGHT WARNING: docker daemon is not responding.
+  └─ Suggested action: Start Docker Desktop / docker service and ensure you can run "docker info" successfully.
+```

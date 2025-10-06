@@ -828,25 +828,28 @@ import { render } from 'ink';
 import { MultiAgentRun } from '../components/MultiAgentRun.js';
 import { EnhancedAgentRunner as AgentRunner } from '../../agent/EnhancedAgentRunner.js';
 import React from 'react';
+import type { Config } from '@pk-code/core/src/config/config.js';
 
 /**
  * Run multiple agents in parallel with UI rendering
  */
-const runAgents = (runners: AgentRunner[]): void => {
+const runAgents = async (
+  runners: AgentRunner[],
+  config: Config,
+): Promise<void> => {
   const { unmount } = render(React.createElement(MultiAgentRun, { runners }));
 
-  // Start all agents in parallel
-  Promise.all(runners.map((runner) => runner.run('Running agent...', {})))
-    .then(() => {
-      // Wait a moment to show completion, then unmount
-      setTimeout(() => {
-        unmount();
-      }, 2000);
-    })
-    .catch((error) => {
-      console.error('Agent execution failed:', error);
-      unmount();
-    });
+  try {
+    await Promise.all(
+      runners.map((runner) => runner.run('Running agent...', config)),
+    );
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  } catch (error) {
+    console.error('Agent execution failed:', error);
+    throw error;
+  } finally {
+    unmount();
+  }
 };
 
 export const agentCommands = {

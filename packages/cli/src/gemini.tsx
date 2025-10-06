@@ -99,6 +99,8 @@ import { handleParallelCommand } from './commands/parallel.js';
 
 import { handleMemoryCommand } from './commands/memory.js';
 
+import { handleSandboxCommand } from './commands/sandbox.js';
+
 export async function main() {
   const argv = await parseArguments();
   // Optional dry-run to simulate non-interactive prompt responses without provider access.
@@ -135,11 +137,33 @@ export async function main() {
     );
     process.exit(0);
   }
+  if (argv._[0] === 'sandbox') {
+    await handleSandboxCommand(
+      (argv as unknown as { action?: string }).action || (argv._[1] as string),
+    );
+    process.exit(0);
+  }
   if (argv._[0] === 'create-agent') {
     handleCreateAgentCommand();
     return;
   }
+
+  const workspaceRoot = process.cwd();
+  const settings = loadSettings(workspaceRoot);
+  const extensions = loadExtensions(workspaceRoot);
+
   if (argv._[0] === 'memory') {
+    if (settings.errors.length > 0) {
+      for (const error of settings.errors) {
+        let errorMessage = `Error in ${error.path}: ${error.message}`;
+        if (!process.env.NO_COLOR) {
+          errorMessage = `\x1b[31m${errorMessage}\x1b[0m`;
+        }
+        console.error(errorMessage);
+        console.error(`Please fix ${error.path} and try again.`);
+      }
+      process.exit(1);
+    }
     const config = await loadCliConfig(
       settings.merged,
       extensions,
@@ -189,9 +213,6 @@ export async function main() {
     }
 
     // Load necessary configuration for the use command
-    const workspaceRoot = process.cwd();
-    const settings = loadSettings(workspaceRoot);
-
     if (settings.errors.length > 0) {
       for (const error of settings.errors) {
         let errorMessage = `Error in ${error.path}: ${error.message}`;
@@ -204,7 +225,6 @@ export async function main() {
       process.exit(1);
     }
 
-    const extensions = loadExtensions(workspaceRoot);
     const config = await loadCliConfig(
       settings.merged,
       extensions,
@@ -234,8 +254,6 @@ export async function main() {
     await handleUseCommand(agentName, query, config);
     process.exit(0);
   }
-  const workspaceRoot = process.cwd();
-  const settings = loadSettings(workspaceRoot);
 
   await cleanupCheckpoints();
   if (settings.errors.length > 0) {
@@ -284,7 +302,6 @@ export async function main() {
     );
   }
 
-  const extensions = loadExtensions(workspaceRoot);
   const config = await loadCliConfig(
     settings.merged,
     extensions,

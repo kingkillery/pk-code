@@ -4,7 +4,27 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { setCredential, getCredential, deleteCredential } from '@pk-code/core';
+import {
+  setCredential,
+  getCredential,
+  deleteCredential,
+  getDoctorChecks,
+  runDoctorChecks,
+  getAllProviders,
+  getProvider,
+  getProviderDefaultModel,
+  validateProviderConfiguration,
+  getConfiguredProviders,
+  selectBestModel,
+  type ConfigDoctorResult,
+  type ModelSelectionCriteria,
+  type ModelType,
+  type ProviderCapability,
+  formatProviderInfo,
+  formatProviderTableRow,
+  getProviderTableHeader,
+  getProviderTableSeparator,
+} from '@pk-code/core';
 import * as readline from 'readline';
 import { promises as fs } from 'fs';
 import * as os from 'os';
@@ -182,6 +202,177 @@ async function saveBrowserPath(browserPath: string) {
   await fs.writeFile(mcpConfigPath, JSON.stringify(mcpConfig, null, '\t'));
 }
 
+/**
+ * Handle the providers command - list all available providers
+ */
+async function handleProvidersCommand() {
+  console.log('Available AI Providers:\n');
+
+  const providers = await getAllProviders();
+  const configuredProviders = await getConfiguredProviders();
+  const configuredIds = new Set(configuredProviders.map((p) => p.id));
+
+  console.log(getProviderTableHeader());
+  console.log(getProviderTableSeparator());
+
+  for (const provider of providers) {
+    const isConfigured = configuredIds.has(provider.id);
+    const statusIndicator = isConfigured ? '✅' : '❌';
+    const row = formatProviderTableRow(provider);
+    console.log(`${statusIndicator} ${row}`);
+  }
+
+  console.log('\nLegend:');
+  console.log('✅ = Configured (API key available)');
+  console.log('❌ = Not configured');
+  console.log(
+    '\nUse "pk config provider <id>" for detailed information about a specific provider.',
+  );
+  console.log(
+    'Use "pk config recommend" to get provider recommendations for different use cases.',
+  );
+}
+
+/**
+ * Handle the provider command - show detailed information about a specific provider
+ */
+async function handleProviderCommand(providerId: string) {
+  const provider = await getProvider(providerId);
+
+  if (!provider) {
+    console.error(`Provider "${providerId}" not found.`);
+    console.log('Available providers:');
+    const providers = await getAllProviders();
+    providers.forEach((p) => console.log(`  - ${p.id}: ${p.name}`));
+    return;
+  }
+
+  console.log(formatProviderInfo(provider));
+
+  // Check configuration status
+  const validation = await validateProviderConfiguration(providerId);
+  console.log(
+    `\nConfiguration Status: ${validation.isValid ? '✅ Configured' : '❌ Not Configured'}`,
+  );
+
+  if (!validation.isValid && validation.missingVars.length > 0) {
+    console.log(`Missing Environment Variables:`);
+    validation.missingVars.forEach((varName) => {
+      console.log(`  - ${varName}`);
+    });
+    console.log(
+      `\nTo configure, run: pk config add ${providerId} <your-api-key>`,
+    );
+  } else if (validation.isValid) {
+    console.log(`\n✅ Provider is ready to use!`);
+
+    // Show available models
+    console.log(`\nAvailable Models:`);
+    Object.entries(provider.defaultModels).forEach(([type, model]) => {
+      console.log(`  - ${type}: ${model}`);
+    });
+  }
+}
+
+/**
+ * Handle the recommend command - show provider recommendations for different use cases
+ */
+async function handleRecommendCommand() {
+  console.log('Provider Recommendations:\n');
+
+  type RecommendationUseCase = {
+    name: string;
+    description: string;
+    capability?: ProviderCapability;
+    modelType: ModelType;
+    minContextSize?: number;
+  };
+
+  const useCases: RecommendationUseCase[] = [
+    {
+      name: 'General Purpose Chat',
+      description: 'Best all-around chat models for general conversations',
+      modelType: 'chat' as const,
+    },
+    {
+      name: 'Fast Responses',
+      description: 'Fast models for quick interactions',
+      modelType: 'fast' as const,
+    },
+    {
+      name: 'Vision & Image Analysis',
+      description: 'Models that can analyze images and visual content',
+      capability: 'vision' as const,
+      modelType: 'chat' as const,
+    },
+    {
+      name: 'Large Context Windows',
+      description: 'Models with large context windows for long documents',
+      capability: 'toolCalling' as const,
+      modelType: 'chat' as const,
+      minContextSize: 100000,
+    },
+    {
+      name: 'Text Embeddings',
+      description: 'Models for generating text embeddings',
+      capability: 'embedding' as const,
+      modelType: 'embedding' as const,
+    },
+  ];
+
+  for (const useCase of useCases) {
+    console.log(`📋 ${useCase.name}`);
+    console.log(`   ${useCase.description}`);
+
+    const criteria: ModelSelectionCriteria = {
+      modelType: useCase.modelType,
+      preferCheapest: true,
+    };
+
+    if (useCase.capability) {
+      criteria.capability = useCase.capability;
+    }
+
+    if (useCase.minContextSize) {
+      criteria.minContextSize = useCase.minContextSize;
+    }
+
+    const selection = await selectBestModel(criteria);
+
+    if (selection) {
+      const validation = await validateProviderConfiguration(
+        selection.provider.id,
+      );
+      const statusIcon = validation.isValid ? '✅' : '❌';
+      const defaultModel = await getProviderDefaultModel(
+        selection.provider.id,
+        selection.modelType,
+      );
+      const defaultLabel = defaultModel
+        ? defaultModel === selection.model
+          ? ' (default)'
+          : ` (default: ${defaultModel})`
+        : '';
+      console.log(
+        `   ${statusIcon} ${selection.provider.name}: ${selection.model}${defaultLabel}`,
+      );
+
+      if (!validation.isValid) {
+        console.log(
+          `      → Configure with: pk config add ${selection.provider.id} <api-key>`,
+        );
+      }
+    } else {
+      console.log(`   ❌ No suitable providers found`);
+    }
+    console.log('');
+  }
+
+  console.log(
+    '💡 Tip: Run "pk config doctor" to check your overall configuration status.',
+  );
+}
+
 export { detectChromeUserDataPath, type ChromePathDetectionResult };
 
 export async function handleConfigCommand(
@@ -310,6 +501,65 @@ export async function handleConfigCommand(
           },
         );
       });
+      break;
+    }
+    case 'providers': {
+      await handleProvidersCommand();
+      break;
+    }
+    case 'provider': {
+      if (!provider) {
+        console.error('Provider ID is required for the "provider" action.');
+        console.log('Available providers:');
+        const providers = await getAllProviders();
+        providers.forEach((p) => console.log(`  - ${p.id}: ${p.name}`));
+        return;
+      }
+      await handleProviderCommand(provider);
+      break;
+    }
+    case 'recommend': {
+      await handleRecommendCommand();
+      break;
+    }
+    case 'doctor': {
+      const checks = getDoctorChecks();
+      const results = await runDoctorChecks(checks);
+
+      const failures = results.filter(
+        (result: ConfigDoctorResult) => result.status === 'error',
+      );
+      const warnings = results.filter(
+        (result: ConfigDoctorResult) => result.status === 'warning',
+      );
+
+      if (failures.length === 0 && warnings.length === 0) {
+        console.log('✅ Configuration looks good!');
+      } else {
+        for (const result of results) {
+          const symbol =
+            result.status === 'error'
+              ? '❌'
+              : result.status === 'warning'
+                ? '⚠️'
+                : '✅';
+          console.log(`${symbol} ${result.title}`);
+          if (result.message) {
+            console.log(`   ${result.message}`);
+          }
+          if (result.suggestion) {
+            console.log(`   Suggestion: ${result.suggestion}`);
+          }
+        }
+
+        console.log('');
+        console.log(
+          `Summary: ${failures.length} error(s), ${warnings.length} warning(s).`,
+        );
+        if (failures.length > 0) {
+          process.exitCode = 1;
+        }
+      }
       break;
     }
     default:

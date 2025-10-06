@@ -86,6 +86,42 @@ pk
 > Use browser_use to search for the latest AI news on Google
 ```
 
+## Sandbox Environment
+
+PK Code supports sandboxed execution via Docker, Podman, or macOS seatbelt. Use the `pk sandbox status` command to inspect the current sandbox configuration.
+
+### Checking Sandbox Status
+
+```bash
+pk sandbox status
+```
+
+This command reports:
+
+- Current sandbox mode (disabled, docker, podman, seatbelt, custom)
+- Active runtime command
+- Writable directory roots
+- Network configuration (open, proxied, restricted)
+- Configuration notes and warnings
+
+### Testing Sandbox Utilities
+
+When writing tests for sandbox-related functionality:
+
+- Mock `fs`, `os`, and `path` modules using Vitest's `vi.spyOn`
+- Use namespace imports (`import * as os from 'node:os'`) for better mock control
+- For type-safe mocks, cast to mutable interfaces when needed
+- Test environment variable precedence (`PK_SANDBOX` vs `GEMINI_SANDBOX`)
+- Verify writable root detection from `SANDBOX_MOUNTS`
+- Validate network state inference from proxy environment variables
+
+Example test pattern:
+
+```typescript
+const mutableOs = os as unknown as { platform: typeof os.platform };
+const platformSpy = vi.spyOn(mutableOs, 'platform').mockReturnValue('darwin');
+```
+
 ## JavaScript/TypeScript
 
 When contributing to this React, Node, and TypeScript codebase, please prioritize the use of plain JavaScript objects with accompanying TypeScript interface or type declarations over JavaScript class syntax. This approach offers significant advantages, especially concerning interoperability with React and overall code maintainability.

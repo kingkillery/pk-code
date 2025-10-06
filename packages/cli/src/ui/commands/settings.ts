@@ -88,7 +88,10 @@ export const settingsCommand: Command = {
           }
 
           case 'telemetry': {
-            const telemetryEnabled = value.toLowerCase() === 'true' || value === '1' || value === 'yes';
+            const telemetryEnabled =
+              value.toLowerCase() === 'true' ||
+              value === '1' ||
+              value === 'yes';
             settings.setValue(SettingScope.User, 'telemetry', {
               ...settings.merged.telemetry,
               enabled: telemetryEnabled,
@@ -101,8 +104,15 @@ export const settingsCommand: Command = {
           }
 
           case 'usageStatistics': {
-            const usageEnabled = value.toLowerCase() === 'true' || value === '1' || value === 'yes';
-            settings.setValue(SettingScope.User, 'usageStatisticsEnabled', usageEnabled);
+            const usageEnabled =
+              value.toLowerCase() === 'true' ||
+              value === '1' ||
+              value === 'yes';
+            settings.setValue(
+              SettingScope.User,
+              'usageStatisticsEnabled',
+              usageEnabled,
+            );
             return {
               type: 'message',
               messageType: 'info',
@@ -111,8 +121,15 @@ export const settingsCommand: Command = {
           }
 
           case 'showMemoryUsage': {
-            const memoryEnabled = value.toLowerCase() === 'true' || value === '1' || value === 'yes';
-            settings.setValue(SettingScope.User, 'showMemoryUsage', memoryEnabled);
+            const memoryEnabled =
+              value.toLowerCase() === 'true' ||
+              value === '1' ||
+              value === 'yes';
+            settings.setValue(
+              SettingScope.User,
+              'showMemoryUsage',
+              memoryEnabled,
+            );
             return {
               type: 'message',
               messageType: 'info',
@@ -121,8 +138,15 @@ export const settingsCommand: Command = {
           }
 
           case 'autoConfigureMemory': {
-            const autoMemoryEnabled = value.toLowerCase() === 'true' || value === '1' || value === 'yes';
-            settings.setValue(SettingScope.User, 'autoConfigureMaxOldSpaceSize', autoMemoryEnabled);
+            const autoMemoryEnabled =
+              value.toLowerCase() === 'true' ||
+              value === '1' ||
+              value === 'yes';
+            settings.setValue(
+              SettingScope.User,
+              'autoConfigureMaxOldSpaceSize',
+              autoMemoryEnabled,
+            );
             return {
               type: 'message',
               messageType: 'info',
@@ -180,7 +204,11 @@ export const settingsCommand: Command = {
           }
 
           case 'usageStatistics': {
-            settings.setValue(SettingScope.User, 'usageStatisticsEnabled', undefined);
+            settings.setValue(
+              SettingScope.User,
+              'usageStatisticsEnabled',
+              undefined,
+            );
             return {
               type: 'message',
               messageType: 'info',
@@ -198,7 +226,11 @@ export const settingsCommand: Command = {
           }
 
           case 'autoConfigureMemory': {
-            settings.setValue(SettingScope.User, 'autoConfigureMaxOldSpaceSize', undefined);
+            settings.setValue(
+              SettingScope.User,
+              'autoConfigureMaxOldSpaceSize',
+              undefined,
+            );
             return {
               type: 'message',
               messageType: 'info',

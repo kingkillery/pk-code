@@ -1,14 +1,96 @@
 import { spawn, exec } from 'child_process';
+import type { SpawnOptions } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import { promisify } from 'util';
 import * as net from 'net';
+import type { CliArgs } from '../config/config.js';
 
 const execAsync = promisify(exec);
 
 const BROWSER_AGENT_PID_FILE = path.join('.taskmaster', 'browser-agent.pid');
 const GLOBAL_SETTINGS_FILE = path.join(os.homedir(), '.pk', 'settings.json');
+
+type BrowserConfig = {
+  command: string;
+  args?: string[];
+  env?: Record<string, string>;
+  port?: number;
+};
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function parseStringArray(value: unknown): string[] | undefined {
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+
+  const items = value.filter(
+    (item): item is string => typeof item === 'string',
+  );
+  return items.length > 0 ? items : undefined;
+}
+
+function parseEnvRecord(value: unknown): Record<string, string> | undefined {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+
+  const entries = Object.entries(value).filter(
+    (entry): entry is [string, string] => typeof entry[1] === 'string',
+  );
+
+  return entries.length > 0 ? Object.fromEntries(entries) : undefined;
+}
+
+function toBrowserConfig(value: unknown): BrowserConfig | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const commandValue = value['command'];
+  if (typeof commandValue !== 'string' || commandValue.trim() === '') {
+    return null;
+  }
+
+  const argsValue = parseStringArray(value['args']);
+  const envValue = parseEnvRecord(value['env']);
+  const portValue =
+    typeof value['port'] === 'number' ? (value['port'] as number) : undefined;
+
+  const config: BrowserConfig = {
+    command: commandValue,
+  };
+
+  if (argsValue) {
+    config.args = argsValue;
+  }
+
+  if (envValue) {
+    config.env = envValue;
+  }
+
+  if (portValue !== undefined) {
+    config.port = portValue;
+  }
+
+  return config;
+}
+
+function getUserDataDirFromSettings(
+  settings: Record<string, unknown>,
+): string | undefined {
+  const browserSettings = settings['browser-use'];
+  if (!isRecord(browserSettings)) {
+    return undefined;
+  }
+
+  const value = browserSettings['userDataDir'];
+  return typeof value === 'string' && value.trim() !== '' ? value : undefined;
+}
 
 // Helper function to read global settings
 async function getGlobalSettings(): Promise<Record<string, unknown>> {
@@ -380,12 +462,11 @@ async function getBrowserMcpConfig(): Promise<{
   configSource: string;
 }> {
   const globalSettings = await getGlobalSettings();
-  if (
-    globalSettings.mcpServers &&
-    typeof globalSettings.mcpServers === 'object' &&
-    globalSettings.mcpServers !== null &&
-    'browser-use' in globalSettings.mcpServers
-  ) {
+  const globalMcpServers = isRecord(globalSettings['mcpServers'])
+    ? (globalSettings['mcpServers'] as Record<string, unknown>)
+    : undefined;
+
+  if (globalMcpServers && 'browser-use' in globalMcpServers) {
     return { hasConfig: true, configSource: 'global' };
   }
 
@@ -394,7 +475,10 @@ async function getBrowserMcpConfig(): Promise<{
     try {
       const data = fs.readFileSync(mcpConfigFile, 'utf8');
       const config = JSON.parse(data);
-      if (config.mcpServers && config.mcpServers['browser-use']) {
+      const mcpServers = isRecord(config['mcpServers'])
+        ? (config['mcpServers'] as Record<string, unknown>)
+        : undefined;
+      if (mcpServers && 'browser-use' in mcpServers) {
         return { hasConfig: true, configSource: 'local' };
       }
     } catch (error) {
@@ -433,7 +517,7 @@ async function checkBrowserUseInstallation(): Promise<boolean> {
   return true;
 }
 
-async function getBrowserConfig(): Promise<Record<string, unknown> | null> {
+async function getBrowserConfig(): Promise<BrowserConfig | null> {
   const { hasConfig, configSource } = await getBrowserMcpConfig();
   if (!hasConfig) {
     return null;
@@ -441,15 +525,26 @@ async function getBrowserConfig(): Promise<Record<string, unknown> | null> {
 
   if (configSource === 'global') {
     const globalSettings = await getGlobalSettings();
-    return (
-      (globalSettings.mcpServers as Record<string, unknown>)?.['browser-use'] ||
-      null
-    );
+    if ('mcpServers' in globalSettings && isRecord(globalSettings.mcpServers)) {
+      return toBrowserConfig(globalSettings.mcpServers['browser-use']);
+    }
+    return null;
   } else {
     const mcpConfigFile = path.resolve('.mcp.json');
-    const data = fs.readFileSync(mcpConfigFile, 'utf8');
-    const config = JSON.parse(data);
-    return config.mcpServers['browser-use'];
+    try {
+      const data = fs.readFileSync(mcpConfigFile, 'utf8');
+      const config = JSON.parse(data);
+      if (
+        isRecord(config) &&
+        'mcpServers' in config &&
+        isRecord(config.mcpServers)
+      ) {
+        return toBrowserConfig(config.mcpServers['browser-use']);
+      }
+    } catch (error) {
+      console.warn(`Warning: Failed to parse ${mcpConfigFile}: ${error}`);
+    }
+    return null;
   }
 }
 
@@ -485,9 +580,7 @@ async function startBrowserAgent() {
   if (!browserConfig) {
     // Synthesize a default configuration to avoid blocking startup
     const settings = await getGlobalSettings();
-    const userDataDir = (settings as Record<string, unknown>)?.[
-      'browser-use'
-    ]?.['userDataDir'];
+    const userDataDir = getUserDataDirFromSettings(settings);
     if (process.platform === 'win32') {
       browserConfig = {
         command: 'cmd',
@@ -500,8 +593,8 @@ async function startBrowserAgent() {
           '--mcp',
         ],
         env: userDataDir
-          ? { BROWSER_USE_USER_DATA_DIR: String(userDataDir) }
-          : {},
+          ? { BROWSER_USE_USER_DATA_DIR: userDataDir }
+          : undefined,
         port: 3001,
       };
     } else {
@@ -509,14 +602,14 @@ async function startBrowserAgent() {
         command: 'bash',
         args: ['-lc', 'uvx --from browser-use[cli] browser-use --mcp'],
         env: userDataDir
-          ? { BROWSER_USE_USER_DATA_DIR: String(userDataDir) }
-          : {},
+          ? { BROWSER_USE_USER_DATA_DIR: userDataDir }
+          : undefined,
         port: 3001,
       };
     }
   }
 
-  const port = browserConfig.port || 3001;
+  const port = browserConfig.port ?? 3001;
   if (await isPortInUse(port)) {
     console.error(
       `Error: Port ${port} is already in use. The browser agent requires this port.`,
@@ -532,22 +625,30 @@ async function startBrowserAgent() {
     fs.mkdirSync(taskmasterDir, { recursive: true });
   }
 
-  const spawnOptions: import('child_process').SpawnOptions = {
+  const spawnOptions: SpawnOptions = {
     detached: true,
     stdio: 'ignore',
-    env: { ...process.env, ...browserConfig.env },
+    env: {
+      ...process.env,
+      ...(browserConfig.env ?? {}),
+    },
   };
 
   const child = spawn(
     browserConfig.command,
-    browserConfig.args || [],
+    browserConfig.args ?? [],
     spawnOptions,
   );
-  child.unref();
 
-  if (child.pid) {
-    fs.writeFileSync(BROWSER_AGENT_PID_FILE, String(child.pid));
-    console.log(`Browser agent started successfully with PID: ${child.pid}.`);
+  if (typeof child.unref === 'function') {
+    child.unref();
+  }
+
+  const pid = child.pid;
+
+  if (typeof pid === 'number') {
+    fs.writeFileSync(BROWSER_AGENT_PID_FILE, String(pid));
+    console.log(`Browser agent started successfully with PID: ${pid}.`);
   } else {
     console.error(
       'Failed to start the browser agent. Please check your configuration and try again.',
@@ -602,6 +703,67 @@ async function handleRunAgents(agentNames: string[]): Promise<void> {
   const projectRoot = process.cwd();
   const agentsDir = getAgentsDir(projectRoot);
 
+  const [{ loadCliConfig }, { loadSettings }, { loadExtensions }] =
+    await Promise.all([
+      import('../config/config.js'),
+      import('../config/settings.js'),
+      import('../config/extension.js'),
+    ]);
+  const { sessionId } = await import('@pk-code/core');
+
+  const settingsLoader = loadSettings(projectRoot);
+  if (settingsLoader.errors.length > 0) {
+    for (const error of settingsLoader.errors) {
+      console.error(`Error in ${error.path}: ${error.message}`);
+    }
+    return;
+  }
+
+  const extensions = loadExtensions(projectRoot);
+
+  const cliArgs: CliArgs = {
+    _: ['agent', 'run'],
+    model: undefined,
+    sandbox: undefined,
+    sandboxImage: undefined,
+    debug: false,
+    prompt: undefined,
+    promptInteractive: undefined,
+    promptFile: undefined,
+    parallel: undefined,
+    parallelTasks: undefined,
+    allFiles: false,
+    all_files: false,
+    showMemoryUsage: false,
+    show_memory_usage: false,
+    yolo: false,
+    telemetry: undefined,
+    checkpointing: false,
+    telemetryTarget: undefined,
+    telemetryOtlpEndpoint: undefined,
+    telemetryLogPrompts: undefined,
+    allowedMcpServerNames: undefined,
+    extensions: undefined,
+    listExtensions: false,
+    ideMode: undefined,
+    openaiLogging: undefined,
+    openaiApiKey: undefined,
+    openaiBaseUrl: undefined,
+    provider: undefined,
+    action: undefined,
+    apiKey: undefined,
+    agent: undefined,
+    query: undefined,
+  };
+
+  const config = await loadCliConfig(
+    settingsLoader.merged,
+    extensions,
+    sessionId,
+    cliArgs,
+  );
+  await config.initialize();
+
   // Import the enhanced agent runner
   const { EnhancedAgentRunner } = await import(
     '../agent/EnhancedAgentRunner.js'
@@ -635,5 +797,11 @@ async function handleRunAgents(agentNames: string[]): Promise<void> {
     }),
   );
 
-  agentCommands.run(runners);
+  try {
+    await agentCommands.run(runners, config);
+  } catch (error) {
+    console.error(
+      `Failed to run agents: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
 }

@@ -16,6 +16,33 @@ interface GlobalSettings {
   chromePath?: string;
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function parseStringArray(value: unknown): string[] | undefined {
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+
+  const items = value.filter(
+    (item): item is string => typeof item === 'string',
+  );
+  return items.length > 0 ? items : undefined;
+}
+
+function parseEnvRecord(value: unknown): Record<string, string> | undefined {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+
+  const entries = Object.entries(value).filter(
+    (entry): entry is [string, string] => typeof entry[1] === 'string',
+  );
+
+  return entries.length > 0 ? Object.fromEntries(entries) : undefined;
+}
+
 async function getGlobalSettings(): Promise<GlobalSettings> {
   try {
     const settingsPath = path.join(os.homedir(), '.pk', 'settings.json');
@@ -31,12 +58,11 @@ async function getBrowserMcpConfig(): Promise<{
   configSource: string;
 }> {
   const globalSettings = await getGlobalSettings();
-  if (
-    globalSettings.mcpServers &&
-    typeof globalSettings.mcpServers === 'object' &&
-    globalSettings.mcpServers !== null &&
-    'browser-use' in globalSettings.mcpServers
-  ) {
+  const globalServers = isRecord(globalSettings.mcpServers)
+    ? (globalSettings.mcpServers as Record<string, unknown>)
+    : undefined;
+
+  if (globalServers && 'browser-use' in globalServers) {
     return { hasConfig: true, configSource: 'global' };
   }
 
@@ -45,7 +71,10 @@ async function getBrowserMcpConfig(): Promise<{
     try {
       const data = fs.readFileSync(mcpConfigFile, 'utf8');
       const config = JSON.parse(data);
-      if (config.mcpServers && config.mcpServers['browser-use']) {
+      const localServers = isRecord(config.mcpServers)
+        ? (config.mcpServers as Record<string, unknown>)
+        : undefined;
+      if (localServers && 'browser-use' in localServers) {
         return { hasConfig: true, configSource: 'local' };
       }
     } catch (error) {
@@ -63,6 +92,46 @@ interface BrowserConfig {
   port?: number;
 }
 
+function toBrowserConfig(value: unknown): BrowserConfig | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const command = value['command'];
+  if (typeof command !== 'string' || command.trim() === '') {
+    return null;
+  }
+
+  const args = parseStringArray(value['args']);
+  const env = parseEnvRecord(value['env']);
+  const port = typeof value['port'] === 'number' ? value['port'] : undefined;
+
+  const config: BrowserConfig = { command };
+  if (args) {
+    config.args = args;
+  }
+  if (env) {
+    config.env = env;
+  }
+  if (port !== undefined) {
+    config.port = port;
+  }
+
+  return config;
+}
+
+function getUserDataDirFromSettings(
+  settings: GlobalSettings,
+): string | undefined {
+  const browserSettings = settings.mcpServers?.['browser-use'];
+  if (!isRecord(browserSettings)) {
+    return undefined;
+  }
+
+  const value = browserSettings['userDataDir'];
+  return typeof value === 'string' && value.trim() !== '' ? value : undefined;
+}
+
 async function getBrowserConfig(): Promise<BrowserConfig | null> {
   const { hasConfig, configSource } = await getBrowserMcpConfig();
   if (!hasConfig) {
@@ -71,15 +140,23 @@ async function getBrowserConfig(): Promise<BrowserConfig | null> {
 
   if (configSource === 'global') {
     const globalSettings = await getGlobalSettings();
-    return (
-      (globalSettings.mcpServers?.['browser-use'] as BrowserConfig) || null
-    );
-  } else {
-    const mcpConfigFile = path.resolve('.mcp.json');
+    if (isRecord(globalSettings.mcpServers)) {
+      return toBrowserConfig(globalSettings.mcpServers['browser-use']);
+    }
+    return null;
+  }
+
+  const mcpConfigFile = path.resolve('.mcp.json');
+  try {
     const data = fs.readFileSync(mcpConfigFile, 'utf8');
     const config = JSON.parse(data);
-    return config.mcpServers['browser-use'];
+    if (isRecord(config) && isRecord(config.mcpServers)) {
+      return toBrowserConfig(config.mcpServers['browser-use']);
+    }
+  } catch (error) {
+    console.warn(`Warning: Failed to parse ${mcpConfigFile}: ${error}`);
   }
+  return null;
 }
 
 async function isBrowserAgentRunning(): Promise<boolean> {
@@ -115,9 +192,7 @@ async function startBrowserAgent(): Promise<{
   let browserConfig = await getBrowserConfig();
   if (!browserConfig) {
     const globalSettings = await getGlobalSettings();
-    const userDataDir = (globalSettings as Record<string, unknown>)?.[
-      'browser-use'
-    ]?.['userDataDir'];
+    const userDataDir = getUserDataDirFromSettings(globalSettings);
     if (process.platform === 'win32') {
       browserConfig = {
         command: 'cmd',
@@ -130,8 +205,8 @@ async function startBrowserAgent(): Promise<{
           '--mcp',
         ],
         env: userDataDir
-          ? { BROWSER_USE_USER_DATA_DIR: String(userDataDir) }
-          : {},
+          ? { BROWSER_USE_USER_DATA_DIR: userDataDir }
+          : undefined,
         port: 3001,
       };
     } else {
@@ -139,8 +214,8 @@ async function startBrowserAgent(): Promise<{
         command: 'bash',
         args: ['-lc', 'uvx --from browser-use[cli] browser-use --mcp'],
         env: userDataDir
-          ? { BROWSER_USE_USER_DATA_DIR: String(userDataDir) }
-          : {},
+          ? { BROWSER_USE_USER_DATA_DIR: userDataDir }
+          : undefined,
         port: 3001,
       };
     }
@@ -156,7 +231,7 @@ async function startBrowserAgent(): Promise<{
   const spawnOptions: Parameters<typeof spawn>[2] = {
     detached: true,
     stdio: 'ignore',
-    env: { ...process.env, ...browserConfig.env },
+    env: { ...process.env, ...(browserConfig.env ?? {}) },
   };
 
   const child = spawn(
@@ -164,15 +239,20 @@ async function startBrowserAgent(): Promise<{
     browserConfig.args || [],
     spawnOptions,
   );
-  child.unref();
 
-  if (child.pid) {
-    fs.writeFileSync(BROWSER_AGENT_PID_FILE, String(child.pid));
+  if (typeof child.unref === 'function') {
+    child.unref();
+  }
+
+  const pid = child.pid;
+
+  if (typeof pid === 'number') {
+    fs.writeFileSync(BROWSER_AGENT_PID_FILE, String(pid));
     // Wait a moment for the agent to start
     await new Promise((resolve) => setTimeout(resolve, 2000));
     return {
       success: true,
-      message: `Browser agent started with PID ${child.pid}`,
+      message: `Browser agent started with PID ${pid}`,
     };
   } else {
     return { success: false, message: 'Failed to start the browser agent' };

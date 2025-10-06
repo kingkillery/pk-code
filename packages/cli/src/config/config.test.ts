@@ -125,6 +125,24 @@ vi.mock('@pk-code/core', async () => {
         );
       }
     },
+    getDoctorChecks: vi.fn(() => []),
+    runDoctorChecks: vi.fn(async () => []),
+    getDefaultModelForProvider: vi.fn(
+      async (providerId: string, modelType: string) => {
+        if (providerId === 'google') {
+          if (modelType === 'chat') {
+            return actualServer.DEFAULT_GEMINI_MODEL;
+          }
+          if (modelType === 'fast') {
+            return actualServer.DEFAULT_GEMINI_FLASH_MODEL;
+          }
+          if (modelType === 'embedding') {
+            return actualServer.DEFAULT_GEMINI_EMBEDDING_MODEL;
+          }
+        }
+        return null;
+      },
+    ),
   };
 });
 
@@ -1098,6 +1116,77 @@ describe('handleConfigCommand browser', () => {
         2,
       ),
     );
+  });
+});
+
+describe('handleConfigCommand doctor', () => {
+  const originalExitCode = process.exitCode;
+  let logSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    vi.mocked(ServerConfig.getDoctorChecks).mockReturnValue([]);
+    logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    process.exitCode = undefined;
+  });
+
+  afterEach(() => {
+    logSpy.mockRestore();
+    process.exitCode = originalExitCode;
+  });
+
+  it('prints success when no warnings or errors are returned', async () => {
+    vi.mocked(ServerConfig.runDoctorChecks).mockResolvedValue([]);
+
+    await handleConfigCommand('doctor');
+
+    expect(ServerConfig.getDoctorChecks).toHaveBeenCalled();
+    expect(ServerConfig.runDoctorChecks).toHaveBeenCalledWith([]);
+    expect(logSpy).toHaveBeenCalledWith('✅ Configuration looks good!');
+    expect(process.exitCode).toBeUndefined();
+  });
+
+  it('surfaces warnings/errors and sets exit code', async () => {
+    vi.mocked(ServerConfig.getDoctorChecks).mockReturnValue([
+      {
+        id: 'provider-credentials',
+        title: 'Provider credentials',
+        run: vi.fn(),
+      },
+    ]);
+    vi.mocked(ServerConfig.runDoctorChecks).mockResolvedValue([
+      {
+        id: 'provider-credentials',
+        title: 'Provider credentials',
+        status: 'error',
+        message: 'No credentials',
+        suggestion: 'Set OPENAI_API_KEY',
+      },
+      {
+        id: 'env-files',
+        title: 'Environment files',
+        status: 'warning',
+        message: 'Multiple .env files',
+      },
+      {
+        id: 'sandbox',
+        title: 'Sandbox',
+        status: 'ok',
+        message: 'PK_SANDBOX looks good',
+      },
+    ]);
+
+    await handleConfigCommand('doctor');
+
+    expect(ServerConfig.getDoctorChecks).toHaveBeenCalled();
+    expect(ServerConfig.runDoctorChecks).toHaveBeenCalled();
+    expect(logSpy).toHaveBeenCalledWith('❌ Provider credentials');
+    expect(logSpy).toHaveBeenCalledWith('   No credentials');
+    expect(logSpy).toHaveBeenCalledWith('   Suggestion: Set OPENAI_API_KEY');
+    expect(logSpy).toHaveBeenCalledWith('⚠️ Environment files');
+    expect(logSpy).toHaveBeenCalledWith('✅ Sandbox');
+    expect(logSpy).toHaveBeenCalledWith('');
+    expect(logSpy).toHaveBeenCalledWith('Summary: 1 error(s), 1 warning(s).');
+    expect(process.exitCode).toBe(1);
   });
 });
 
