@@ -32,7 +32,8 @@
       "Bash(git fetch:*)",
       "Bash(git rev-list:*)",
       "WebFetch(domain:github.com)",
-      "Bash(pk:*)"
+      "Bash(pk:*)",
+      "Bash(npx prettier --write packages/cli/src/ui/hooks/slashCommandProcessor.ts)"
     ],
     "deny": []
   },

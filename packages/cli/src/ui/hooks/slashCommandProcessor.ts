@@ -8,6 +8,9 @@ import { useCallback, useMemo, useEffect, useState } from 'react';
 import { type PartListUnion } from '@google/genai';
 import open from 'open';
 import process from 'node:process';
+import os from 'node:os';
+import path from 'node:path';
+import { promises as fs } from 'node:fs';
 import { UseHistoryManagerReturn } from './useHistoryManager.js';
 import { useStateAndRef } from './useStateAndRef.js';
 import {
@@ -1000,6 +1003,216 @@ export const useSlashCommandProcessor = (
             });
           }
           setPendingCompressionItem(null);
+        },
+      },
+      {
+        name: 'install-python-sdk',
+        description: 'install PK Code Python wrapper globally for use in any Python project',
+        action: async (_mainCommand, _subCommand, _args) => {
+          addMessage({
+            type: MessageType.INFO,
+            content: '🐍 Installing PK Code Python SDK globally...',
+            timestamp: new Date(),
+          });
+
+          try {
+            // Determine the installation directory
+            const homeDir = os.homedir();
+            const installDir = path.join(homeDir, '.pk-code', 'python-sdk');
+
+            // Create installation directory
+            await fs.mkdir(installDir, { recursive: true });
+
+            // Get the path to the current examples directory
+            const currentDir = process.cwd();
+            const examplesDir = path.join(currentDir, 'examples');
+
+            // Check if examples directory exists
+            if (!await fs.access(examplesDir).then(() => true).catch(() => false)) {
+              addMessage({
+                type: MessageType.ERROR,
+                content: '❌ Examples directory not found. Please run this command from the PK Code repository root.',
+                timestamp: new Date(),
+              });
+              return;
+            }
+
+            // Files to install
+            const filesToInstall = [
+              'python_wrapper.py',
+              'powershell_wrapper.ps1',
+              'batch_processing_examples.py',
+              'getting_started.py',
+              'setup_and_test.py',
+              'test_sdk_installation.py',
+              'README.md'
+            ];
+
+            // Copy files
+            for (const file of filesToInstall) {
+              const srcPath = path.join(examplesDir, file);
+              const destPath = path.join(installDir, file);
+
+              if (await fs.access(srcPath).then(() => true).catch(() => false)) {
+                await fs.copyFile(srcPath, destPath);
+                addMessage({
+                  type: MessageType.INFO,
+                  content: `✅ Installed: ${file}`,
+                  timestamp: new Date(),
+                });
+              } else {
+                addMessage({
+                  type: MessageType.WARNING,
+                  content: `⚠️  File not found: ${file}`,
+                  timestamp: new Date(),
+                });
+              }
+            }
+
+            // Copy the pk_code_python_sdk package directory
+            const sdkPackageDir = path.join(examplesDir, 'pk_code_python_sdk');
+            const destPackageDir = path.join(installDir, 'pk_code_python_sdk');
+
+            if (await fs.access(sdkPackageDir).then(() => true).catch(() => false)) {
+              await fs.mkdir(destPackageDir, { recursive: true });
+
+              // Copy __init__.py from package
+              const packageInitPath = path.join(sdkPackageDir, '__init__.py');
+              const destInitPath = path.join(destPackageDir, '__init__.py');
+              if (await fs.access(packageInitPath).then(() => true).catch(() => false)) {
+                await fs.copyFile(packageInitPath, destInitPath);
+              }
+
+              // Copy python_wrapper.py from package
+              const packageWrapperPath = path.join(sdkPackageDir, 'python_wrapper.py');
+              const destWrapperPath = path.join(destPackageDir, 'python_wrapper.py');
+              if (await fs.access(packageWrapperPath).then(() => true).catch(() => false)) {
+                await fs.copyFile(packageWrapperPath, destWrapperPath);
+              }
+
+              addMessage({
+                type: MessageType.INFO,
+                content: '✅ Installed: pk_code_python_sdk package',
+                timestamp: new Date(),
+              });
+            }
+
+            // Create a root __init__.py to make it a proper package
+            const initPyContent = `"""
+PK Code Python SDK
+
+This package provides a Python wrapper for the PK Code CLI,
+enabling programmatic agent execution from Python scripts.
+
+The main functionality is available through:
+- Direct usage: import pk_code_python_sdk
+- Package usage: from pk_code_python_sdk import PKCode
+
+Usage:
+    from pk_code_python_sdk import PKCode
+
+    pk = PKCode()
+    result = pk.execute("Your prompt here")
+    print(result["response"])
+"""`;
+
+            await fs.writeFile(path.join(installDir, '__init__.py'), initPyContent);
+            
+            // Create setup script for adding to Python path
+            const setupScript = `#!/bin/bash
+# PK Code Python SDK Setup Script
+
+# Add to PYTHONPATH (add to your ~/.bashrc or ~/.zshrc)
+export PYTHONPATH="$HOME/.pk-code/python-sdk:$PYTHONPATH"
+
+echo "✅ PK Code Python SDK installed to: ~/.pk-code/python-sdk"
+echo "📝 Add the following to your ~/.bashrc or ~/.zshrc:"
+echo "   export PYTHONPATH=\"$HOME/.pk-code/python-sdk:\$PYTHONPATH\""
+echo ""
+echo "🚀 Then you can use it in any Python project:"
+echo "   from pk_code_python_sdk import PKCode"
+echo "   pk = PKCode()"
+echo "   result = pk.execute('Your prompt')"
+echo ""
+echo "🧪 Test the installation:"
+echo "   python -c \"from pk_code_python_sdk import PKCode; print('✅ SDK imported successfully!')\""`;
+            
+            await fs.writeFile(path.join(installDir, 'setup.sh'), setupScript);
+            
+            // Make setup script executable
+            await fs.chmod(path.join(installDir, 'setup.sh'), '755');
+            
+            // Create Windows setup script
+            const windowsSetupScript = `@echo off
+REM PK Code Python SDK Setup Script for Windows
+
+REM Add to PYTHONPATH (run as Administrator or add to User Environment Variables)
+setx PYTHONPATH "%USERPROFILE%\\.pk-code\\python-sdk;%PYTHONPATH%"
+
+echo ✅ PK Code Python SDK installed to: %USERPROFILE%\.pk-code\python-sdk
+echo 📝 PYTHONPATH environment variable updated
+echo.
+echo 🚀 You can now use it in any Python project:
+echo    from pk_code_python_sdk import PKCode
+echo    pk = PKCode()
+echo    result = pk.execute("Your prompt")
+echo.
+echo 🧪 Test the installation:
+echo    python -c "from pk_code_python_sdk import PKCode; print('✅ SDK imported successfully!')"`;
+            
+            await fs.writeFile(path.join(installDir, 'setup.bat'), windowsSetupScript);
+            
+            // Success message
+            const successMessage = `
+🎉 PK Code Python SDK installed successfully!
+
+📍 Installation location: ${installDir}
+
+📋 Next steps:
+
+1️⃣ **Add to Python path:**
+   - Linux/macOS: Run 'bash ${installDir}/setup.sh' or add to ~/.bashrc:
+     export PYTHONPATH="${installDir}:$PYTHONPATH"
+
+   - Windows: Run '${installDir}\\setup.bat' as Administrator
+
+2️⃣ **Test the installation:**
+   python -c "from pk_code_python_sdk import PKCode; print('✅ SDK imported successfully!')"
+
+3️⃣ **Use in your Python projects:**
+   from pk_code_python_sdk import PKCode
+   pk = PKCode()
+   result = pk.execute("Your prompt here")
+   print(result["response"])
+
+📦 Package structure:
+   ├── pk_code_python_sdk/     # Main Python package
+   │   ├── __init__.py
+   │   └── python_wrapper.py   # Core wrapper functionality
+   ├── examples/               # Usage examples
+   ├── python_wrapper.py       # Standalone wrapper
+   └── README.md              # Documentation
+
+📚 Documentation: ${path.join(installDir, 'README.md')}
+
+🔧 Setup scripts:
+   - Linux/macOS: ${path.join(installDir, 'setup.sh')}
+   - Windows: ${path.join(installDir, 'setup.bat')}
+`;
+            
+            addMessage({
+              type: MessageType.INFO,
+              content: successMessage,
+              timestamp: new Date(),
+            });
+            
+          } catch (error) {
+            addMessage({
+              type: MessageType.ERROR,
+              content: `❌ Installation failed: ${error instanceof Error ? error.message : String(error)}`,
+              timestamp: new Date(),
+            });
+          }
         },
       },
     ];
