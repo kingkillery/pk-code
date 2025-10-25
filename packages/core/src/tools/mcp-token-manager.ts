@@ -16,7 +16,7 @@ import {
 } from '../credentials.js';
 
 export interface OAuthConfig {
-  provider: 'custom';
+  provider: 'custom' | 'google' | 'github' | 'slack' | 'notion';
   clientId?: string;
   clientSecret?: string;
   authorizationUrl?: string;
@@ -111,6 +111,38 @@ export class MCPTokenManager {
   }
 
   private resolveProviderConfig(config: OAuthConfig): OAuthConfig {
+    // Predefined provider configurations
+    const providerConfigs: Record<string, Partial<OAuthConfig>> = {
+      'google': {
+        authorizationUrl: 'https://accounts.google.com/o/oauth2/auth',
+        tokenUrl: 'https://oauth2.googleapis.com/token',
+        scopes: ['openid', 'profile', 'email'],
+      },
+      'github': {
+        authorizationUrl: 'https://github.com/login/oauth/authorize',
+        tokenUrl: 'https://github.com/login/oauth/access_token',
+        scopes: ['read:user', 'user:email'],
+      },
+      'slack': {
+        authorizationUrl: 'https://slack.com/oauth/v2/authorize',
+        tokenUrl: 'https://slack.com/api/oauth.v2.access',
+        scopes: ['chat:write', 'chat:read'],
+      },
+      'notion': {
+        authorizationUrl: 'https://api.notion.com/v1/oauth/authorize',
+        tokenUrl: 'https://api.notion.com/v1/oauth/token',
+        scopes: [],
+      },
+    };
+
+    // If provider is specified and exists in our predefined providers, merge the configurations
+    if (config.provider && config.provider !== 'custom' && providerConfigs[config.provider]) {
+      return {
+        ...providerConfigs[config.provider],
+        ...config,
+      } as OAuthConfig;
+    }
+    
     return config;
   }
 
