@@ -16,7 +16,6 @@
  */
 
 import type { ContentGenerator } from '../core/contentGenerator.js';
-import type { ParsedAgent, AgentConfig } from '../agents/types.js';
 import {
   SubagentManager,
   SubagentExecutor,

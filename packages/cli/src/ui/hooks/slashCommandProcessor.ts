@@ -1125,7 +1125,7 @@ export PYTHONPATH="$HOME/.pk-code/python-sdk:$PYTHONPATH"
 
 echo "✅ PK Code Python SDK installed to: ~/.pk-code/python-sdk"
 echo "📝 Add the following to your ~/.bashrc or ~/.zshrc:"
-echo "   export PYTHONPATH=\"$HOME/.pk-code/python-sdk:\$PYTHONPATH\""
+echo "   export PYTHONPATH=\"$HOME/.pk-code/python-sdk:$PYTHONPATH\""
 echo ""
 echo "🚀 Then you can use it in any Python project:"
 echo "   from pk_code_python_sdk import PKCode"
@@ -1133,8 +1133,9 @@ echo "   pk = PKCode()"
 echo "   result = pk.execute('Your prompt')"
 echo ""
 echo "🧪 Test the installation:"
-echo "   python -c \"from pk_code_python_sdk import PKCode; print('✅ SDK imported successfully!')\""`;
+echo "   python -c 'from pk_code_python_sdk import PKCode; print(\"✅ SDK imported successfully!\")'"`;
             
+            /* eslint-enable no-useless-escape */
             await fs.writeFile(path.join(installDir, 'setup.sh'), setupScript);
             
             // Make setup script executable
@@ -1175,7 +1176,7 @@ echo    python -c "from pk_code_python_sdk import PKCode; print('✅ SDK importe
    - Windows: Run '${installDir}\\setup.bat' as Administrator
 
 2️⃣ **Test the installation:**
-   python -c "from pk_code_python_sdk import PKCode; print('✅ SDK imported successfully!')"
+   python -c 'from pk_code_python_sdk import PKCode; print("✅ SDK imported successfully!"))'
 
 3️⃣ **Use in your Python projects:**
    from pk_code_python_sdk import PKCode

@@ -8,7 +8,6 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { SubagentManager } from './subagent-manager.js';
 import * as fs from 'fs/promises';
 import * as os from 'os';
-import * as path from 'path';
 
 // Mock fs and os modules
 vi.mock('fs/promises');
@@ -118,12 +117,10 @@ examples: []
 `;
 
       // Mock fs.stat for both directories and files
-      vi.mocked(fs.stat).mockImplementation(async (p) => {
-        return {
-          isDirectory: () => !p.toString().endsWith('.md'),
-          mtime: new Date('2025-01-01'),
-        } as never;
-      });
+      vi.mocked(fs.stat).mockImplementation(async (p) => ({
+        isDirectory: () => !p.toString().endsWith('.md'),
+        mtime: new Date('2025-01-01'),
+      } as never));
 
       // Mock readdir to return files for both directories
       vi.mocked(fs.readdir).mockResolvedValue([
@@ -240,9 +237,9 @@ examples: []
       ] as never);
 
       let callCount = 0;
-      vi.mocked(fs.readFile).mockImplementation(async (p) => {
-        return callCount++ === 0 ? mockMarkdown1 : mockMarkdown2;
-      });
+      vi.mocked(fs.readFile).mockImplementation(async () =>
+        callCount++ === 0 ? mockMarkdown1 : mockMarkdown2,
+      );
 
       await manager.loadAll();
 
