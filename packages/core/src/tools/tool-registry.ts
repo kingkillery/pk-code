@@ -16,6 +16,7 @@ import { MultimodalContentGenerator } from '../core/contentGenerator.js';
 import { SearchIndexTool } from './search-index.js';
 import { BrowserUseTool } from './browser-use-tool.js';
 import { FlowPkTool } from './flowpk-tool.js';
+import { NeuttsAirTool } from './neutts-air-tool.js';
 import { TodoToolWrapper } from './todo-tool-wrapper.js';
 
 type ToolParams = Record<string, unknown>;
@@ -159,6 +160,9 @@ export class ToolRegistry {
 
     // Register Todo tool for task management
     this.registerTool(new TodoToolWrapper(this.config));
+
+    // Register NeuTTS Air speech synthesis tool
+    this.registerTool(new NeuttsAirTool());
   }
 
   /**

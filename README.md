@@ -262,6 +262,34 @@ Local browser agent is ready!
 - **Port conflicts**: The local browser agent uses port 3001 by default
 - **Agent management**: Use `pk agent stop browser` to stop the local browser agent
 
+## 🔊 Speech Synthesis (NeuTTS Air)
+
+PK Code now includes a built-in tool powered by Neuphonic's [NeuTTS Air](https://huggingface.co/neuphonic/neutts-air) model for ultra-realistic text-to-speech.
+
+- **Tool name**: `neutts_air`
+- **Capabilities**: Clone speaker style from a reference clip and synthesize new speech for the provided text.
+- **Prerequisites**: Optional `HUGGINGFACE_TOKEN` or `HUGGINGFACE_API_KEY` environment variable if the Hugging Face Space requires authentication.
+
+### Example Usage
+
+Inside PK, ask the assistant to run the tool:
+
+```
+Use `neutts_air` to read "Welcome to PK Code!" with the default reference voice.
+```
+
+Customize the request with your own reference sample:
+
+```
+Use `neutts_air` with {
+  "text": "This release ships with NeuTTS Air support.",
+  "referenceAudioUrl": "https://example.com/my-voice.wav",
+  "referenceText": "A short transcript of the reference audio."
+}
+```
+
+The tool returns a data URI containing the generated audio, ready to download or embed in downstream flows.
+
 ## 🧠 Enhanced Command Parser & Multi-Step Instructions
 
 PK Code now supports advanced command parsing for complex, multi-step instructions and agentic workflows.
