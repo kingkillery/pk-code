@@ -6,13 +6,8 @@
 
 import { Type } from '@google/genai';
 import { BaseTool, ToolResult } from './tools.js';
-import {
-  AgentOrchestrator,
-  OrchestrationMode,
-} from '../agents/agent-orchestrator.js';
-import { AgentRegistry } from '../agents/agent-registry.js';
 import { ContentGenerator } from '../core/contentGenerator.js';
-import { ParsedAgent } from '../agents/types.js';
+import { SubagentManager, SubagentExecutor, type Subagent } from '../subagents/index.js';
 
 /**
  * Parameters for the Task tool
@@ -175,11 +170,16 @@ export const SUBAGENT_TYPES = {
  */
 export class TaskTool extends BaseTool<TaskParams, ToolResult> {
   static readonly Name = 'Task';
+  
+  private readonly subagentManager: SubagentManager;
+  private readonly contentGeneratorFactory: (
+    subagent: Subagent,
+  ) => Promise<ContentGenerator>;
 
   constructor(
-    private readonly agentRegistry: AgentRegistry,
-    private readonly contentGeneratorFactory: (
-      agent: ParsedAgent,
+    subagentManager: SubagentManager,
+    contentGeneratorFactory: (
+      subagent: Subagent,
     ) => Promise<ContentGenerator>,
   ) {
     super(
@@ -208,6 +208,8 @@ export class TaskTool extends BaseTool<TaskParams, ToolResult> {
       true, // isOutputMarkdown
       false, // canUpdateOutput
     );
+    this.subagentManager = subagentManager;
+    this.contentGeneratorFactory = contentGeneratorFactory;
   }
 
   validateToolParams(params: TaskParams): string | null {
@@ -239,95 +241,72 @@ export class TaskTool extends BaseTool<TaskParams, ToolResult> {
     }
 
     try {
-      // Create orchestrator for sub-agent execution with optimized settings for sub-agents
-      const orchestrator = new AgentOrchestrator(
-        this.agentRegistry,
-        this.contentGeneratorFactory,
-        {
-          mode: this.shouldUseMultiAgent(params.prompt)
-            ? OrchestrationMode.MULTI_AGENT
-            : OrchestrationMode.SINGLE_AGENT,
-          maxAgents: this.calculateOptimalAgentCount(params.prompt),
-          performance: {
-            maxExecutionTime: 300000, // 5 minutes
-            targetConfidence: 0.8,
-          },
-          execution: {
-            timeout: 120000, // 2 minutes per agent
-            maxConcurrency: 3, // Allow up to 3 concurrent agents
-            continueOnError: true, // Continue even if some agents fail
-            aggregateResults: true, // Enable result aggregation
-          },
-        },
-      );
+      // Create executor for sub-agent execution
+      const executor = new SubagentExecutor(this.contentGeneratorFactory);
 
-      // Find appropriate agent for the subagent type
+      // Find appropriate subagent for the subagent type
       const subagentInfo =
         SUBAGENT_TYPES[params.subagent_type as keyof typeof SUBAGENT_TYPES];
-      const matchingAgents = this.agentRegistry.findAgents([
+      
+      // Try to find matching subagent by keywords
+      const matchingSubagents = this.subagentManager.find([
         ...subagentInfo.keywords,
       ]);
 
-      if (matchingAgents.length === 0) {
-        // Create a virtual agent if no specific agent is found
-        const virtualAgent: ParsedAgent = {
-          config: {
-            name: params.subagent_type,
-            description: subagentInfo.description,
-            keywords: [...subagentInfo.keywords],
-            tools: subagentInfo.tools.map((tool) => ({ name: tool })),
-            model: 'gemini-2.0-flash',
-            provider: 'gemini',
-            examples: [
-              {
-                input: `Example task for ${params.subagent_type}`,
-                output: `Specialized response from ${params.subagent_type} agent`,
-              },
-            ],
-          },
-          filePath: `virtual://${params.subagent_type}.md`,
-          source: 'project',
-          content: `# ${params.subagent_type}\n\n${subagentInfo.description}`,
-          lastModified: new Date(),
-        };
+      let targetSubagent: Subagent;
 
-        // Temporarily register the virtual agent
-        this.agentRegistry.registerAgent(virtualAgent);
+      if (matchingSubagents.length > 0) {
+        // Use the first matching subagent
+        targetSubagent = matchingSubagents[0];
+      } else {
+        // Use default or first available subagent
+        const defaultSubagent =
+          this.subagentManager.get('default') ||
+          this.subagentManager.getAll()[0];
+
+        if (!defaultSubagent) {
+          return {
+            llmContent: `No subagents available for task delegation.`,
+            returnDisplay: `❌ **Task Failed**\n\nNo subagents available.`,
+          };
+        }
+
+        targetSubagent = defaultSubagent;
       }
 
-      // Execute the task using the orchestrator. Force explicit agent invocation
-      // so the router selects the intended specialized agent, mirroring Claude Code.
-      const explicitQuery = `pk use ${params.subagent_type}: "${params.prompt}"`;
-      const result = await orchestrator.processQuery(explicitQuery);
+      // Execute the task using the executor with appropriate timeout
+      const result = await executor.execute(targetSubagent, params.prompt, {
+        timeout: 120000, // 2 minutes
+      });
+
+      if (!result.success) {
+        return {
+          llmContent: `Task execution failed: ${result.error || 'Unknown error'}`,
+          returnDisplay: `❌ **Task Failed**\n\n${result.error || 'Unknown error'}`,
+        };
+      }
 
       // Format the response
       const summary = `**${params.description}** (${params.subagent_type})`;
-      const confidence = Math.round(result.response.confidence * 100);
-      const duration = Math.round(result.performance.totalDuration);
+      const confidence = result.success ? 90 : 10;
+      const duration = result.duration;
 
       let displayContent = `✅ **Task Completed: ${summary}**\n\n`;
-      displayContent += `**Agent:** ${result.routing.selectedAgents.join(', ')}\n`;
+      displayContent += `**Agent:** ${targetSubagent.config.name}\n`;
       displayContent += `**Confidence:** ${confidence}%\n`;
       displayContent += `**Duration:** ${duration}ms\n\n`;
-      displayContent += `**Result:**\n${result.response.text}`;
+      displayContent += `**Result:**\n${result.response}`;
 
-      if (
-        result.response.alternatives &&
-        result.response.alternatives.length > 0
-      ) {
-        displayContent += `\n\n**Alternative Approaches:**\n`;
-        result.response.alternatives.forEach((alt, index) => {
-          displayContent += `${index + 1}. ${alt}\n`;
-        });
-      }
-
-      if (result.response.summary) {
-        displayContent += `\n\n**Summary:** ${result.response.summary}`;
+      if (result.usage) {
+        displayContent += `\n\n**Token Usage:**\n`;
+        displayContent += `- Input: ${result.usage.inputTokens}\n`;
+        displayContent += `- Output: ${result.usage.outputTokens}\n`;
+        displayContent += `- Total: ${result.usage.totalTokens}\n`;
       }
 
       return {
         summary: `Executed task: ${params.description}`,
-        llmContent: result.response.text,
+        llmContent: result.response,
         returnDisplay: displayContent,
       };
     } catch (error) {
@@ -357,60 +336,4 @@ export class TaskTool extends BaseTool<TaskParams, ToolResult> {
     return SUBAGENT_TYPES[type as keyof typeof SUBAGENT_TYPES] || null;
   }
 
-  /**
-   * Determine if a task would benefit from multi-agent execution
-   */
-  private shouldUseMultiAgent(prompt: string): boolean {
-    // Check for indicators that suggest multi-agent would be beneficial
-    const multiAgentIndicators = [
-      'and also',
-      'additionally',
-      'furthermore',
-      'both',
-      'as well as',
-      'compare',
-      'analyze different',
-      'multiple approaches',
-      'various',
-      'comprehensive',
-      'thorough',
-      'complete analysis',
-    ];
-
-    const lowerPrompt = prompt.toLowerCase();
-    const hasMultipleRequirements = multiAgentIndicators.some((indicator) =>
-      lowerPrompt.includes(indicator),
-    );
-
-    // Complex tasks over 200 characters might benefit from multi-agent
-    const isComplexTask = prompt.length > 200;
-
-    return hasMultipleRequirements || isComplexTask;
-  }
-
-  /**
-   * Calculate optimal number of agents for a task
-   */
-  private calculateOptimalAgentCount(prompt: string): number {
-    if (!this.shouldUseMultiAgent(prompt)) {
-      return 1;
-    }
-
-    // Count distinct requirements/questions
-    const requirements = prompt
-      .split(/[.!?]/)
-      .filter((s) => s.trim().length > 0);
-    const questionCount = (prompt.match(/\?/g) || []).length;
-    const andCount = (prompt.match(/\band\b/gi) || []).length;
-
-    // Base agent count on complexity indicators
-    const agentCount = Math.min(
-      Math.max(1, Math.floor(requirements.length / 2)),
-      Math.max(1, questionCount),
-      Math.max(1, andCount),
-    );
-
-    // Cap at 3 agents for optimal performance
-    return Math.min(agentCount, 3);
-  }
 }

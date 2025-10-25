@@ -11,9 +11,10 @@ import {
   Config,
   createCodeAssistContentGenerator,
   AuthType,
+  SubagentManager,
+  SubagentExecutor,
+  type Subagent,
 } from '@pk-code/core';
-
-import { createAgentOrchestrator, OrchestrationMode } from '@pk-code/core';
 
 /**
  * Handle the 'use' command to execute a specific agent with a query
@@ -101,12 +102,24 @@ export async function handleUseCommand(
       return null;
     }
 
-    // If no specific agent found, use automatic delegation based on query analysis
-    console.log('No specific agent requested. Using automatic delegation...');
+    // If no specific agent found, use default agent
+    console.log('No specific agent requested. Using default agent...');
 
-    // Create orchestrator for automatic agent selection
-    const orchestrator = createAgentOrchestrator(registry, async (_agent) => {
-      // Create content generator using the existing system
+    // Create subagent manager and executor
+    const subagentManager = new SubagentManager({ projectRoot });
+    await subagentManager.loadAll();
+
+    // Get default agent or first available
+    const defaultSubagent =
+      subagentManager.get('default') || subagentManager.getAll()[0];
+
+    if (!defaultSubagent) {
+      console.error('No agents available. Please configure at least one agent.');
+      return null;
+    }
+
+    // Create executor with content generator factory
+    const executor = new SubagentExecutor(async (_subagent: Subagent) => {
       const version = process.env.CLI_VERSION || process.version;
       const httpOptions = {
         headers: {
@@ -122,16 +135,18 @@ export async function handleUseCommand(
         AuthType.LOGIN_WITH_GOOGLE,
         config,
       );
-    });
+    }, config);
 
-    // Process query with automatic orchestration
-    const result = await orchestrator.processQuery(query, {
-      mode: OrchestrationMode.AUTO,
-    });
+    // Execute with default agent
+    const result = await executor.execute(defaultSubagent, query);
 
-    // Display the result
-    console.log('\n' + result.response.text);
-    return result.response.text;
+    if (result.success) {
+      console.log('\n' + result.response);
+      return result.response;
+    } else {
+      console.error('Execution failed:', result.error);
+      return null;
+    }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error(`Error executing agent "${agentName}":`, errorMessage);

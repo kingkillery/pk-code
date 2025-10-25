@@ -30,7 +30,7 @@ describe('NeuttsAirTool', () => {
   });
 
   it('should return synthesized audio data on success', async () => {
-    const mockFetch = global.fetch as unknown as vi.Mock;
+    const mockFetch = global.fetch as ReturnType<typeof vi.fn>;
 
     const audioResponse = {
       ok: true,
@@ -83,7 +83,7 @@ describe('NeuttsAirTool', () => {
   });
 
   it('should surface Hugging Face errors clearly', async () => {
-    const mockFetch = global.fetch as unknown as vi.Mock;
+    const mockFetch = global.fetch as ReturnType<typeof vi.fn>;
 
     const audioResponse = {
       ok: true,

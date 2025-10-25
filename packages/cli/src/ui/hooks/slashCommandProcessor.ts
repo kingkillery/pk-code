@@ -31,8 +31,6 @@ import {
   CommandProcessorResult,
   Command,
 } from '../types.js';
-import { promises as fs } from 'fs';
-import path from 'path';
 import { GIT_COMMIT_INFO } from '../../generated/git-commit.js';
 import { formatDuration, formatMemoryUsage } from '../utils/formatters.js';
 import { getCliVersion } from '../../utils/version.js';
@@ -1062,7 +1060,7 @@ export const useSlashCommandProcessor = (
                 });
               } else {
                 addMessage({
-                  type: MessageType.WARNING,
+                  type: MessageType.ERROR,
                   content: `⚠️  File not found: ${file}`,
                   timestamp: new Date(),
                 });

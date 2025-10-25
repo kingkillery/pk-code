@@ -81,5 +81,8 @@ export * from './providers/registry.js';
 export * from './providers/registry-service.js';
 export * from './providers/utils.js';
 
-// Export agent system
+// Export agent system (legacy - see subagents for simplified API)
 export * from './agents/index.js';
+
+// Export simplified subagent system (preferred)
+export * from './subagents/index.js';
