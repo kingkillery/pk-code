@@ -74,6 +74,18 @@ export interface Subagent {
 }
 
 /**
+ * Attachment provided to a subagent execution, typically for vision inputs.
+ */
+export interface SubagentAttachment {
+  /** Absolute or relative file system path to the attachment */
+  path: string;
+  /** Optional human-readable description for the attachment */
+  description?: string;
+  /** Optional explicit MIME type override */
+  mimeType?: string;
+}
+
+/**
  * Simple execution options (replacing complex OrchestrationOptions)
  */
 export interface SubagentExecutionOptions {
@@ -85,6 +97,10 @@ export interface SubagentExecutionOptions {
   temperature?: number;
   /** Override max tokens */
   maxTokens?: number;
+  /** Attachments (e.g., images) to include with the query */
+  attachments?: SubagentAttachment[];
+  /** Force routing to a vision-capable model when available */
+  forceVision?: boolean;
 }
 
 /**

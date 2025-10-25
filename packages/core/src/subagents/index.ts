@@ -37,14 +37,18 @@
 export { SubagentManager } from './subagent-manager.js';
 export { SubagentExecutor } from './subagent-executor.js';
 export { BUILTIN_AGENTS } from './builtin-agents.js';
+export { resolveSubagentOptions } from './preferences.js';
 
 export type {
   Subagent,
   SubagentConfig,
   SubagentTool,
   SubagentExample,
+  SubagentAttachment,
   SubagentExecutionOptions,
   SubagentExecutionResult,
   SubagentDiscoveryResult,
   SubagentLoadError,
 } from './types.js';
+
+export type { SubagentPreferences } from './preferences.js';

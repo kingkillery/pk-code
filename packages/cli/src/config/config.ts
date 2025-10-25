@@ -70,6 +70,12 @@ export interface CliArgs {
   // Use command properties
   agent?: string;
   query?: string;
+  timeout?: number;
+  temperature?: number;
+  maxTokens?: number;
+  tools?: string | string[] | undefined;
+  image?: string | string[] | undefined;
+  vision?: boolean;
   // Login command properties
   withApiKey?: boolean;
 }
@@ -278,6 +284,35 @@ export async function parseArguments(): Promise<CliArgs> {
             describe: 'The query to send to the agent',
             type: 'string',
             demandOption: true,
+          })
+          .option('timeout', {
+            type: 'number',
+            description: 'Override the execution timeout in milliseconds',
+          })
+          .option('temperature', {
+            type: 'number',
+            description:
+              'Override the model temperature for this execution (0-1)',
+          })
+          .option('max-tokens', {
+            type: 'number',
+            description: 'Override the maximum number of output tokens',
+          })
+          .option('tools', {
+            type: 'string',
+            description:
+              'Comma-separated list of tools to enable for this execution',
+          })
+          .option('image', {
+            type: 'array',
+            string: true,
+            description:
+              'Path to an image file to include in the query (repeat flag for multiple images)',
+          })
+          .option('vision', {
+            type: 'boolean',
+            description:
+              'Force routing to a vision-capable model if available for this execution',
           }),
     )
     .command('create-agent', 'Create a new agent interactively', () => {})
@@ -579,6 +614,7 @@ export async function loadCliConfig(
         ? settings.enableOpenAILogging
         : argv.openaiLogging) ?? false,
     sampling_params: settings.sampling_params,
+    subagentPreferences: settings.subagents,
   });
 }
 

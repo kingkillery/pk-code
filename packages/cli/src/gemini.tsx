@@ -37,6 +37,7 @@ import {
   logUserPrompt,
   AuthType,
   getOauthClient,
+  type SubagentExecutionOptions,
 } from '@pk-code/core';
 import { validateAuthMethod } from './config/auth.js';
 import { setMaxSizedBoxDebugging } from './ui/components/shared/MaxSizedBox.js';
@@ -282,7 +283,75 @@ export async function main() {
     // Initialize tools after authentication
     await config.initializeTools();
 
-    await handleUseCommand(agentName, query, config);
+    const overrides: SubagentExecutionOptions = {};
+    let hasOverride = false;
+
+    if (typeof argv.timeout === 'number' && Number.isFinite(argv.timeout)) {
+      overrides.timeout = argv.timeout;
+      hasOverride = true;
+    }
+
+    if (
+      typeof argv.temperature === 'number' &&
+      Number.isFinite(argv.temperature)
+    ) {
+      overrides.temperature = argv.temperature;
+      hasOverride = true;
+    }
+
+    if (
+      typeof argv.maxTokens === 'number' &&
+      Number.isFinite(argv.maxTokens)
+    ) {
+      overrides.maxTokens = argv.maxTokens;
+      hasOverride = true;
+    }
+
+    const toolsArg = Array.isArray(argv.tools)
+      ? argv.tools.join(',')
+      : argv.tools;
+    if (typeof toolsArg === 'string' && toolsArg.trim().length > 0) {
+      overrides.tools = toolsArg
+        .split(',')
+        .map((tool) => tool.trim())
+        .filter((tool) => tool.length > 0);
+      hasOverride = true;
+    }
+
+    const rawImageArgs = Array.isArray(argv.image)
+      ? (argv.image as Array<string | number>)
+      : typeof argv.image === 'string'
+        ? [argv.image]
+        : [];
+    const imagePaths = rawImageArgs
+      .flatMap((value) =>
+        typeof value === 'string'
+          ? value
+              .split(',')
+              .map((candidate) => candidate.trim())
+              .filter((candidate) => candidate.length > 0)
+          : [],
+      )
+      .filter((candidate, index, arr) => arr.indexOf(candidate) === index);
+
+    if (imagePaths.length > 0) {
+      overrides.attachments = imagePaths.map((imagePath) => ({
+        path: imagePath,
+      }));
+      hasOverride = true;
+    }
+
+    if (argv.vision === true) {
+      overrides.forceVision = true;
+      hasOverride = true;
+    }
+
+    await handleUseCommand(
+      agentName,
+      query,
+      config,
+      hasOverride ? overrides : undefined,
+    );
     process.exit(0);
   }
 

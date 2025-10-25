@@ -5,10 +5,20 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import fs from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
 import { SubagentExecutor, type ContentGeneratorFactory } from './subagent-executor.js';
 import type { Subagent } from './types.js';
-import type { ContentGenerator } from '../core/contentGenerator.js';
-import type { GenerateContentResponse } from '@google/genai';
+import type {
+  ContentGenerator,
+  MultimodalContentGenerator,
+} from '../core/contentGenerator.js';
+import type {
+  GenerateContentParameters,
+  GenerateContentResponse,
+  Part,
+} from '@google/genai';
 
 describe('SubagentExecutor', () => {
   let executor: SubagentExecutor;
@@ -166,6 +176,122 @@ describe('SubagentExecutor', () => {
 
       const result = await executor.execute(mockSubagent, 'Test');
       expect(result.response).toBe('Part 1Part 2');
+    });
+
+    it('should include attachments as inlineData parts', async () => {
+      const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'subagent-exec-'));
+      const imagePath = path.join(tempDir, 'screenshot.png');
+      const imageBuffer = Buffer.from('fake-image-data');
+      await fs.writeFile(imagePath, imageBuffer);
+
+      const mockResponse = {
+        candidates: [
+          {
+            content: {
+              parts: [{ text: 'Looks good' }],
+              role: 'model',
+            },
+            index: 0,
+          },
+        ],
+      } as GenerateContentResponse;
+
+      let capturedRequest: GenerateContentParameters | undefined;
+      vi.mocked(mockGenerator.generateContent).mockImplementation(
+        async (request) => {
+          capturedRequest = request;
+          return mockResponse as never;
+        },
+      );
+
+      try {
+        const result = await executor.execute(mockSubagent, 'Analyze image', {
+          attachments: [
+            {
+              path: imagePath,
+              description: 'Screenshot of failing UI',
+              mimeType: 'image/png',
+            },
+          ],
+        });
+
+        expect(result.success).toBe(true);
+        expect(capturedRequest).toBeDefined();
+
+        const contents = capturedRequest?.contents;
+        const firstContent =
+          Array.isArray(contents) && contents.length > 0
+            ? contents[0]
+            : undefined;
+        const parts =
+          firstContent && typeof firstContent === 'object' && 'parts' in firstContent
+            ? ((firstContent as { parts?: unknown }).parts as Part[] | undefined) ?? []
+            : [];
+        expect(parts).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              text: expect.stringContaining('Screenshot of failing UI'),
+            }),
+            expect.objectContaining({
+              inlineData: expect.objectContaining({
+                mimeType: 'image/png',
+                data: imageBuffer.toString('base64'),
+              }),
+            }),
+          ]),
+        );
+      } finally {
+        await fs.rm(tempDir, { recursive: true, force: true });
+      }
+    });
+
+    it('should route to vision generator when available and attachments provided', async () => {
+      const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'subagent-exec-vision-'));
+      const imagePath = path.join(tempDir, 'diagram.jpg');
+      await fs.writeFile(imagePath, Buffer.from('vision-data'));
+
+      const mockResponse = {
+        candidates: [
+          {
+            content: {
+              parts: [{ text: 'Vision response' }],
+              role: 'model',
+            },
+            index: 0,
+          },
+        ],
+      } as GenerateContentResponse;
+
+      const multimodalGenerator: MultimodalContentGenerator = {
+        generateContent: vi.fn(),
+        generateContentWithVision: vi
+          .fn()
+          .mockResolvedValue(mockResponse as never),
+        generateContentStream: vi.fn(),
+        countTokens: vi.fn(),
+        embedContent: vi.fn(),
+        isVisionCapable: vi.fn().mockReturnValue(true),
+        getVisionModel: vi.fn(),
+        getTextModel: vi.fn(),
+      } as unknown as MultimodalContentGenerator;
+
+      const multimodalFactory: ContentGeneratorFactory = vi
+        .fn()
+        .mockResolvedValue(multimodalGenerator as unknown as ContentGenerator);
+
+      const visionExecutor = new SubagentExecutor(multimodalFactory);
+
+      try {
+        const result = await visionExecutor.execute(mockSubagent, 'Explain diagram', {
+          attachments: [{ path: imagePath }],
+        });
+
+        expect(result.success).toBe(true);
+        expect(multimodalGenerator.generateContentWithVision).toHaveBeenCalledTimes(1);
+        expect(multimodalGenerator.generateContent).not.toHaveBeenCalled();
+      } finally {
+        await fs.rm(tempDir, { recursive: true, force: true });
+      }
     });
   });
 });

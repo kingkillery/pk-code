@@ -7,29 +7,60 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { handleUseCommand, parseUseCommandSyntax } from './use.js';
 import type {
-  ParsedAgent,
-  AgentRegistry,
   Config,
-  ContentGenerator,
+  Subagent,
+  SubagentExecutionOptions,
+  SubagentExecutionResult,
 } from '@pk-code/core';
+import { AuthType } from '@pk-code/core';
 
-// Mock the core modules
+const loadAllMock = vi.fn();
+const getMock = vi.fn();
+const getAllMock = vi.fn();
+const findMock = vi.fn();
+const executorExecuteMock = vi.fn();
+const createCodeAssistContentGeneratorMock = vi.fn();
+
+let lastFactory:
+  | ((subagent: Subagent) => Promise<unknown>)
+  | null = null;
+
 vi.mock('@pk-code/core', async (importOriginal) => {
   const actual = await importOriginal();
+
+  class MockSubagentManager {
+    loadAll = loadAllMock;
+    get = getMock;
+    getAll = getAllMock;
+    find = findMock;
+  }
+
+  class MockSubagentExecutor {
+    constructor(factory: (subagent: Subagent) => Promise<unknown>) {
+      lastFactory = factory;
+    }
+
+    execute = executorExecuteMock;
+  }
+
   return {
     ...actual,
-    getGlobalAgentRegistry: vi.fn(),
-    initializeGlobalAgentRegistry: vi.fn(),
-    createCodeAssistContentGenerator: vi.fn(),
+    SubagentManager: vi
+      .fn()
+      .mockImplementation(() => new MockSubagentManager()),
+    SubagentExecutor: vi
+      .fn()
+      .mockImplementation((factory, _config) => new MockSubagentExecutor(factory)),
+    createCodeAssistContentGenerator: createCodeAssistContentGeneratorMock,
   };
 });
 
-const mockAgent: ParsedAgent = {
+const mockSubagent: Subagent = {
   config: {
     name: 'test-agent',
     description: 'A test agent for unit testing',
     keywords: ['test', 'unit', 'testing'],
-    tools: [],
+    tools: [{ name: 'read' }],
     model: 'gemini-1.5-pro',
     provider: 'gemini',
     examples: [],
@@ -39,23 +70,22 @@ const mockAgent: ParsedAgent = {
   },
   filePath: '/test/agents/test-agent.md',
   source: 'project',
-  content: 'Test agent content',
   lastModified: new Date(),
 };
 
-const mockRegistry: Partial<AgentRegistry> = {
-  getAgent: vi.fn(),
-  getAgents: vi.fn(),
-  searchAgents: vi.fn(),
+const defaultDiscovery = {
+  subagents: [mockSubagent],
+  errors: [],
+  filesProcessed: 1,
 };
 
-const mockConfig: Partial<Config> = {
-  getContentGeneratorConfig: vi.fn(),
-};
-
-const mockContentGenerator: Partial<ContentGenerator> = {
-  generateContent: vi.fn(),
-};
+const createMockConfig = (): Partial<Config> => ({
+  getProjectRoot: vi.fn(() => '/workspace'),
+  getDebugMode: vi.fn(() => false),
+  getDefaultSubagentName: vi.fn(() => undefined),
+  getSubagentExecutionOptions: vi.fn(() => undefined),
+  getAuthType: vi.fn(() => AuthType.LOGIN_WITH_GOOGLE),
+});
 
 describe('parseUseCommandSyntax', () => {
   it('should parse colon syntax with double quotes', () => {
@@ -124,339 +154,293 @@ describe('handleUseCommand', () => {
   beforeEach(() => {
     vi.resetAllMocks();
 
-    // Mock console methods
     vi.spyOn(console, 'log').mockImplementation(() => {});
     vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    loadAllMock.mockResolvedValue(defaultDiscovery);
+    getMock.mockImplementation((name: string) =>
+      name === 'test-agent' ? mockSubagent : undefined,
+    );
+    getAllMock.mockReturnValue([mockSubagent]);
+    findMock.mockReturnValue([]);
+    createCodeAssistContentGeneratorMock.mockReset();
+    createCodeAssistContentGeneratorMock.mockResolvedValue({});
+    executorExecuteMock.mockReset();
+    lastFactory = null;
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
-  it('should successfully execute an agent when found', async () => {
-    // Arrange
-    const { getGlobalAgentRegistry, createCodeAssistContentGenerator } =
-      await import('@pk-code/core');
+  it('should successfully execute a subagent when found', async () => {
+    const mockResult: SubagentExecutionResult = {
+      query: 'Fix the bug',
+      subagentName: 'test-agent',
+      response: 'Agent response: I have fixed the bug!',
+      duration: 1200,
+      success: true,
+    };
 
-    (getGlobalAgentRegistry as ReturnType<typeof vi.fn>).mockReturnValue(
-      mockRegistry,
-    );
-    (mockRegistry.getAgent as ReturnType<typeof vi.fn>).mockReturnValue(
-      mockAgent,
-    );
-    (
-      createCodeAssistContentGenerator as ReturnType<typeof vi.fn>
-    ).mockResolvedValue(mockContentGenerator);
-    (
-      mockConfig.getContentGeneratorConfig as ReturnType<typeof vi.fn>
-    ).mockReturnValue({});
-    (
-      mockContentGenerator.generateContent as ReturnType<typeof vi.fn>
-    ).mockResolvedValue({
-      candidates: [
-        {
-          content: {
-            parts: [{ text: 'Agent response: I have fixed the bug!' }],
-          },
-        },
-      ],
+    executorExecuteMock.mockImplementation(async (subagent, _query, _options) => {
+      if (lastFactory) {
+        await lastFactory(subagent);
+      }
+      return mockResult;
     });
 
-    // Act
     const result = await handleUseCommand(
       'test-agent',
       'Fix the bug',
-      mockConfig as Config,
+      createMockConfig() as Config,
     );
 
-    // Assert
-    expect(result).toBe('Agent response: I have fixed the bug!');
-    expect(mockRegistry.getAgent).toHaveBeenCalledWith('test-agent');
-    expect(console.log).toHaveBeenCalledWith(
-      'Executing agent "test-agent": A test agent for unit testing',
-    );
-    expect(console.log).toHaveBeenCalledWith(
-      '\nAgent response: I have fixed the bug!',
-    );
-  });
-
-  it('should handle agent not found', async () => {
-    // Arrange
-    const { getGlobalAgentRegistry } = await import('@pk-code/core');
-
-    (getGlobalAgentRegistry as ReturnType<typeof vi.fn>).mockReturnValue(
-      mockRegistry,
-    );
-    (mockRegistry.getAgent as ReturnType<typeof vi.fn>).mockReturnValue(
+    expect(result).toBe(mockResult.response);
+    expect(executorExecuteMock).toHaveBeenCalledWith(
+      mockSubagent,
+      'Fix the bug',
       undefined,
     );
-    (mockRegistry.searchAgents as ReturnType<typeof vi.fn>).mockReturnValue([]);
-    (mockRegistry.getAgents as ReturnType<typeof vi.fn>).mockReturnValue([]);
+    expect(createCodeAssistContentGeneratorMock).toHaveBeenCalled();
+  });
 
-    // Act
+  it('should fall back to default agent when requested agent is missing', async () => {
+    getMock.mockImplementation((name: string) =>
+      name === 'default' ? mockSubagent : undefined,
+    );
+
+    executorExecuteMock.mockImplementation(async (subagent, _query, _options) => {
+      if (lastFactory) {
+        await lastFactory(subagent);
+      }
+      return {
+        query: 'Do something',
+        subagentName: subagent.config.name,
+        response: 'Default agent response',
+        duration: 400,
+        success: true,
+      } satisfies SubagentExecutionResult;
+    });
+
+    const config = createMockConfig();
+    config.getDefaultSubagentName = vi.fn(() => 'default');
+
     const result = await handleUseCommand(
-      'nonexistent-agent',
+      'missing-agent',
       'Do something',
-      mockConfig as Config,
+      config as Config,
     );
 
-    // Assert
-    expect(result).toBeNull();
-    expect(console.error).toHaveBeenCalledWith(
-      'Agent "nonexistent-agent" not found.',
-    );
-    expect(console.error).toHaveBeenCalledWith('Available agents:');
-    expect(console.error).toHaveBeenCalledWith(
-      '  No agents available. Check your .pk/agents directory.',
+    expect(result).toBe('Default agent response');
+    expect(console.log).toHaveBeenCalledWith(
+      'No specific agent requested. Using default agent...',
     );
   });
 
-  it('should suggest similar agents when agent not found', async () => {
-    // Arrange
-    const { getGlobalAgentRegistry } = await import('@pk-code/core');
-
-    const similarAgent1 = {
-      ...mockAgent,
-      config: { ...mockAgent.config, name: 'test-helper' },
+  it('should suggest similar subagents when multiple matches are found', async () => {
+    const similarAgent1: Subagent = {
+      ...mockSubagent,
+      config: { ...mockSubagent.config, name: 'test-helper' },
     };
-    const similarAgent2 = {
-      ...mockAgent,
-      config: { ...mockAgent.config, name: 'test-assistant' },
+    const similarAgent2: Subagent = {
+      ...mockSubagent,
+      config: { ...mockSubagent.config, name: 'test-assistant' },
     };
 
-    (getGlobalAgentRegistry as ReturnType<typeof vi.fn>).mockReturnValue(
-      mockRegistry,
-    );
-    (mockRegistry.getAgent as ReturnType<typeof vi.fn>).mockReturnValue(
-      undefined,
-    );
-    (mockRegistry.searchAgents as ReturnType<typeof vi.fn>).mockReturnValue([
-      similarAgent1,
-      similarAgent2,
-    ]); // Multiple matches to trigger suggestions
+    getMock.mockReturnValue(undefined);
+    findMock.mockReturnValue([similarAgent1, similarAgent2]);
 
-    // Act
     const result = await handleUseCommand(
       'test',
       'Do something',
-      mockConfig as Config,
+      createMockConfig() as Config,
     );
 
-    // Assert
     expect(result).toBeNull();
     expect(console.error).toHaveBeenCalledWith(
       'Agent "test" not found. Did you mean one of these?',
     );
-    expect(console.error).toHaveBeenCalledWith(
-      '  - test-helper: A test agent for unit testing',
-    );
   });
 
-  it('should use similar agent when only one match found', async () => {
-    // Arrange
-    const { getGlobalAgentRegistry, createCodeAssistContentGenerator } =
-      await import('@pk-code/core');
-
-    const similarAgent = {
-      ...mockAgent,
-      config: { ...mockAgent.config, name: 'test-helper' },
+  it('should use similar subagent when only one match is found', async () => {
+    const similarAgent: Subagent = {
+      ...mockSubagent,
+      config: { ...mockSubagent.config, name: 'test-helper' },
     };
 
-    (getGlobalAgentRegistry as ReturnType<typeof vi.fn>).mockReturnValue(
-      mockRegistry,
-    );
-    (mockRegistry.getAgent as ReturnType<typeof vi.fn>).mockReturnValue(
-      undefined,
-    );
-    (mockRegistry.searchAgents as ReturnType<typeof vi.fn>).mockReturnValue([
-      similarAgent,
-    ]);
-    (
-      createCodeAssistContentGenerator as ReturnType<typeof vi.fn>
-    ).mockResolvedValue(mockContentGenerator);
-    (
-      mockConfig.getContentGeneratorConfig as ReturnType<typeof vi.fn>
-    ).mockReturnValue({});
-    (
-      mockContentGenerator.generateContent as ReturnType<typeof vi.fn>
-    ).mockResolvedValue({
-      candidates: [
-        {
-          content: {
-            parts: [{ text: 'Helper response!' }],
-          },
-        },
-      ],
+    getMock.mockReturnValue(undefined);
+    findMock.mockReturnValue([similarAgent]);
+
+    executorExecuteMock.mockImplementation(async (subagent, _query, _options) => {
+      if (lastFactory) {
+        await lastFactory(subagent);
+      }
+      return {
+        query: 'Do something',
+        subagentName: subagent.config.name,
+        response: 'Helper response!',
+        duration: 400,
+        success: true,
+      } satisfies SubagentExecutionResult;
     });
 
-    // Act
     const result = await handleUseCommand(
       'test',
       'Do something',
-      mockConfig as Config,
+      createMockConfig() as Config,
     );
 
-    // Assert
     expect(result).toBe('Helper response!');
     expect(console.log).toHaveBeenCalledWith(
       'Using similar agent "test-helper" instead of "test"',
     );
   });
 
-  it('should handle content generation errors', async () => {
-    // Arrange
-    const { getGlobalAgentRegistry, createCodeAssistContentGenerator } =
-      await import('@pk-code/core');
+  it('should report execution failures', async () => {
+    executorExecuteMock.mockImplementation(async (subagent, _query, _options) => {
+      if (lastFactory) {
+        await lastFactory(subagent);
+      }
+      return {
+        query: 'Fix the bug',
+        subagentName: subagent.config.name,
+        response: '',
+        duration: 800,
+        success: false,
+        error: 'Execution failed',
+      } satisfies SubagentExecutionResult;
+    });
 
-    (getGlobalAgentRegistry as ReturnType<typeof vi.fn>).mockReturnValue(
-      mockRegistry,
-    );
-    (mockRegistry.getAgent as ReturnType<typeof vi.fn>).mockReturnValue(
-      mockAgent,
-    );
-    (
-      createCodeAssistContentGenerator as ReturnType<typeof vi.fn>
-    ).mockResolvedValue(mockContentGenerator);
-    (
-      mockConfig.getContentGeneratorConfig as ReturnType<typeof vi.fn>
-    ).mockReturnValue({});
-    (
-      mockContentGenerator.generateContent as ReturnType<typeof vi.fn>
-    ).mockRejectedValue(new Error('Generation failed'));
-
-    // Act
     const result = await handleUseCommand(
       'test-agent',
       'Fix the bug',
-      mockConfig as Config,
+      createMockConfig() as Config,
     );
 
-    // Assert
     expect(result).toBeNull();
     expect(console.error).toHaveBeenCalledWith(
-      'Error during agent execution:',
-      'Generation failed',
+      'Execution failed:',
+      'Execution failed',
     );
   });
 
-  it('should handle empty response content', async () => {
-    // Arrange
-    const { getGlobalAgentRegistry, createCodeAssistContentGenerator } =
-      await import('@pk-code/core');
+  it('should merge config preferences with override options', async () => {
+    const baseOptions: SubagentExecutionOptions = {
+      timeout: 120000,
+      temperature: 0.2,
+    };
 
-    (getGlobalAgentRegistry as ReturnType<typeof vi.fn>).mockReturnValue(
-      mockRegistry,
+    executorExecuteMock.mockImplementation(async (subagent, _query, _options) => {
+      if (lastFactory) {
+        await lastFactory(subagent);
+      }
+      return {
+        query: 'Fix the bug',
+        subagentName: subagent.config.name,
+        response: 'Merged response',
+        duration: 900,
+        success: true,
+      } satisfies SubagentExecutionResult;
+    });
+
+    const config = createMockConfig();
+    config.getSubagentExecutionOptions = vi.fn(() => baseOptions);
+
+    const overrides: SubagentExecutionOptions = {
+      temperature: 0.9,
+      maxTokens: 4096,
+    };
+
+    const result = await handleUseCommand(
+      'test-agent',
+      'Fix the bug',
+      config as Config,
+      overrides,
     );
-    (mockRegistry.getAgent as ReturnType<typeof vi.fn>).mockReturnValue(
-      mockAgent,
+
+    expect(result).toBe('Merged response');
+    expect(executorExecuteMock).toHaveBeenCalledWith(
+      mockSubagent,
+      'Fix the bug',
+      {
+        timeout: 120000,
+        temperature: 0.9,
+        maxTokens: 4096,
+      },
     );
-    (
-      createCodeAssistContentGenerator as ReturnType<typeof vi.fn>
-    ).mockResolvedValue(mockContentGenerator);
-    (
-      mockConfig.getContentGeneratorConfig as ReturnType<typeof vi.fn>
-    ).mockReturnValue({});
-    (
-      mockContentGenerator.generateContent as ReturnType<typeof vi.fn>
-    ).mockResolvedValue({
-      candidates: [
+  });
+
+  it('should pass attachments and forceVision overrides to executor', async () => {
+    executorExecuteMock.mockImplementation(async (subagent, _query, _options) => {
+      if (lastFactory) {
+        await lastFactory(subagent);
+      }
+      return {
+        query: 'Analyze screenshot',
+        subagentName: subagent.config.name,
+        response: 'Detailed vision analysis',
+        duration: 1500,
+        success: true,
+      } satisfies SubagentExecutionResult;
+    });
+
+    const overrides: SubagentExecutionOptions = {
+      attachments: [
         {
-          content: {
-            parts: [{ text: '' }],
-          },
+          path: './artifacts/screenshot.png',
+          description: 'UI screenshot',
         },
       ],
-    });
+      forceVision: true,
+    };
 
-    // Act
     const result = await handleUseCommand(
       'test-agent',
-      'Fix the bug',
-      mockConfig as Config,
+      'Analyze screenshot',
+      createMockConfig() as Config,
+      overrides,
     );
 
-    // Assert
-    expect(result).toBeNull();
-    expect(console.error).toHaveBeenCalledWith(
-      'No response content received from agent',
+    expect(result).toBe('Detailed vision analysis');
+    expect(console.log).toHaveBeenCalledWith(
+      expect.stringContaining('Attachments included: UI screenshot'),
+    );
+    expect(executorExecuteMock).toHaveBeenCalledWith(
+      mockSubagent,
+      'Analyze screenshot',
+      overrides,
     );
   });
 
-  it('should handle registry initialization if not already initialized', async () => {
-    // Arrange
-    const {
-      getGlobalAgentRegistry,
-      initializeGlobalAgentRegistry,
-      createCodeAssistContentGenerator,
-    } = await import('@pk-code/core');
+  it('should short-circuit in dry-run mode without loading agents', async () => {
+    process.env.PK_DRY_RUN = 'true';
 
-    (getGlobalAgentRegistry as ReturnType<typeof vi.fn>)
-      .mockImplementationOnce(() => {
-        throw new Error('Registry not initialized');
-      })
-      .mockReturnValue(mockRegistry);
-    (
-      initializeGlobalAgentRegistry as ReturnType<typeof vi.fn>
-    ).mockResolvedValue({
-      agents: [],
-      errors: [],
-      filesProcessed: 0,
-    });
-    (mockRegistry.getAgent as ReturnType<typeof vi.fn>).mockReturnValue(
-      mockAgent,
-    );
-    (
-      createCodeAssistContentGenerator as ReturnType<typeof vi.fn>
-    ).mockResolvedValue(mockContentGenerator);
-    (
-      mockConfig.getContentGeneratorConfig as ReturnType<typeof vi.fn>
-    ).mockReturnValue({});
-    (
-      mockContentGenerator.generateContent as ReturnType<typeof vi.fn>
-    ).mockResolvedValue({
-      candidates: [
-        {
-          content: {
-            parts: [{ text: 'Response after initialization' }],
-          },
-        },
-      ],
-    });
-
-    // Act
     const result = await handleUseCommand(
       'test-agent',
-      'Fix the bug',
-      mockConfig as Config,
+      'Dry run query',
+      createMockConfig() as Config,
     );
 
-    // Assert
-    expect(result).toBe('Response after initialization');
-    expect(initializeGlobalAgentRegistry).toHaveBeenCalledWith(process.cwd(), {
-      includeGlobal: true,
-      validateSchema: true,
-    });
+    expect(result).toContain('DRY-RUN for pk use');
+    expect(loadAllMock).not.toHaveBeenCalled();
+    expect(executorExecuteMock).not.toHaveBeenCalled();
+
+    delete process.env.PK_DRY_RUN;
   });
 
-  it('should handle missing config parameter', async () => {
-    // Arrange
-    const { getGlobalAgentRegistry } = await import('@pk-code/core');
+  it('should handle missing agents gracefully', async () => {
+    getMock.mockReturnValue(undefined);
+    getAllMock.mockReturnValue([]);
 
-    (getGlobalAgentRegistry as ReturnType<typeof vi.fn>).mockReturnValue(
-      mockRegistry,
+    const result = await handleUseCommand(
+      'nonexistent',
+      'Do something',
+      createMockConfig() as Config,
     );
-    (mockRegistry.getAgent as ReturnType<typeof vi.fn>).mockReturnValue(
-      mockAgent,
-    );
 
-    // Act
-    const result = await handleUseCommand('test-agent', 'Fix the bug');
-
-    // Assert
     expect(result).toBeNull();
     expect(console.error).toHaveBeenCalledWith(
-      'Error during agent execution:',
-      'Config required for content generation',
+      'No agents available. Please configure at least one agent.',
     );
   });
 });

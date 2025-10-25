@@ -51,6 +51,11 @@ import {
   DEFAULT_GEMINI_FLASH_MODEL,
 } from './models.js';
 import { ClearcutLogger } from '../telemetry/clearcut-logger/clearcut-logger.js';
+import type { SubagentExecutionOptions } from '../subagents/types.js';
+import {
+  resolveSubagentOptions,
+  type SubagentPreferences,
+} from '../subagents/preferences.js';
 
 export enum ApprovalMode {
   DEFAULT = 'default',
@@ -164,6 +169,7 @@ export interface ConfigParameters {
   compressionTokenThreshold?: number;
   compressionPreserveThreshold?: number;
   maxTurns?: number;
+  subagentPreferences?: SubagentPreferences;
 }
 
 export class Config {
@@ -223,6 +229,7 @@ export class Config {
   private readonly _activeExtensions: ActiveExtension[];
   flashFallbackHandler?: FlashFallbackHandler;
   private quotaErrorOccurred: boolean = false;
+  private readonly subagentPreferences?: SubagentPreferences;
 
   constructor(params: ConfigParameters) {
     this.sessionId = params.sessionId;
@@ -291,6 +298,7 @@ export class Config {
     this.compressionPreserveThreshold =
       params.compressionPreserveThreshold ?? 0.3;
     this.maxTurns = params.maxTurns ?? 100;
+    this.subagentPreferences = params.subagentPreferences;
 
     if (params.contextFileName) {
       setGeminiMdFilename(params.contextFileName);
@@ -580,6 +588,20 @@ export class Config {
 
   getIdeMode(): boolean {
     return this.ideMode;
+  }
+
+  getSubagentPreferences(): SubagentPreferences | undefined {
+    return this.subagentPreferences;
+  }
+
+  getDefaultSubagentName(): string | undefined {
+    return this.subagentPreferences?.defaultAgent;
+  }
+
+  getSubagentExecutionOptions(
+    subagentName?: string,
+  ): SubagentExecutionOptions | undefined {
+    return resolveSubagentOptions(this.subagentPreferences, subagentName);
   }
 
   async getGitService(): Promise<GitService> {

@@ -15,6 +15,7 @@ import {
   BugCommandSettings,
   TelemetrySettings,
   AuthType,
+  SubagentExecutionOptions,
 } from '@pk-code/core';
 import stripJsonComments from 'strip-json-comments';
 import { DefaultLight } from '../ui/themes/default-light.js';
@@ -48,6 +49,12 @@ export interface CheckpointingSettings {
 
 export interface AccessibilitySettings {
   disableLoadingPhrases?: boolean;
+}
+
+export interface SubagentSettingsConfig {
+  defaultAgent?: string;
+  defaultOptions?: SubagentExecutionOptions;
+  agentOverrides?: Record<string, SubagentExecutionOptions>;
 }
 
 export interface Settings {
@@ -96,6 +103,8 @@ export interface Settings {
     temperature?: number;
     max_tokens?: number;
   };
+
+  subagents?: SubagentSettingsConfig;
 
   // Add other settings here.
   ideMode?: boolean;

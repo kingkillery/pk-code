@@ -16,6 +16,7 @@
  */
 
 import type { ContentGenerator } from '../core/contentGenerator.js';
+import type { ParsedAgent } from '../agents/types.js';
 import {
   SubagentManager,
   SubagentExecutor,
@@ -169,9 +170,9 @@ export class OrchestrationCompatibilityAdapter {
         name: parsedAgent.config.name,
         description: parsedAgent.config.description,
         keywords: parsedAgent.config.keywords,
-        tools: parsedAgent.config.tools.map((t) => ({
-          name: t.name,
-          description: t.description,
+        tools: parsedAgent.config.tools.map((tool) => ({
+          name: tool.name,
+          description: tool.description,
         })),
         model: parsedAgent.config.model,
         provider: parsedAgent.config.provider,
