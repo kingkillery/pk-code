@@ -6,6 +6,8 @@
 
 import { BaseTool, ToolResult } from './tools.js';
 import { Type } from '@google/genai';
+import { Buffer } from 'buffer';
+import { URL } from 'url';
 
 export interface NeuttsAirParams {
   /**
