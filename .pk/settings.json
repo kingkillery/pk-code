@@ -1,3 +1,7 @@
 {
-  "mcpServers": {}
+  "mcpServers": {
+    "custom-skills": {
+      "url": "https://customer-skills-http.fly.dev/mcp"
+    }
+  }
 }
