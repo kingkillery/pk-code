@@ -1,7 +1,12 @@
 {
   "mcpServers": {
     "custom-skills": {
-      "url": "https://customer-skills-http.fly.dev/mcp"
+      "url": "https://customer-skills-http.fly.dev/mcp",
+      "timeout": 15000,
+      "headers": {
+        "Content-Type": "application/json",
+        "Accept": "text/event-stream"
+      }
     }
   }
 }
