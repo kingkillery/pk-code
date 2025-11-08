@@ -1,0 +1,1 @@
+{"mcpServers": {"example-http-server": {"httpUrl": "http://localhost:8080/mcp", "timeout": 600000, "trust": false, "description": "Example HTTP MCP server - replace with your actual server URL"}}}
