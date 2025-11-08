@@ -1,6 +1,6 @@
 {
   "name": "pk-code-cli",
-  "version": "0.0.15",
+  "version": "0.0.16",
   "description": "PK Code — a developer-first AI coding CLI to generate, edit, and review code from your terminal. Includes an interactive TUI, repo-aware context, and sensible defaults for daily workflows.",
   "keywords": [
     "ai",
