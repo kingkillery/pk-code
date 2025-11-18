@@ -18,6 +18,7 @@ import { BrowserUseTool } from './browser-use-tool.js';
 import { FlowPkTool } from './flowpk-tool.js';
 import { NeuttsAirTool } from './neutts-air-tool.js';
 import { TodoToolWrapper } from './todo-tool-wrapper.js';
+import { ProjectAnalyzerTool } from './project-analyzer.js';
 
 type ToolParams = Record<string, unknown>;
 
@@ -163,6 +164,9 @@ export class ToolRegistry {
 
     // Register NeuTTS Air speech synthesis tool
     this.registerTool(new NeuttsAirTool());
+
+    // Register the Project Analyzer to provide architectural overviews
+    this.registerTool(new ProjectAnalyzerTool(this.config));
   }
 
   /**
